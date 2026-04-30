@@ -32,6 +32,10 @@
       url = "github:toqoz/sence";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    gws = {
+      url = "github:googleworkspace/cli";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     android-nixpkgs = {
       url = "github:tadfisher/android-nixpkgs/stable";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -49,6 +53,7 @@
       anthropic-skills,
       vercel-agent-browser,
       sence,
+      gws,
       android-nixpkgs,
       ...
     }:
@@ -182,6 +187,7 @@
               inherit anthropic-skills;
               inherit vercel-agent-browser;
               inherit sence;
+              inherit gws;
             };
             home-manager.users."toqoz" = ./home/home.nix;
           }
