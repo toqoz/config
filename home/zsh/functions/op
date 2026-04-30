@@ -1,0 +1,34 @@
+emulate -L zsh
+
+# USAGE: op [<op args>...]
+#
+# Wrapper around the real 1Password CLI (`op`) that injects a Service
+# Account token from macOS Keychain only when needed.
+#
+# Token resolution order:
+#   1. If $OP_SERVICE_ACCOUNT_TOKEN is already set, exec real op as-is.
+#   2. Else, read token from Keychain (service=1password-cli,
+#      account=service-account-token). If found, scope it to this
+#      single invocation and exec.
+#   3. Else, exec real op without env (interactive Touch ID / desktop
+#      integration path stays usable).
+#
+# One-time setup (run by hand, NOT via nix):
+#   security add-generic-password -U \
+#     -s 1password-cli -a service-account-token -w
+#   # paste the ops_... token at the prompt
+
+if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]]; then
+  command op "$@"
+  return
+fi
+
+local token
+token=$(security find-generic-password \
+  -s 1password-cli -a service-account-token -w 2>/dev/null) || token=""
+
+if [[ -n "$token" ]]; then
+  OP_SERVICE_ACCOUNT_TOKEN="$token" command op "$@"
+else
+  command op "$@"
+fi
