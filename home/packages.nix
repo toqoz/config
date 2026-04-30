@@ -20,6 +20,7 @@
     fd
     bun
     deno
+    mariadb.client
     # nixpkgs ships an older git-wt (0.17.0). The 0.27.0 release added --json
     # output and a deletehook config, both of which the `git-worktrees` skill
     # benefits from. Once nixpkgs catches up to >= 0.27.0, delete this
