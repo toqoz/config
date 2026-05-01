@@ -247,15 +247,16 @@ test('sence-style argv: monitor flags pass through, --settings is rewritten', ()
   assert.ok(writes.some((w) => w.endsWith('/.git')), JSON.stringify(writes));
 });
 
-test('non-git directory fails with explicit message', () => {
+test('non-git directory: only `.` is seeded, no git paths injected', () => {
   const ws = makeWorkspace();
   const stub = makeStub(ws);
   const nongit = join(ws, 'plain');
   mkdirSync(nongit);
 
   const r = runFence({ cwd: nongit, args: ['--', 'true'], stub });
-  assert.notEqual(r.status, 0);
-  assert.match(r.stderr, /not inside a git work tree/);
+  assert.equal(r.status, 0, `stderr=${r.stderr}`);
+  const writes: string[] = r.config.filesystem.allowWrite;
+  assert.deepEqual(writes, ['.'], JSON.stringify(writes));
 });
 
 test('missing value for --settings fails with helpful message', () => {

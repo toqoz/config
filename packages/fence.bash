@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 # Wrap `fence` so any caller — interactive shell, scripts, or compiled
-# binaries (e.g. `sence`) — gets worktree-aware allowWrite paths injected
-# into the fence policy. In a worktree, --git-dir and --git-common-dir
-# point outside the worktree's CWD; templates like `code` scope writes to
-# the workspace tree and therefore can't reach those paths, so ordinary
-# git operations (commit, branch, fetch) fail under fence.
+# binaries (e.g. `sence`) — gets the workspace allowWrite paths injected
+# into the fence policy. The wrapper always seeds '.', and when the CWD
+# is inside a git work tree it additionally seeds --git-dir and
+# --git-common-dir; in a worktree those point outside the worktree's
+# CWD and templates like `code` scope writes to the workspace tree, so
+# ordinary git operations (commit, branch, fetch) would otherwise fail
+# under fence. Outside any git repo the wrapper still works — only '.'
+# is seeded.
 #
 # This wrapper aligns with fence's real CLI rather than wrapping it. It
 # only inspects two flags:
 #
 #   --settings <path>   Existing fence settings file. The wrapper reads
-#                       it, appends '.', git-dir and common-dir to
+#                       it, appends the seed paths to
 #                       .filesystem.allowWrite (deduped), writes a tmp
 #                       file, and substitutes that path in the call.
 #   --template <name>   Used as the `extends:` target when the wrapper
@@ -55,26 +58,29 @@ while (( $# )); do
   esac
 done
 
-git rev-parse --git-dir >/dev/null 2>&1 || die "not inside a git work tree"
-git_dir=$(cd "$(git rev-parse --git-dir)" && pwd)
-common_dir=$(cd "$(git rev-parse --git-common-dir)" && pwd)
+seeds=(".")
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  seeds+=(
+    "$(cd "$(git rev-parse --git-dir)" && pwd)"
+    "$(cd "$(git rev-parse --git-common-dir)" && pwd)"
+  )
+fi
+seeds_json=$(printf '%s\n' "${seeds[@]}" | jq -R . | jq -sc .)
 
 tmp=$(mktemp); trap 'rm -f "$tmp"' EXIT
 
 if $have_settings; then
   [[ -r $settings_in ]] || die "settings file not readable: $settings_in"
   jq \
-    --arg gd "$git_dir" \
-    --arg cd_ "$common_dir" \
+    --argjson seeds "$seeds_json" \
     '.filesystem //= {}
-     | .filesystem.allowWrite = (((.filesystem.allowWrite // []) + [".", $gd, $cd_]) | unique)' \
+     | .filesystem.allowWrite = (((.filesystem.allowWrite // []) + $seeds) | unique)' \
     "$settings_in" > "$tmp"
 else
   jq -nc \
     --arg t "$template" \
-    --arg gd "$git_dir" \
-    --arg cd_ "$common_dir" \
-    '{extends: $t, filesystem: {allowWrite: ([".", $gd, $cd_] | unique)}}' \
+    --argjson seeds "$seeds_json" \
+    '{extends: $t, filesystem: {allowWrite: ($seeds | unique)}}' \
     > "$tmp"
 fi
 
