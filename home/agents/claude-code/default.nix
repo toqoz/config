@@ -16,6 +16,42 @@ in
       ~/src/github.com/ToQoz/config/home/agents/skills/
   '';
 
+  # Enforce claude-code user-state toggles that are NOT part of the
+  # `programs.claude-code.settings` schema (which renders the
+  # nix-managed ~/.claude/settings.json). These flags live in
+  # ~/.claude.json — a mutable file Claude Code rewrites freely — so
+  # we merge them in via an activation hook on every switch. jq's `+`
+  # preserves every other key Claude has written there. Re-runs are
+  # idempotent.
+  #
+  # prStatusFooterEnabled = false:
+  #   The "PR #<n>" footer next to the auto-mode indicator polls
+  #   GitHub every 60 s by spawning `gh api ...` per active session.
+  #   Inside the sence/fence sandbox this surfaces as a steady stream
+  #   of network-outbound denials in fence:logstream and a constant
+  #   gh exec churn even while idle. The display itself isn't useful
+  #   to me, so we turn it off at the source.
+  home.activation.mergeClaudeUserState =
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      export PATH="${lib.makeBinPath [ pkgs.jq ]}:$PATH"
+
+      state="$HOME/.claude.json"
+
+      umask 077
+      tmp=$(mktemp "$state.XXXXXX")
+      trap 'rm -f "$tmp"' EXIT
+
+      if [ -e "$state" ]; then
+        jq '. + {prStatusFooterEnabled: false}' "$state" > "$tmp"
+      else
+        jq -n '{prStatusFooterEnabled: false}' > "$tmp"
+      fi
+
+      mv "$tmp" "$state"
+      chmod 600 "$state"
+      trap - EXIT
+    '';
+
   programs.claude-code = {
     enable = true;
     enableMcpIntegration = true;
