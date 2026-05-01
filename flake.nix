@@ -151,6 +151,21 @@
               #
               # 2. `direnv`'s test/direnv-test.zsh hangs in the sandbox.
               #
+              # 3. The nixpkgs build of zsh-5.9 (aarch64-darwin) hits a
+              #    SIGCHLD-delivery race in `getoutput → waitforpid →
+              #    signal_suspend → pause` that hangs roughly 1-in-3
+              #    `$(...)` / `<(...)` substitutions at startup, making
+              #    `zsh -i -c '...'` lock up at random. Apple's stock
+              #    `/bin/zsh` (also 5.9) does not exhibit this — measured
+              #    0/20 vs 14/20 hangs across identical rcs. Both are
+              #    zsh 5.9 but built with different patches/libs, so this
+              #    is specific to the nixpkgs derivation, not the zsh
+              #    upstream. Until the regression is tracked down, swap
+              #    only the binary while keeping the package's
+              #    share/zsh/* tree (completions, functions, helpers) so
+              #    the rest of the nix-darwin / Home Manager wiring
+              #    keeps working unchanged.
+              #
               # `python3Packages` is re-aliased explicitly because the
               # top-level alias in nixpkgs is frozen at the original
               # `python3.pkgs` and does NOT track this overlay —
@@ -159,6 +174,12 @@
               (final: prev: {
                 ffmpeg-full = prev.ffmpeg-headless;
                 direnv = prev.direnv.overrideAttrs (_: { doCheck = false; });
+                zsh = prev.zsh.overrideAttrs (old: {
+                  postFixup = (old.postFixup or "") + ''
+                    rm -f $out/bin/zsh
+                    ln -s /bin/zsh $out/bin/zsh
+                  '';
+                });
                 python3 = prev.python3.override {
                   packageOverrides = _: pyprev: {
                     markitdown = pyprev.markitdown.overridePythonAttrs (old:
