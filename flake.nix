@@ -149,9 +149,7 @@
               #    ffmpeg-full (kvazaar / chromaprint / libcdio-paranoia
               #    are not built into the headless variant).
               #
-              # 2. `direnv`'s test/direnv-test.zsh hangs in the sandbox.
-              #
-              # 3. The nixpkgs build of zsh-5.9 (aarch64-darwin) hits a
+              # 2. The nixpkgs build of zsh-5.9 (aarch64-darwin) hits a
               #    SIGCHLD-delivery race in `getoutput → waitforpid →
               #    signal_suspend → pause` that hangs roughly 1-in-3
               #    `$(...)` / `<(...)` substitutions at startup, making
@@ -173,7 +171,6 @@
               # otherwise silently fall back to the unpatched python.
               (final: prev: {
                 ffmpeg-full = prev.ffmpeg-headless;
-                direnv = prev.direnv.overrideAttrs (_: { doCheck = false; });
                 zsh = prev.zsh.overrideAttrs (old: {
                   postFixup = (old.postFixup or "") + ''
                     rm -f $out/bin/zsh
