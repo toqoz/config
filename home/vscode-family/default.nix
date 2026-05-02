@@ -3,7 +3,6 @@
   home.packages = with pkgs; [
     vscode
     code-cursor
-    zed-editor
   ];
 
   my.unfreePackages = [

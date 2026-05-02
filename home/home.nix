@@ -26,6 +26,7 @@
     ./vscode-family
     ./wezterm
     ./xdg-misc.nix
+    ./zed
     ./zsh
   ];
 
