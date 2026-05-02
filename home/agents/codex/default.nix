@@ -34,7 +34,7 @@ in
     enable = true;
     package = null;
 
-    context = ../claude-code/CLAUDE.md;
+    context = ../AGENTS.md;
 
     rules = {
       default = agentPolicy.codexRulesText;

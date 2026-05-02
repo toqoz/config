@@ -5,7 +5,6 @@ in
 {
   my.unfreePackages = [ "claude-code" ];
 
-  home.file.".claude/CLAUDE.md".source = ./CLAUDE.md;
   home.file.".claude/skills/README.md".text = ''
     # Generated directory — do not edit here
 
@@ -57,7 +56,7 @@ in
     enableMcpIntegration = true;
     package = llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
 
-    context = ./CLAUDE.md;
+    context = ../AGENTS.md;
     settings = {
       autoUpdates = false;
       includeCoAuthoredBy = false;
