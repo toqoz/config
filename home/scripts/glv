@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# glv — git log viewer with vim-like fzf navigation and a delta preview.
+#
+# KEYS
+#   j / k         move
+#   /             open input (filter); j / k / q become literal text
+#   q             quit (only in nav mode — typed literally in input mode)
+#   Esc / Ctrl-C  in input mode: hide input and re-bind nav keys
+#                 in nav mode:   abort
+#   Enter         show full commit (paged via delta)
+#   Ctrl-Y        copy selected SHA
+#   Ctrl-O        copy selected commit message
+#
+# USAGE
+#   glv [git log args...]
+#
+# EXIT CODES
+#   0    fzf returned a selection
+#   2    environment / dependency error
+#   130  fzf aborted
+
+set -euo pipefail
+
+die() {
+  printf 'glv: %s\n' "$*" >&2
+  exit 2
+}
+
+command -v fzf   >/dev/null 2>&1 || die "fzf not found on PATH"
+command -v delta >/dev/null 2>&1 || die "delta not found on PATH"
+
+cols=${COLUMNS:-$(tput cols)}
+main=100
+(( cols <= main )) && main=$cols
+pv=$((cols - main))
+
+git log --oneline --color=always "$@" |
+  fzf --ansi --no-sort \
+    --layout=reverse-list \
+    --no-input \
+    --bind 'j:down,k:up,q:abort,/:show-input+unbind(j,k,q,/)' \
+    --bind 'esc,ctrl-c:transform:
+      if [[ $FZF_INPUT_STATE = enabled ]]; then
+        echo "rebind(j,k,q,/)+hide-input"
+      else
+        echo abort
+      fi
+    ' \
+    --preview 'git show --color=always {1} | delta --width=$FZF_PREVIEW_COLUMNS --features=unified' \
+    --preview-window="right:${pv}" \
+    --header 'j/k:nav  /:filter  q/Esc:back/quit  <Enter>:details  <C-y>:sha  <C-o>:msg' \
+    --bind 'enter:execute(git show --color=always {1} | delta --paging=always)' \
+    --bind 'ctrl-y:execute-silent(echo -n {1} | _copy)' \
+    --bind 'ctrl-o:execute-silent(git log -1 --pretty=%B {1} | _copy)'
