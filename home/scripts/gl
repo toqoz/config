@@ -41,7 +41,22 @@ command -v gh    >/dev/null 2>&1 || die "gh not found on PATH"
 # Pressing `b` jumps into gb for the focused file at this commit.
 gl_show_files() {
   local sha=$1
-  git diff-tree --no-commit-id --name-only -r "$sha" |
+  local files
+  files=$(git diff-tree --no-commit-id --name-only -r "$sha")
+  [[ -z $files ]] && return
+
+  # Size the file-list pane to the longest filename (+ pointer + space).
+  # fzf reserves 4 cells of preview overhead (border + padding), so the
+  # rendered list width works out to `cols - pv - 4`. Cap the list at
+  # half the terminal so a freakishly long path cannot starve preview.
+  local cols left cap pv
+  cols=${COLUMNS:-$(tput cols)}
+  left=$(awk '{ if (length > m) m = length } END { print m + 3 }' <<< "$files")
+  cap=$((cols / 2))
+  (( left > cap )) && left=$cap
+  pv=$((cols - left - 4))
+
+  printf '%s\n' "$files" |
     fzf --ansi --no-sort \
       --layout=reverse-list \
       --no-input \
@@ -54,7 +69,7 @@ gl_show_files() {
         fi
       ' \
       --preview "git show --color=always $sha -- {} | delta --width=\$FZF_PREVIEW_COLUMNS --features=unified" \
-      --preview-window="right:65%" \
+      --preview-window="right:${pv}" \
       --header "files in $sha — j/k:nav  /:filter  q/Esc:back  b:blame  <Enter>:full diff" \
       --bind "enter:execute(git show --color=always $sha -- {} | delta --paging=always)" \
       --bind "b:execute(gb {} $sha)"
