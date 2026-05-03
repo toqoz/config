@@ -1,4 +1,4 @@
-// Verify scripts/git-wt-now subcommands (create, rename, merge) using a
+// Verify home/scripts/git-wt-now subcommands (create, rename, merge) using a
 // real git repo in a tempdir, with stub `gh` (always failing, so the
 // fallback path picks a local branch) and stub `codex` (writes a
 // caller-controlled string to the file passed via `-o`). HOME is
@@ -24,7 +24,7 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const SCRIPT = `${REPO}/scripts/git-wt-now`;
+const SCRIPT = `${REPO}/home/scripts/git-wt-now`;
 
 type RunResult = {
   status: number | null;

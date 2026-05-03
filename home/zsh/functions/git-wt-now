@@ -1,6 +1,6 @@
 emulate -L zsh
 
-# Thin zsh wrapper around scripts/git-wt-now so that bare `git-wt-now`
+# Thin zsh wrapper around home/scripts/git-wt-now so that bare `git-wt-now`
 # (no subcommand) cd's into the freshly-created worktree. Subcommands
 # (`rename`, `merge`, `-h`, …) are forwarded unchanged and run in $PWD.
 
