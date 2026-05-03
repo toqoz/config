@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 # glv — git log viewer with vim-like fzf navigation and a delta preview.
 #
-# KEYS
+# KEYS (nav mode — letter keys become literal text after `/`)
 #   j / k         move
-#   /             open input (filter); j / k / q become literal text
-#   q             quit (only in nav mode — typed literally in input mode)
-#   Esc / Ctrl-C  in input mode: hide input and re-bind nav keys
-#                 in nav mode:   abort
+#   /             open input (filter)
+#   q             quit
+#   y             copy selected SHA
+#   o             open selected commit on GitHub (the commit page links
+#                 to its associated PR via GitHub's UI)
 #   Enter         show full commit (paged via delta)
-#   Ctrl-Y        copy selected SHA
-#   Ctrl-O        open selected commit on GitHub (via gh browse)
+#   Esc / Ctrl-C  input mode: hide input and re-bind nav keys
+#                 nav mode:   abort
 #
 # USAGE
 #   glv [git log args...]
@@ -39,17 +40,17 @@ git log --oneline --color=always "$@" |
   fzf --ansi --no-sort \
     --layout=reverse-list \
     --no-input \
-    --bind 'j:down,k:up,q:abort,/:show-input+unbind(j,k,q,/)' \
+    --bind 'j:down,k:up,q:abort,/:show-input+unbind(j,k,q,y,o,/)' \
     --bind 'esc,ctrl-c:transform:
       if [[ $FZF_INPUT_STATE = enabled ]]; then
-        echo "rebind(j,k,q,/)+hide-input"
+        echo "rebind(j,k,q,y,o,/)+hide-input"
       else
         echo abort
       fi
     ' \
     --preview 'git show --color=always {1} | delta --width=$FZF_PREVIEW_COLUMNS --features=unified' \
     --preview-window="right:${pv}" \
-    --header 'j/k:nav  /:filter  q/Esc:back/quit  <Enter>:details  <C-y>:sha  <C-o>:open' \
+    --header 'j/k:nav  /:filter  q/Esc:back/quit  <Enter>:details  y:sha  o:open' \
     --bind 'enter:execute(git show --color=always {1} | delta --paging=always)' \
-    --bind 'ctrl-y:execute-silent(echo -n {1} | _copy)' \
-    --bind 'ctrl-o:execute-silent(gh browse {1})'
+    --bind 'y:execute-silent(echo -n {1} | _copy)' \
+    --bind 'o:execute-silent(gh browse {1})'
