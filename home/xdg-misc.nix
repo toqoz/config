@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, ... }:
 {
   # Environment variables for small tools that have no dedicated module
   # and whose only customization is "stop writing to $HOME; honor XDG".
@@ -11,14 +11,6 @@
     # when xdg.enable is off.
     XDG_DATA_HOME = config.xdg.dataHome;
 
-    LESSHISTFILE = "${config.xdg.dataHome}/less/history";
-
     WGETHSTS = "${config.xdg.cacheHome}/wget/hsts";
   };
-
-  # less will not create the parent directory for LESSHISTFILE on first
-  # write, so ensure it exists.
-  home.activation.createLessHistDir = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    mkdir -p "${config.xdg.dataHome}/less"
-  '';
 }

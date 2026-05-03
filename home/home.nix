@@ -13,6 +13,7 @@
     ./gh.nix
     ./git.nix
     ./karabiner
+    ./less.nix
     ./neovim
     ./nix.nix
     ./obsidian.nix
