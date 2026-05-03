@@ -42,7 +42,9 @@ command -v gh    >/dev/null 2>&1 || die "gh not found on PATH"
 gl_show_files() {
   local sha=$1
   local files
-  files=$(git diff-tree --no-commit-id --name-only -r "$sha")
+  # `-M -C` collapses rename / copy pairs into the destination path so
+  # a renamed file shows up once instead of as a delete + add pair.
+  files=$(git diff-tree --no-commit-id --name-only -M -C -r "$sha")
   [[ -z $files ]] && return
 
   # Size the file-list pane to the longest filename (+ pointer + space).
