@@ -9,7 +9,7 @@
 #                 in nav mode:   abort
 #   Enter         show full commit (paged via delta)
 #   Ctrl-Y        copy selected SHA
-#   Ctrl-O        copy selected commit message
+#   Ctrl-O        open selected commit on GitHub (via gh browse)
 #
 # USAGE
 #   glv [git log args...]
@@ -28,6 +28,7 @@ die() {
 
 command -v fzf   >/dev/null 2>&1 || die "fzf not found on PATH"
 command -v delta >/dev/null 2>&1 || die "delta not found on PATH"
+command -v gh    >/dev/null 2>&1 || die "gh not found on PATH"
 
 cols=${COLUMNS:-$(tput cols)}
 main=100
@@ -48,7 +49,7 @@ git log --oneline --color=always "$@" |
     ' \
     --preview 'git show --color=always {1} | delta --width=$FZF_PREVIEW_COLUMNS --features=unified' \
     --preview-window="right:${pv}" \
-    --header 'j/k:nav  /:filter  q/Esc:back/quit  <Enter>:details  <C-y>:sha  <C-o>:msg' \
+    --header 'j/k:nav  /:filter  q/Esc:back/quit  <Enter>:details  <C-y>:sha  <C-o>:open' \
     --bind 'enter:execute(git show --color=always {1} | delta --paging=always)' \
     --bind 'ctrl-y:execute-silent(echo -n {1} | _copy)' \
-    --bind 'ctrl-o:execute-silent(git log -1 --pretty=%B {1} | _copy)'
+    --bind 'ctrl-o:execute-silent(gh browse {1})'

@@ -49,3 +49,15 @@ test('exits 2 when delta is missing', () => {
   assert.equal(r.status, 2, `stdout=${r.stdout} stderr=${r.stderr}`);
   assert.match(r.stderr, /delta not found/);
 });
+
+test('exits 2 when gh is missing', () => {
+  const dir = emptyDir();
+  fakeBin(dir, 'fzf', 'cat >/dev/null');
+  fakeBin(dir, 'delta', 'cat >/dev/null');
+  const r = spawnSync('/bin/bash', [SCRIPT], {
+    encoding: 'utf8',
+    env: { PATH: dir },
+  });
+  assert.equal(r.status, 2, `stdout=${r.stdout} stderr=${r.stderr}`);
+  assert.match(r.stderr, /gh not found/);
+});
