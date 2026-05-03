@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 # gl — git log viewer with vim-like fzf navigation and a delta preview.
 #
-# KEYS (nav mode — letter keys become literal text after `/`)
+# KEYS — outer log view (letter keys become literal text after `/`)
 #   j / k         move
 #   /             open input (filter)
 #   q             quit
 #   y             copy selected SHA
 #   o             open selected commit on GitHub (the commit page links
 #                 to its associated PR via GitHub's UI)
-#   Enter         show full commit (paged via delta)
+#   Enter         open the commit in a 2-pane file browser (file list +
+#                 delta preview); from there:
+#                   j / k / / / q / Esc — same as outer
+#                   Enter   — show the selected file's full diff (paged)
+#                   b       — blame the selected file at this commit
+#                             (use `,` inside gb to walk back further)
 #   Esc / Ctrl-C  input mode: hide input and re-bind nav keys
 #                 nav mode:   abort
 #
@@ -31,13 +36,38 @@ command -v fzf   >/dev/null 2>&1 || die "fzf not found on PATH"
 command -v delta >/dev/null 2>&1 || die "delta not found on PATH"
 command -v gh    >/dev/null 2>&1 || die "gh not found on PATH"
 
+# Open the 2-pane file browser for $1 — list of files touched by the
+# commit on the left, delta preview of the selected file on the right.
+# Pressing `b` jumps into gb for the focused file at this commit.
+gl_show_files() {
+  local sha=$1
+  git diff-tree --no-commit-id --name-only -r "$sha" |
+    fzf --ansi --no-sort \
+      --layout=reverse-list \
+      --no-input \
+      --bind 'j:down,k:up,q:abort,/:show-input+unbind(j,k,q,b,/)' \
+      --bind 'esc,ctrl-c:transform:
+        if [[ $FZF_INPUT_STATE = enabled ]]; then
+          echo "rebind(j,k,q,b,/)+hide-input"
+        else
+          echo abort
+        fi
+      ' \
+      --preview "git show --color=always $sha -- {} | delta --width=\$FZF_PREVIEW_COLUMNS --features=unified" \
+      --preview-window="right:65%" \
+      --header "files in $sha — j/k:nav  /:filter  q/Esc:back  b:blame  <Enter>:full diff" \
+      --bind "enter:execute(git show --color=always $sha -- {} | delta --paging=always)" \
+      --bind "b:execute(gb {} $sha)"
+}
+export -f gl_show_files
+
 cols=${COLUMNS:-$(tput cols)}
 main=100
 (( cols <= main )) && main=$cols
 pv=$((cols - main))
 
 git log --oneline --color=always "$@" |
-  fzf --ansi --no-sort \
+  SHELL=$(command -v bash) fzf --ansi --no-sort \
     --layout=reverse-list \
     --no-input \
     --bind 'j:down,k:up,q:abort,/:show-input+unbind(j,k,q,y,o,/)' \
@@ -50,7 +80,7 @@ git log --oneline --color=always "$@" |
     ' \
     --preview 'git show --color=always {1} | delta --width=$FZF_PREVIEW_COLUMNS --features=unified' \
     --preview-window="right:${pv}" \
-    --header 'j/k:nav  /:filter  q/Esc:back/quit  <Enter>:details  y:sha  o:open' \
-    --bind 'enter:execute(git show --color=always {1} | delta --paging=always)' \
+    --header 'j/k:nav  /:filter  q/Esc:back/quit  <Enter>:files  y:sha  o:open' \
+    --bind 'enter:execute(gl_show_files {1})' \
     --bind 'y:execute-silent(echo -n {1} | _copy)' \
     --bind 'o:execute-silent(gh browse {1})'
