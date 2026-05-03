@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# gb — git blame viewer with vim-like fzf navigation and a tig-style
+# parent walk.
+#
+# KEYS (nav mode — letter keys become literal text after `/`)
+#   j / k         move
+#   /             open input (filter)
+#   q             quit
+#   y             copy SHA of the selected line
+#   o             open commit on GitHub (the commit page links to its
+#                 associated PR via GitHub's UI)
+#   ,             re-blame this file at the parent of the selected
+#                 commit; q pops back to where you were
+#   Enter         show full commit (paged via delta)
+#   Esc / Ctrl-C  input mode: hide input and re-bind nav keys
+#                 nav mode:   abort
+#
+# USAGE
+#   gb <file> [<rev>]
+#
+# EXIT CODES
+#   0    fzf returned a selection
+#   2    environment / dependency / argument error
+#   130  fzf aborted
+
+set -euo pipefail
+
+die() {
+  printf 'gb: %s\n' "$*" >&2
+  exit 2
+}
+
+usage() {
+  printf 'Usage: gb <file> [<rev>]\n' >&2
+  exit 2
+}
+
+case ${1:-} in
+  -h|--help) printf 'Usage: gb <file> [<rev>]\n'; exit 0 ;;
+esac
+
+[[ $# -ge 1 && $# -le 2 ]] || usage
+file=$1
+rev=${2:-HEAD}
+
+command -v fzf   >/dev/null 2>&1 || die "fzf not found on PATH"
+command -v delta >/dev/null 2>&1 || die "delta not found on PATH"
+command -v gh    >/dev/null 2>&1 || die "gh not found on PATH"
+
+cols=${COLUMNS:-$(tput cols)}
+main=100
+(( cols <= main )) && main=$cols
+pv=$((cols - main))
+
+# Bindings consult $GB_FILE rather than re-deriving the path on each
+# action; the recursive `,` push reuses the same env so `gb` resolves
+# the file relative to the original CWD.
+export GB_FILE=$file
+
+# Boundary commits in `git blame` output are prefixed with `^`; strip
+# it before passing the SHA to git / gh / a recursive gb.
+git blame "$rev" -- "$file" |
+  fzf --ansi --no-sort \
+    --layout=reverse-list \
+    --no-input \
+    --bind 'j:down,k:up,q:abort,/:show-input+unbind(j,k,q,y,o,/)' \
+    --bind 'esc,ctrl-c:transform:
+      if [[ $FZF_INPUT_STATE = enabled ]]; then
+        echo "rebind(j,k,q,y,o,/)+hide-input"
+      else
+        echo abort
+      fi
+    ' \
+    --preview 's={1}; git show --color=always "${s#^}" | delta --width=$FZF_PREVIEW_COLUMNS --features=unified' \
+    --preview-window="right:${pv}" \
+    --header "blame: $file @ $rev — j/k:nav  /:filter  q/Esc:back/quit  ,:parent  <Enter>:details  y:sha  o:open" \
+    --bind 'enter:execute(s={1}; git show --color=always "${s#^}" | delta --paging=always)' \
+    --bind 'y:execute-silent(s={1}; printf "%s" "${s#^}" | _copy)' \
+    --bind 'o:execute-silent(s={1}; gh browse "${s#^}")' \
+    --bind ',:transform:
+      if [[ $FZF_INPUT_STATE = enabled ]]; then
+        echo "put(,)"
+      else
+        echo "execute(s={1}; gb \"\$GB_FILE\" \"\${s#^}^\")"
+      fi
+    '
