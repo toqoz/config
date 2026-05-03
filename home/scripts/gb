@@ -48,7 +48,7 @@ command -v delta >/dev/null 2>&1 || die "delta not found on PATH"
 command -v gh    >/dev/null 2>&1 || die "gh not found on PATH"
 
 cols=${COLUMNS:-$(tput cols)}
-main=100
+main=140
 (( cols <= main )) && main=$cols
 pv=$((cols - main))
 
@@ -59,7 +59,8 @@ export GB_FILE=$file
 
 # Boundary commits in `git blame` output are prefixed with `^`; strip
 # it before passing the SHA to git / gh / a recursive gb.
-git blame "$rev" -- "$file" |
+git blame --date=format:'%Y-%m-%d %H:%M' "$rev" -- "$file" |
+  sed 's/(\([^)]*\))/\1/' |
   fzf --ansi --no-sort \
     --layout=reverse-list \
     --no-input \
