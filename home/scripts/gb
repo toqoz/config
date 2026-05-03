@@ -52,6 +52,36 @@ main=140
 (( cols <= main )) && main=$cols
 pv=$((cols - main))
 
+# Walk to the parent of $1, but only when the file actually exists
+# there — otherwise print why and wait for a keypress so the message
+# survives fzf's post-execute redraw. Pressing `,` should never drop
+# the user into an empty inner view.
+gb_walk_parent() {
+  local sha=$1 file=$2 parent="${1}^"
+  if ! git rev-parse --verify "${parent}^{commit}" >/dev/null 2>&1; then
+    printf 'gb: %s is a boundary commit (no parent to walk to)\n' "$sha" >&2
+  else
+    # If $sha renamed $file (or copied from another path), walk into
+    # the pre-rename path so the line history actually continues.
+    # Pathspec on `git log` filters before rename detection, so look at
+    # the full diff for $sha and pick the rename whose destination is
+    # $file.
+    local parent_path
+    parent_path=$(git show -M -C --name-status --format= "$sha" 2>/dev/null \
+      | awk -F'\t' -v f="$file" '$1 ~ /^[RC]/ && $3 == f { print $2; found=1; exit }
+                                  END { if (!found) print f }')
+    if ! git cat-file -e "${parent}:${parent_path}" 2>/dev/null; then
+      printf 'gb: %s does not exist at %s (added here)\n' "$file" "$parent" >&2
+    else
+      exec gb "$parent_path" "$parent"
+    fi
+  fi
+  printf '(press any key to return) ' >&2
+  read -n 1 -s
+  printf '\n' >&2
+}
+export -f gb_walk_parent
+
 # Bindings consult $GB_FILE rather than re-deriving the path on each
 # action; the recursive `,` push reuses the same env so `gb` resolves
 # the file relative to the original CWD.
@@ -59,9 +89,32 @@ export GB_FILE=$file
 
 # Boundary commits in `git blame` output are prefixed with `^`; strip
 # it before passing the SHA to git / gh / a recursive gb.
-git blame --date=format:'%Y-%m-%d %H:%M' "$rev" -- "$file" |
+# `-f` always emits the file path that the line was attributed to;
+# this lets `,` follow renames by passing that path (rather than the
+# script's static $GB_FILE) to the recursive blame.
+git blame -f --date=format:'%Y-%m-%d %H:%M' "$rev" -- "$file" |
   sed 's/(\([^)]*\))/\1/' |
-  fzf --ansi --no-sort \
+  awk '
+    BEGIN {
+      n = 6; idx = 0
+      pal[0] = "31"; pal[1] = "32"; pal[2] = "33"
+      pal[3] = "34"; pal[4] = "35"; pal[5] = "36"
+    }
+    {
+      sha = $1
+      if (!(sha in cmap)) { cmap[sha] = pal[idx++ % n] }
+      # Color the metadata up to and including the line number; leave
+      # the source code uncolored so syntax stays readable.
+      if (match($0, /^.* [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} +[0-9]+ /)) {
+        meta = substr($0, 1, RLENGTH - 1)
+        rest = substr($0, RLENGTH)
+        printf "\033[%sm%s\033[0m%s\n", cmap[sha], meta, rest
+      } else {
+        print
+      }
+    }
+  ' |
+  SHELL=$(command -v bash) fzf --ansi --no-sort \
     --layout=reverse-list \
     --no-input \
     --bind 'j:down,k:up,q:abort,/:show-input+unbind(j,k,q,y,o,/)' \
@@ -82,6 +135,6 @@ git blame --date=format:'%Y-%m-%d %H:%M' "$rev" -- "$file" |
       if [[ $FZF_INPUT_STATE = enabled ]]; then
         echo "put(,)"
       else
-        echo "execute(s={1}; gb \"\$GB_FILE\" \"\${s#^}^\")"
+        echo "execute(s={1}; f={2}; gb_walk_parent \"\${s#^}\" \"\$f\")"
       fi
     '
