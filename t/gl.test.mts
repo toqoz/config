@@ -1,4 +1,4 @@
-// Verify home/scripts/glv enforces its dependencies.
+// Verify home/scripts/gl enforces its dependencies.
 //
 // The interactive fzf path is exercised via tui-acceptance-checks; here
 // we cover only the dependency-check branches that are reachable
@@ -16,10 +16,10 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const SCRIPT = `${REPO}/home/scripts/glv`;
+const SCRIPT = `${REPO}/home/scripts/gl`;
 
 function emptyDir(): string {
-  return mkdtempSync(join(tmpdir(), 'glv-'));
+  return mkdtempSync(join(tmpdir(), 'gl-'));
 }
 
 function fakeBin(dir: string, name: string, body: string): void {
@@ -30,7 +30,7 @@ function fakeBin(dir: string, name: string, body: string): void {
 test('exits 2 when fzf is missing', () => {
   const dir = emptyDir();
   // Absolute /bin/bash so the spawn itself does not need PATH; the
-  // restricted PATH only affects glv's own command lookups.
+  // restricted PATH only affects gl's own command lookups.
   const r = spawnSync('/bin/bash', [SCRIPT], {
     encoding: 'utf8',
     env: { PATH: dir },

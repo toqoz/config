@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# glv — git log viewer with vim-like fzf navigation and a delta preview.
+# gl — git log viewer with vim-like fzf navigation and a delta preview.
 #
 # KEYS (nav mode — letter keys become literal text after `/`)
 #   j / k         move
@@ -13,7 +13,7 @@
 #                 nav mode:   abort
 #
 # USAGE
-#   glv [git log args...]
+#   gl [git log args...]
 #
 # EXIT CODES
 #   0    fzf returned a selection
@@ -23,7 +23,7 @@
 set -euo pipefail
 
 die() {
-  printf 'glv: %s\n' "$*" >&2
+  printf 'gl: %s\n' "$*" >&2
   exit 2
 }
 
