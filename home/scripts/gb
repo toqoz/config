@@ -16,7 +16,10 @@
 #                 nav mode:   abort
 #
 # USAGE
-#   gb <file> [<rev>]
+#   gb [<file> [<rev>]]
+#
+#   Without <file>, fall back to a plain `git ls-files | fzf` picker
+#   (rendered as a tmux popup when run inside a tmux pane).
 #
 # EXIT CODES
 #   0    fzf returned a selection
@@ -31,21 +34,30 @@ die() {
 }
 
 usage() {
-  printf 'Usage: gb <file> [<rev>]\n' >&2
+  printf 'Usage: gb [<file> [<rev>]]\n' >&2
   exit 2
 }
 
 case ${1:-} in
-  -h|--help) printf 'Usage: gb <file> [<rev>]\n'; exit 0 ;;
+  -h|--help) printf 'Usage: gb [<file> [<rev>]]\n'; exit 0 ;;
 esac
 
-[[ $# -ge 1 && $# -le 2 ]] || usage
-file=$1
-rev=${2:-HEAD}
+(( $# <= 2 )) || usage
 
 command -v fzf   >/dev/null 2>&1 || die "fzf not found on PATH"
 command -v delta >/dev/null 2>&1 || die "delta not found on PATH"
 command -v gh    >/dev/null 2>&1 || die "gh not found on PATH"
+
+if (( $# == 0 )); then
+  picker=(fzf)
+  [[ -n ${TMUX:-} ]] && picker=(fzf --tmux center,80%)
+  file=$(git ls-files | "${picker[@]}") || exit 130
+  [[ -z $file ]] && exit 130
+  rev=HEAD
+else
+  file=$1
+  rev=${2:-HEAD}
+fi
 
 cols=${COLUMNS:-$(tput cols)}
 main=140

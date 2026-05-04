@@ -27,10 +27,13 @@ function fakeBin(dir: string, name: string, body: string): void {
   writeFileSync(p, `#!/usr/bin/env bash\n${body}\n`, { mode: 0o755 });
 }
 
-test('exits 2 with usage when no args', () => {
+test('no args falls into the picker (exits 130 when fzf has no TTY)', () => {
+  // With no args, gb pipes `git ls-files` into a plain fzf picker.
+  // Without a TTY fzf cannot interact, so it aborts with 130. The
+  // important thing is that we do NOT hit the usage error path.
   const r = spawnSync('/bin/bash', [SCRIPT], { encoding: 'utf8' });
-  assert.equal(r.status, 2, `stdout=${r.stdout} stderr=${r.stderr}`);
-  assert.match(r.stderr, /Usage: gb/);
+  assert.equal(r.status, 130, `stdout=${r.stdout} stderr=${r.stderr}`);
+  assert.doesNotMatch(r.stderr, /Usage: gb/);
 });
 
 test('exits 2 with usage when too many args', () => {
