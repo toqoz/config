@@ -70,10 +70,10 @@ gl_show_files() {
           echo abort
         fi
       ' \
-      --preview "git show --color=always $sha -- {} | delta --width=\$FZF_PREVIEW_COLUMNS --features=unified" \
+      --preview "git log -p --follow -1 --color=always $sha -- {} | delta --width=\$FZF_PREVIEW_COLUMNS --features=unified" \
       --preview-window="right:${pv}" \
       --header "files in $sha — j/k:nav  /:filter  q/Esc:back  b:blame  <Enter>:full diff" \
-      --bind "enter:execute(git show --color=always $sha -- {} | delta --paging=always)" \
+      --bind "enter:execute(git log -p --follow -1 --color=always $sha -- {} | delta --paging=always)" \
       --bind "b:execute(gb {} $sha)"
 }
 export -f gl_show_files
