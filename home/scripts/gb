@@ -64,6 +64,17 @@ main=140
 (( cols <= main )) && main=$cols
 pv=$((cols - main))
 
+# When the user opens the detail (paged delta), wire `y` inside less
+# to copy the displayed commit's SHA — exposed as $GB_SHA via the
+# Enter binding.
+GB_LESSKEY=$(mktemp)
+trap 'rm -f "$GB_LESSKEY"' EXIT
+cat > "$GB_LESSKEY" <<'EOF'
+#command
+y shell printf $GB_SHA | pbcopy\n
+EOF
+export GB_LESSKEY
+
 # Walk to the parent of $1, but only when the file actually exists
 # there — otherwise print why and wait for a keypress so the message
 # survives fzf's post-execute redraw. Pressing `,` should never drop
@@ -157,7 +168,7 @@ git blame -f --date=format:'%Y-%m-%d %H:%M' "$rev" -- "$file" |
     --preview 's={1}; git show --color=always "${s#^}" | delta --width=$FZF_PREVIEW_COLUMNS --features=unified' \
     --preview-window="right:${pv}" \
     --header "blame: $file @ $rev — j/k:nav  /:filter  q/Esc:back/quit  ,:parent  <Enter>:details  y:sha  o:open" \
-    --bind 'enter:execute(s={1}; git show --color=always "${s#^}" | delta --paging=always)' \
+    --bind 'enter:execute(s={1}; export GB_SHA=${s#^}; git show --color=always "$GB_SHA" | delta --paging=always --pager "less -R --lesskey-src=$GB_LESSKEY")' \
     --bind 'y:execute-silent(s={1}; printf "%s" "${s#^}" | pbcopy)' \
     --bind 'o:execute-silent(s={1}; gh browse "${s#^}")' \
     --bind ',:transform:

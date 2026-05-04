@@ -36,6 +36,17 @@ command -v fzf   >/dev/null 2>&1 || die "fzf not found on PATH"
 command -v delta >/dev/null 2>&1 || die "delta not found on PATH"
 command -v gh    >/dev/null 2>&1 || die "gh not found on PATH"
 
+# When the user opens any paged delta view (outer commit detail or the
+# per-file diff inside the 2-pane browser), wire `y` inside less to
+# copy the displayed commit's SHA — exposed as $GL_SHA at execute time.
+GL_LESSKEY=$(mktemp)
+trap 'rm -f "$GL_LESSKEY"' EXIT
+cat > "$GL_LESSKEY" <<'EOF'
+#command
+y shell printf $GL_SHA | pbcopy\n
+EOF
+export GL_LESSKEY
+
 # Open the 2-pane file browser for $1 — list of files touched by the
 # commit on the left, delta preview of the selected file on the right.
 # Pressing `b` jumps into gb for the focused file at this commit.
@@ -73,7 +84,7 @@ gl_show_files() {
       --preview "git log -p --follow -1 --color=always $sha -- {} | delta --width=\$FZF_PREVIEW_COLUMNS --features=unified" \
       --preview-window="right:${pv}" \
       --header "files in $sha — j/k:nav  /:filter  q/Esc:back  b:blame  <Enter>:full diff" \
-      --bind "enter:execute(git log -p --follow -1 --color=always $sha -- {} | delta --paging=always)" \
+      --bind "enter:execute(export GL_SHA=$sha; git log -p --follow -1 --color=always $sha -- {} | delta --paging=always --pager 'less -R --lesskey-src=$GL_LESSKEY')" \
       --bind "b:execute(gb {} $sha)"
 }
 export -f gl_show_files
