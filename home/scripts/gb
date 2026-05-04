@@ -158,7 +158,7 @@ git blame -f --date=format:'%Y-%m-%d %H:%M' "$rev" -- "$file" |
     --preview-window="right:${pv}" \
     --header "blame: $file @ $rev — j/k:nav  /:filter  q/Esc:back/quit  ,:parent  <Enter>:details  y:sha  o:open" \
     --bind 'enter:execute(s={1}; git show --color=always "${s#^}" | delta --paging=always)' \
-    --bind 'y:execute-silent(s={1}; printf "%s" "${s#^}" | _copy)' \
+    --bind 'y:execute-silent(s={1}; printf "%s" "${s#^}" | pbcopy)' \
     --bind 'o:execute-silent(s={1}; gh browse "${s#^}")' \
     --bind ',:transform:
       if [[ $FZF_INPUT_STATE = enabled ]]; then

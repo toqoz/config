@@ -99,5 +99,5 @@ git log --oneline --color=always "$@" |
     --preview-window="right:${pv}" \
     --header 'j/k:nav  /:filter  q/Esc:back/quit  <Enter>:files  y:sha  o:open' \
     --bind 'enter:execute(gl_show_files {1})' \
-    --bind 'y:execute-silent(echo -n {1} | _copy)' \
+    --bind 'y:execute-silent(printf %s {1} | pbcopy)' \
     --bind 'o:execute-silent(gh browse {1})'
