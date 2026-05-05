@@ -36,12 +36,8 @@ in
       set-option -g mouse off
 
       # When the last pane in a session is killed, switch the client to
-      # another session instead of detaching. Then, once the destroyed
-      # session is gone, pop up the cross-session window picker so the
-      # next session is a deliberate choice rather than whatever tmux
-      # picked as "most recent".
+      # another session instead of detaching.
       set-option -g detach-on-destroy off
-      set-hook -g session-closed "run-shell -b '${windowPicker}/bin/tmux-window-picker #{session_name}:#{window_index}:'"
 
       # Appearance {{{
       set -g status-position top
