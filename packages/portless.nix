@@ -6,8 +6,8 @@
   stdenv,
 }:
 let
-  version = "0.10.1";
-  hash = "sha256-LDADwsbEBMwpwFtDlXi6tFf9kmC8YaTGyLT6dhiC28Q=";
+  version = "0.12.0";
+  hash = "sha256-q5yLEzmfyzf7V9I7qFfW6gwx+gHcWfjMTvBH4OZAnak=";
 in
 stdenv.mkDerivation {
   inherit version;
