@@ -106,6 +106,18 @@
       # Cmd-r: Redo
       bindkey "^[r" redo # Cmd-r
 
+      # SHARE_HISTORY auto-imports new entries on prompt redraw, which is
+      # enough for ↑ history navigation. fzf-history-widget reads the
+      # $history parameter, which can lag behind entries appended by
+      # sibling tmux panes mid-prompt. Force a re-import right before the
+      # widget runs so Ctrl-R always sees the latest.
+      function _fzf-history-widget-fresh() {
+        fc -RI 2>/dev/null
+        zle fzf-history-widget
+      }
+      zle -N _fzf-history-widget-fresh
+      bindkey '^R' _fzf-history-widget-fresh
+
       # Auto-launch tmux for shells spawned directly by wezterm.
       # Unset first so tmux panes' shells (and any coding agent subshells)
       # don't re-trigger. Only exit on tmux's normal termination (detach);
