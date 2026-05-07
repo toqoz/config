@@ -7,6 +7,8 @@
   # Customizations loaded via the installer's `!include nix.custom.conf` hook.
   environment.etc."nix/nix.custom.conf".text = ''
     warn-dirty = false
+    extra-substituters = https://cache.numtide.com
+    extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
   '';
   # One-time migration: hand off the installer-written nix.custom.conf to
   # nix-darwin. Runs before the /etc conflict check; no-op once the target
