@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# tmux-ghq-popup — Pick a ghq repository via fzf and switch the current
+# tmux client to a session named "owner/repo" rooted at the repo path.
+#
+# Mirrors the enter-workspace zle widget but runs as a CLI script so it
+# can be invoked from `tmux display-popup`, which works regardless of
+# what is running in the foreground pane (vim, claude, etc.).
+#
+# Typing a query that matches no repo and pressing Enter creates an
+# ad-hoc session by that name (no working directory override).
+
+set -euo pipefail
+
+root=$(ghq root)
+listing=$(ghq list -p | sed "s|^$root/github.com/|github:|; s|^$root/||")
+
+rc=0
+selection=$(printf '%s\n' "$listing" | fzf \
+  --print-query --no-sort --exact \
+  --prompt='repo> ' --query="${1:-}") || rc=$?
+# 0 = selected, 1 = no match on enter. Anything else (ESC, C-c) aborts.
+if [[ $rc -ne 0 && $rc -ne 1 ]]; then
+  exit 0
+fi
+
+query=
+pick=
+{ IFS= read -r query || true; IFS= read -r pick || true; } <<< "$selection"
+
+new_args=()
+if [[ -n "$pick" ]]; then
+  pick=${pick/#github:/$root/github.com/}
+  [[ "$pick" != /* ]] && pick="$root/$pick"
+  repo=$pick
+  target="$(basename "$(dirname "$repo")")/$(basename "$repo")"
+  new_args=(-c "$repo")
+elif [[ -n "$query" ]]; then
+  target=$query
+else
+  exit 0
+fi
+
+if [[ -z "${TMUX:-}" ]]; then
+  exec tmux new-session -A -s "$target" "${new_args[@]}"
+fi
+
+tmux has-session -t "=$target" 2>/dev/null \
+  || tmux new-session -d -s "$target" "${new_args[@]}"
+exec tmux switch-client -t "=$target"

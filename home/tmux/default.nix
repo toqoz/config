@@ -113,6 +113,11 @@ in
 
       bind w run-shell "${windowPicker}/bin/tmux-window-picker '#{session_name}:#{window_index}:'"
 
+      # <prefix> g — pick a ghq repo via fzf in a popup and switch the
+      # client to its session. Works while vim/claude/etc. are running
+      # in the foreground pane (zle widgets cannot).
+      bind g display-popup -E -w 80% -h 60% tmux-ghq-popup
+
       # Chord prefix: <prefix> s -> status table (mark windows)
       unbind s
       bind s switch-client -T status
