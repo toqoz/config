@@ -35,3 +35,4 @@ brew upgrade --cask --greedy <name>
 | `macskk`              | brew    | `darwin/apps/macskk.nix`         |
 | `nani`                | self    | `darwin/apps/nani.nix`           |
 | `orbstack`            | self    | `darwin/apps/orbstack.nix`       |
+| `paper-design`        | self    | `darwin/apps/paper-design.nix`   |

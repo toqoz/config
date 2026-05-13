@@ -14,6 +14,7 @@
     ./apps/music.nix
     ./apps/nani.nix
     ./apps/orbstack.nix
+    ./apps/paper-design.nix
     ./apps/safari.nix
     ./apps/slack.nix
     ./apps/system-preferences.nix
