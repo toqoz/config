@@ -59,7 +59,7 @@
 
       # Autoload agent wrappers here (not in .zshrc) so git aliases and
       # other non-interactive zsh subshells can resolve them.
-      autoload -Uz claude codex op
+      autoload -Uz claude op
     '';
     # .zprofile
     profileExtra = ''
