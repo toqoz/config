@@ -19,6 +19,7 @@
     ./apps/slack.nix
     ./apps/system-preferences.nix
     ./apps/wezterm.nix
+    ./apps/zed.nix
     ./fonts.nix
     ./homebrew.nix
     ./nix.nix
