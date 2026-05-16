@@ -28,6 +28,10 @@
       url = "github:vercel-labs/agent-browser";
       flake = false;
     };
+    makenotion-skills = {
+      url = "github:makenotion/skills";
+      flake = false;
+    };
     sence = {
       url = "github:toqoz/sence";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -52,6 +56,7 @@
       agent-skills,
       anthropic-skills,
       vercel-agent-browser,
+      makenotion-skills,
       sence,
       gws,
       android-nixpkgs,
@@ -204,6 +209,7 @@
               inherit llm-agents;
               inherit anthropic-skills;
               inherit vercel-agent-browser;
+              inherit makenotion-skills;
               inherit sence;
               inherit gws;
             };

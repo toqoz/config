@@ -265,6 +265,22 @@
         "type": "github"
       }
     },
+    "makenotion-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777929017,
+        "narHash": "sha256-rzT+jXI+hwoXvqS/ln6PT2juxzFsDoKGIOygkJWCM94=",
+        "owner": "makenotion",
+        "repo": "skills",
+        "rev": "423af2bf546cd0354e5cc871017251945d9ad14f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "makenotion",
+        "repo": "skills",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -309,6 +325,7 @@
         "gws": "gws",
         "home-manager": "home-manager",
         "llm-agents": "llm-agents",
+        "makenotion-skills": "makenotion-skills",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
         "sence": "sence",
