@@ -22,6 +22,9 @@
     bun
     deno
     mariadb.client
+    # fonttools CLI (pyftsubset, ttx, fonttools, ...). brotli is an optional
+    # dependency required for WOFF2 read/write.
+    (python3.withPackages (ps: with ps; [ fonttools brotli ]))
     # nixpkgs ships an older git-wt (0.17.0). The 0.27.0 release added --json
     # output and a deletehook config, both of which the `git-worktrees` skill
     # benefits from. Once nixpkgs catches up to >= 0.27.0, delete this
