@@ -134,6 +134,23 @@ Requires a user token (`xoxc` or `xoxp`). Bot tokens (`xoxb`) lack `search:read`
 
 ---
 
+## File operations
+
+### Download a file by permalink
+
+Downloads land in `./.agents/cache/slack-cli/files/<file_id>-<name>`
+(cwd-relative). The file-ID prefix prevents collisions when multiple files
+share a name.
+
+```bash
+./scripts/slack-cli \
+  file download "https://team.slack.com/files/U01234567/F0ABCDE/screenshot.png"
+```
+
+The resolved `path` is included in the JSON output for downstream commands.
+
+---
+
 ## Multi-workspace
 
 When multiple workspaces are configured, **always pass `--workspace`**. The CLI does not infer the workspace from Slack URLs — omitting the flag silently falls back to the first workspace, which causes `channel_not_found` errors or sends messages to the wrong workspace.

@@ -6,6 +6,7 @@
  *   slack-cli message <get|list|send|edit|delete|draft|react> [args]
  *   slack-cli channel list [--all] [--limit N]
  *   slack-cli search  <messages|files|all> <query> [options]
+ *   slack-cli file    download <permalink>
  *   slack-cli auth    [import-desktop|import-token --token ...]
  */
 
@@ -15,6 +16,7 @@ Commands:
   message   get|list|send|edit|delete|draft|react
   channel   list
   search    messages|files|all <query>
+  file      download <permalink>
   auth      import-desktop | import-token --token ...
 
 Common options:
@@ -42,6 +44,11 @@ try {
     }
     case "search": case "s": {
       const { main } = await import(`${dir}src/search.ts`);
+      await main(rest);
+      break;
+    }
+    case "file": case "f": {
+      const { main } = await import(`${dir}src/file.ts`);
       await main(rest);
       break;
     }
