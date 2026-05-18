@@ -18,6 +18,7 @@
     ./nix.nix
     ./obsidian.nix
     ./packages.nix
+    ./pi
     ./repo.nix
     ./scripts.nix
     ./sketchybar

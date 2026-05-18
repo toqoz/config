@@ -45,6 +45,5 @@
     llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.amp
     llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex
     llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.gemini-cli
-    llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
   ];
 }
