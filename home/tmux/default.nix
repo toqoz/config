@@ -35,6 +35,13 @@ in
       set-option -g set-titles on
       set-option -g mouse off
 
+      # Forward extended key sequences (CSI u) so terminals that support
+      # them can distinguish C-i from Tab, C-m from Enter, C-Shift-letter,
+      # etc. Requires a terminal that advertises the `extkeys` feature.
+      set-option -s extended-keys on
+      set -g extended-keys-format csi-u
+      set-option -as terminal-features 'xterm*:extkeys'
+
       # When the last pane in a session is killed, switch the client to
       # another session instead of detaching.
       set-option -g detach-on-destroy off
