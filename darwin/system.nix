@@ -83,6 +83,32 @@
         TextReplacement = false;
       };
 
+      # Disable Spotlight file/folder results and app-provided content that
+      # otherwise clutters launcher-style searches.
+      "com.apple.Spotlight" = {
+        EnabledPreferenceRules = [
+          "System.files"
+          "System.folders"
+          "com.apple.AddressBook"
+          "com.apple.AppStore"
+          "com.apple.Dictionary"
+          "com.apple.MobileSMS"
+          "com.apple.Notes"
+          "com.apple.Photos"
+          "com.apple.Safari"
+          "com.apple.VoiceMemos"
+          "com.apple.calculator"
+          "com.apple.helpviewer"
+          "com.apple.iBooksX"
+          "com.apple.iCal"
+          "com.apple.mail"
+          "com.apple.podcasts"
+          "com.apple.reminders"
+          "com.apple.shortcuts"
+          "com.apple.systempreferences"
+        ];
+      };
+
       # When modifying com.apple.symbolichotkeys, you may need to run
       # /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
       "com.apple.symbolichotkeys" = {
