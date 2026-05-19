@@ -55,6 +55,13 @@ config.keys = {
 		action = wezterm.action.DisableDefaultAssignment,
 	},
 
+	-- Send Alt-Enter through to pi; WezTerm otherwise treats it as a window shortcut.
+	{
+		key = "Enter",
+		mods = "SHIFT",
+		action = act.SendKey({ key = "m", mods = "ALT" }),
+	},
+
 	-- Command palette
 	{
 		key = "p",

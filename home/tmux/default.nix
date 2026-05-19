@@ -33,7 +33,7 @@ in
       set-option -g escape-time 0
       set-option -g set-clipboard on
       set-option -g set-titles on
-      set-option -g mouse off
+      set-option -g mouse on
 
       # Forward extended key sequences (CSI u) so terminals that support
       # them can distinguish C-i from Tab, C-m from Enter, C-Shift-letter,

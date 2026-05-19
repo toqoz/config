@@ -51,8 +51,7 @@
       "ctrl+h"
     ];
     "tui.input.newLine" = [
-      "shift+enter"
-      "ctrl+j"
+      "alt+m"
     ];
     "tui.select.up" = [
       "up"
