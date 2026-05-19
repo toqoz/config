@@ -8,6 +8,8 @@
     llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
   ];
 
+  home.file.".pi/agent/AGENTS.md".source = ../agents/AGENTS.md;
+
   home.file.".pi/agent/keybindings.json".text = builtins.toJSON {
     "app.model.cycleForward" = [ "alt+n" ];
     "app.model.cycleBackward" = [ "alt+p" ];
