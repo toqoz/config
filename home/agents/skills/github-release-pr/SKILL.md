@@ -129,13 +129,36 @@ Do not proceed to review until CI reaches a terminal state. If CI fails, report 
 
 ### 3. Run Codex Review
 
-After CI passes, run a Codex code review against the base branch:
+After CI passes, run a Codex code review for the **release PR branch pair**.
+
+Important: `codex exec review --base ...` reviews the currently checked-out `HEAD` against the given base. Do **not** run it from whatever branch the agent happened to be on before creating the release PR; that reviews unrelated local work. Always run Codex from a detached worktree at `origin/<head>` and compare against `origin/<base>`.
 
 ```bash
-codex exec review --base <base> --ephemeral --sandbox read-only
+review_root="$(pwd)/.agents/cache/github-release-pr"
+review_dir="$review_root/review-worktree-<PR_NUMBER>"
+review_output="$review_root/codex-review-<PR_NUMBER>.md"
+mkdir -p "$review_root"
+git fetch origin <base> <head>
+git worktree add --detach "$review_dir" "origin/<head>"
+(
+  cd "$review_dir"
+  codex exec review \
+    --base "origin/<base>" \
+    --title "Release PR #<PR_NUMBER>: <head> → <base>" \
+    --ephemeral \
+    --output-last-message "$review_output"
+)
+git worktree remove "$review_dir"
 ```
 
-Capture the full review output. If `codex` is unavailable, note that review was skipped and stop.
+Notes:
+- `codex exec review --help` is the source of truth for available flags.
+- The `review` subcommand does **not** accept `--sandbox`; do not pass it.
+- `--base <branch>` means "compare the current checkout's `HEAD` against this base". It does not select the PR head by itself.
+- `PROMPT` is itself a review scope in this Codex CLI version and cannot be combined with `--base`, `--commit`, or `--uncommitted`. Do not pass a positional prompt when using `--base`.
+- Use `origin/<base>` / `origin/<head>` so the reviewed diff exactly matches the PR, regardless of local branches or the current checkout.
+- Prefer `--output-last-message` for the text to append to the PR. Raw stdout includes command traces and can be very noisy.
+- If `codex` is unavailable, note that review was skipped and stop.
 
 ### 4. Append Review to PR Description
 
