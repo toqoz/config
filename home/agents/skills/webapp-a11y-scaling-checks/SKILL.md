@@ -61,18 +61,23 @@ For a single screenshot at max a11y, use the orchestrator:
 
 ```bash
 scripts/screenshot.sh https://example.com [out.png]
+scripts/screenshot.sh --physical https://example.com [out.png]
 ```
 
-It boots the emulator (if not running), applies max a11y, advances past
-Chrome's first-run flow, and writes the device screenshot via
-`adb shell screencap`. **No CDP session is opened.** This is the right
-default — it's faster, simpler, and not subject to CDP quirks on Android
-Chrome.
+By default, it boots the emulator (if not running), applies max a11y,
+advances past Chrome's first-run flow, and writes the device screenshot
+via `adb shell screencap`. With `--physical`, it selects the single
+connected authorized non-emulator device from `adb devices`, applies the
+same a11y settings, captures, and restores that device's original density
+and font scale before exiting. **No CDP session is opened.** This is the
+right default — it's faster, simpler, and not subject to CDP quirks on
+Android Chrome.
 
 Each capture also writes a sidecar `<out>.png.json` with the
-inputs needed to re-derive the shot: `url`, `ts`, `serial`, `density`,
-`font_scale`, `chrome_locale`, `system_image`. Cheap audit trail; pair
-PNGs with `for png in *.png; do jq . "${png}.json"; done`.
+inputs needed to re-derive the shot: `url`, `ts`, `serial`,
+`device_kind`, `density`, `font_scale`, `chrome_locale`, `system_image`,
+and physical-device original settings when applicable. Cheap audit trail;
+pair PNGs with `for png in *.png; do jq . "${png}.json"; done`.
 
 ## Interactive flow (snapshot / click / fill)
 
@@ -164,8 +169,10 @@ it survives Chrome relaunches and emulator reboots. Default is `ja-JP`.
 
 ## Limitations
 
-- Single hard-coded device profile: Pixel 4a-class (1080×2340 @ 440 dpi
-  base, ~393 CSS px wide at default density).
+- Emulator mode uses a single hard-coded device profile: Pixel 4a-class
+  (1080×2340 @ 440 dpi base, ~393 CSS px wide at default density).
+- Physical-device mode requires exactly one authorized non-emulator device
+  in `adb devices`, unless `ANDROID_SERIAL` is set to the target serial.
 - Network requests originate from the emulator, not the host. To target
   `http://localhost:PORT` on the host machine, use `http://10.0.2.2:PORT`
   (the emulator's loopback alias).
