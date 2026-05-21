@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 {
   programs.delta = {
     enable = true;
@@ -11,6 +11,45 @@
 
   programs.git = {
     enable = true;
+    # `git -C <repo>` changes Git's working directory, but it does not reload
+    # direnv for that target repo. When a shell already carries another repo's
+    # direnv-managed Git identity, author/committer metadata can leak into the
+    # target repo. Route -C invocations through `direnv exec <repo>` so Git sees
+    # the environment that belongs to the repository it is operating on.
+    package = pkgs.writeShellScriptBin "git" ''
+      real_git=${pkgs.git}/bin/git
+
+      if [ -n "''${GIT_WRAPPER_NO_DIRENV:-}" ]; then
+        exec "$real_git" "$@"
+      fi
+
+      dir=
+      next_is_c=0
+      for arg in "$@"; do
+        if [ "$next_is_c" = 1 ]; then
+          if [ "''${arg#/}" != "$arg" ]; then
+            dir=$arg
+          elif [ -n "$dir" ]; then
+            dir=$dir/$arg
+          else
+            dir=$PWD/$arg
+          fi
+          next_is_c=0
+          continue
+        fi
+
+        if [ "$arg" = "-C" ]; then
+          next_is_c=1
+        fi
+      done
+
+      if [ -n "$dir" ] && command -v direnv >/dev/null 2>&1; then
+        exec direnv exec "$dir" "$real_git" "$@"
+      fi
+
+      exec "$real_git" "$@"
+    '';
+
 
     # Keep global ignores minimal — repo-specific rules belong in .gitignore
     ignores = [
