@@ -3,6 +3,7 @@
   home.sessionVariables = {
     Z_DATA_DIR = "${config.xdg.dataHome}/zsh";
     Z_CACHE_DIR = "${config.xdg.cacheHome}/zsh";
+    DISABLE_TELEMETRY = "1";
   };
 
   # Autoloaded site-functions: one function per file under functions/.
