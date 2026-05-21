@@ -1,11 +1,11 @@
 ---
 name: github-release-pr
-description: Create a release PR between two branches, wait for CI, run Codex review, and append the review result to the PR description. Use this skill whenever the user says /github-release-pr or wants to open a release pull request from one branch to another.
+description: Create or update a release PR between two branches, wait for CI, run Codex review, and append the review result to the PR description. Use this skill whenever the user says /github-release-pr or wants to open, refresh, or update a release pull request from one branch to another.
 ---
 
 # github-release-pr
 
-Create a release PR using the `release-pr` script, wait for CI to pass, run a Codex review, and append the review as `## Agent Review` at the end of the PR description.
+Create or update a release PR using the `release-pr` script, wait for CI to pass, run a Codex review, and append the review as `## Agent Review` at the end of the PR description.
 
 Usage:
 
@@ -14,6 +14,10 @@ Usage:
 ```
 
 **SKILL Bundled Scripts**: `./scripts/create-release-pr <base branch> <head branch>`
+
+The script is idempotent for an open PR with the same `<base>` and `<head>`:
+- If no PR exists, it creates one.
+- If a PR already exists, it updates that PR's title and body from the latest `origin/<base>..origin/<head>` merge commits, replacing any previous body (including stale `## Agent Review` content). It then returns the existing PR's JSON.
 
 | Argument | Description |
 |---|---|
@@ -96,9 +100,9 @@ Proceed to the workflow below once the base and head branches are determined.
 
 ## Workflow
 
-### 1. Create the PR
+### 1. Create or Update the PR
 
-Run the bundled script to create the PR:
+Run the bundled script to create the PR, or update the existing open PR for the same branch pair:
 
 ```bash
 pr="$(./scripts/create-release-pr <base> <head>)"
@@ -106,7 +110,7 @@ pr_number="$(echo "$pr" | jq -r '.number')"
 pr_url="$(echo "$pr" | jq -r '.url')"
 ```
 
-The script outputs JSON with `number` and `url`. The title follows the format `Main Release 2025/06/01` and the body lists merge commits between the two branches.
+The script outputs JSON with `number` and `url`. The title follows the format `Main Release 2025/06/01` and the body lists merge commits between the two branches based on the latest fetched remote state. If the PR already existed, treat this as a successful refresh and continue with CI/review on that PR.
 
 ### 2. Wait for CI
 
@@ -189,6 +193,6 @@ Report the PR URL, CI status, and a brief summary of the Codex review findings.
 ## Stop Conditions
 
 - `release-pr` script is not found or exits with an error
-- PR creation fails (e.g. PR already exists for this head/base pair)
+- PR creation/update fails for reasons other than an already-existing open PR (the bundled script should update existing PRs and output their JSON)
 - CI fails — report failure, do not proceed to review
 - `codex` CLI is unavailable

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Use bash 4+ for capitalization (${var^})
+set -euo pipefail
 
 # USAGE
 #   $ create-release-pr <base> <head>
@@ -9,8 +9,8 @@
 #   $ create-release-pr develop feature/a
 #   $ create-release-pr release develop
 
-base="$1"
-head="$2"
+base="${1:-}"
+head="${2:-}"
 
 if [ -z "$base" ] || [ -z "$head" ]; then
   echo "Usage: $0 <base> <head>"
@@ -19,14 +19,34 @@ if [ -z "$base" ] || [ -z "$head" ]; then
   exit 1
 fi
 
-## リリース系ブランチ同士の Pull Request (例えば dev -> prod) の場合は、Release PR を大まかに無視する
+capitalize_first() {
+  local value="$1"
+  printf '%s%s' "$(printf '%s' "${value:0:1}" | tr '[:lower:]' '[:upper:]')" "${value:1}"
+}
+
+build_body() {
+  printf '## Merge commits (%s..%s)\n\n' "$base" "$head"
+  git log "origin/$base..origin/$head" --merges --format="%h___%s  (Author: %an)___%b" \
+    | grep 'Merge pull request' \
+    | grep -v "$(capitalize_first "$head") Release" \
+    | awk -F___ '{print $2}' \
+    || true
+}
 
 date="$(date +"%Y/%m/%d")"
+title="$(capitalize_first "$base") Release $date"
 git fetch origin
-pr_url="$(gh pr create --title "${base^} Release $date" --base $base --head $head --body "## Merge commits ($base..$head)
+body="$(build_body)"
 
-$(git log "origin/$base..origin/$head" --merges --format="%h___%s  (Author: %an)___%b" | grep 'Merge pull request' | grep -v "${head^} Release" | awk -F___ '{print $2}')")"
+existing_pr="$(gh pr list --state open --base "$base" --head "$head" --json number,url --limit 1)"
+pr_number="$(printf '%s' "$existing_pr" | jq -r '.[0].number // empty')"
+pr_url="$(printf '%s' "$existing_pr" | jq -r '.[0].url // empty')"
 
-pr_number="$(echo "$pr_url" | grep -oE '[0-9]+$')"
-echo "{\"url\": \"$pr_url\", \"number\": $pr_number}"
+if [ -n "$pr_number" ]; then
+  gh pr edit "$pr_number" --title "$title" --body "$body" >/dev/null
+else
+  pr_url="$(gh pr create --title "$title" --base "$base" --head "$head" --body "$body")"
+  pr_number="$(printf '%s' "$pr_url" | grep -oE '[0-9]+$')"
+fi
 
+printf '{"url": "%s", "number": %s}\n' "$pr_url" "$pr_number"
