@@ -107,6 +107,34 @@ agent-browser --session wv click @e3
 targeting. Run `agent-browser skills get core` once if you need its full
 syntax.
 
+### Local development servers and `adb reverse`
+
+When opening a local development app in the emulator WebView, determine
+which host ports the page itself and its browser-visible backends depend
+on before launching. Prefer reversing those ports and loading the app as
+`http://localhost:<web_port>` inside the WebView.
+
+Discovery steps:
+
+1. Find the web app URL/port from the project's documented dev command,
+   compose file, run script, or currently listening ports.
+2. Inspect browser-visible config for API/base URLs, for example:
+   `NEXT_PUBLIC_*`, `PUBLIC_*`, frontend config files, compose
+   environment variables, or generated runtime config.
+3. Reverse every host port that the WebView will access:
+
+   ```bash
+   adb -s "$SERIAL" reverse tcp:<host_port> tcp:<host_port>
+   ```
+
+4. Launch the WebView with `http://localhost:<web_port>`.
+
+Use `http://10.0.2.2:<port>` only when the app and all browser-visible
+API/config URLs are also set to `10.0.2.2`. A common failure mode is that
+the initial page loads via `10.0.2.2`, but client-side requests still
+point to `localhost`; inside the emulator that means the emulator itself,
+not the host machine, so login/session/API flows fail.
+
 When done, restore defaults:
 
 ```bash
