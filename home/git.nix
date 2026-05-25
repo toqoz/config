@@ -44,7 +44,11 @@
       done
 
       if [ -n "$dir" ] && command -v direnv >/dev/null 2>&1; then
-        exec direnv exec "$dir" "$real_git" "$@"
+        current_dir=$(pwd -P)
+        target_dir=$(cd "$dir" 2>/dev/null && pwd -P)
+        if [ -n "$target_dir" ] && [ "$target_dir" != "$current_dir" ]; then
+          exec direnv exec "$dir" "$real_git" "$@"
+        fi
       fi
 
       exec "$real_git" "$@"
