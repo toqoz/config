@@ -4,7 +4,12 @@ let
   asdfDataDir = "${config.xdg.dataHome}/asdf";
 in
 {
-  home.packages = [ pkgs.asdf-vm ];
+  home.packages = [
+    pkgs.asdf-vm
+    # Elixir 1.19 supports OTP 26-28. Use Nix for Erlang to avoid
+    # asdf-erlang's Homebrew dependency discovery during source builds.
+    pkgs.erlang_28
+  ];
 
   home.sessionVariables = {
     ASDF_CONFIG_FILE = "${asdfConfigDir}/.asdfrc";
@@ -45,9 +50,6 @@ in
     fi
     if ! asdf plugin list | grep -qx deno; then
       asdf plugin add deno https://github.com/asdf-community/asdf-deno.git
-    fi
-    if ! asdf plugin list | grep -qx erlang; then
-      asdf plugin add erlang https://github.com/asdf-vm/asdf-erlang.git
     fi
     if ! asdf plugin list | grep -qx elixir; then
       asdf plugin add elixir https://github.com/asdf-vm/asdf-elixir.git
