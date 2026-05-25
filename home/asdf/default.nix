@@ -46,5 +46,8 @@ in
     if ! asdf plugin list | grep -qx deno; then
       asdf plugin add deno https://github.com/asdf-community/asdf-deno.git
     fi
+    if ! asdf plugin list | grep -qx elixir; then
+      asdf plugin add elixir https://github.com/asdf-vm/asdf-elixir.git
+    fi
   '';
 }
