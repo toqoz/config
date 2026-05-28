@@ -52,6 +52,10 @@ in
       install -d -m 0755 "/Library/Managed Preferences"
       install -m 0644 "${chromePolicyPlist}" "/Library/Managed Preferences/com.google.Chrome.plist"
       chown root:wheel "/Library/Managed Preferences/com.google.Chrome.plist"
+
+      # Chrome reads macOS managed preferences through cfprefsd, which can keep
+      # serving stale policy values after the plist is replaced.
+      /usr/bin/killall cfprefsd 2>/dev/null || true
     '';
   };
 }
