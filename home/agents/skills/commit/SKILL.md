@@ -82,9 +82,9 @@ If it matches `main`, `master`, `develop`, `dev`, `staging`, `prod`,
 `production`, `release`, or any other release/stable branch name, **stop
 and refuse the commit**. Ask the user to create a topic branch first.
 
-This guard may be relaxed only when the project's `CLAUDE.md` or the user's
-global `CLAUDE.md` (`~/.claude/CLAUDE.md`) explicitly permits direct commits
-to that branch.
+This guard may be relaxed when the active project or user instruction files
+(`CLAUDE.md`, `AGENTS.md`, or equivalent harness-provided guidance) explicitly
+permit direct commits to that branch.
 
 ## Workflow
 
