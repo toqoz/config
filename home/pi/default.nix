@@ -97,7 +97,7 @@ in
       "ctrl+h"
     ];
     "tui.input.newLine" = [
-      "alt+m"
+      "alt+j"
     ];
     "tui.select.up" = [
       "up"

@@ -55,11 +55,11 @@ config.keys = {
 		action = wezterm.action.DisableDefaultAssignment,
 	},
 
-	-- Send Alt-Enter through to pi; WezTerm otherwise treats it as a window shortcut.
+	-- Send Shift-Enter as Alt-J through to pi for input newlines.
 	{
 		key = "Enter",
 		mods = "SHIFT",
-		action = act.SendKey({ key = "m", mods = "ALT" }),
+		action = act.SendKey({ key = "j", mods = "ALT" }),
 	},
 
 	-- Command palette
