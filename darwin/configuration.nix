@@ -17,6 +17,7 @@
     ./apps/paper-design.nix
     ./apps/safari.nix
     ./apps/slack.nix
+    ./apps/warp.nix
     ./apps/system-preferences.nix
     ./apps/wezterm.nix
     ./apps/zed.nix
