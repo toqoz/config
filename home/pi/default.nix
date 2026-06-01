@@ -6,15 +6,27 @@
 }:
 let
   piPackage = llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
-  piMcpAdapterVersion = "2.8.0";
-  piMcpAdapterSource = "npm:pi-mcp-adapter@${piMcpAdapterVersion}";
+  piPackages = [
+    {
+      name = "pi-mcp-adapter";
+      version = "2.8.0";
+    }
+    {
+      name = "pi-subagents";
+      version = "0.27.0";
+    }
+    {
+      name = "pi-intercom";
+      version = "0.6.0";
+    }
+  ];
 in
 {
   home.packages = [
     piPackage
   ];
 
-  home.activation.installPiMcpAdapter = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.installPiPackages = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     export PATH="${lib.makeBinPath [
       piPackage
       pkgs.jq
@@ -24,16 +36,20 @@ in
     export PI_TELEMETRY=0
 
     settings="$HOME/.pi/agent/settings.json"
-    package_json="$HOME/.pi/agent/npm/pi-mcp-adapter/package.json"
 
-    if [ -f "$package_json" ] \
-      && jq -e --arg version "${piMcpAdapterVersion}" '.version == $version' "$package_json" >/dev/null \
-      && [ -f "$settings" ] \
-      && jq -e --arg source "${piMcpAdapterSource}" '(.packages // []) | any(. == $source or (.source? == $source))' "$settings" >/dev/null; then
-      echo "pi-mcp-adapter ${piMcpAdapterVersion} is already installed"
-    else
-      pi install "${piMcpAdapterSource}"
-    fi
+    ${lib.concatMapStringsSep "\n" (pkg: ''
+      source="npm:${pkg.name}@${pkg.version}"
+      package_json="$HOME/.pi/agent/npm/node_modules/${pkg.name}/package.json"
+
+      if [ -f "$package_json" ] \
+        && jq -e --arg version "${pkg.version}" '.version == $version' "$package_json" >/dev/null \
+        && [ -f "$settings" ] \
+        && jq -e --arg source "$source" '(.packages // []) | any(. == $source or (.source? == $source))' "$settings" >/dev/null; then
+        echo "${pkg.name} ${pkg.version} is already installed"
+      else
+        pi install "$source"
+      fi
+    '') piPackages}
   '';
 
   home.file.".pi/agent/AGENTS.md".source = ../agents/AGENTS.md;
