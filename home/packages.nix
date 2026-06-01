@@ -13,6 +13,7 @@
   # `pkgs.tmux` in `tmux.nix`) to keep each module self-contained.
   home.packages = with pkgs; [
     mkcert
+    openssh
     wget
     tig
     ghq

@@ -21,6 +21,7 @@
     ./pi
     ./repo.nix
     ./scripts.nix
+    ./ssh.nix
     ./sketchybar
     ./starship
     ./tmux
