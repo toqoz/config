@@ -338,11 +338,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1776902097,
-        "narHash": "sha256-NxaBw0Xap+8KmWe90aZH0q/2xey8JWBIV9+kIX8Xj00=",
+        "lastModified": 1780286880,
+        "narHash": "sha256-xGucNcpHCgc+iOvEzwrk9JxfgmW5IGhxLdo8VxMLdD8=",
         "owner": "toqoz",
         "repo": "sence",
-        "rev": "87789c25a560a4bcc4a839cdd25e638621144c67",
+        "rev": "94d0b7b60b8c5f921ad0e89ad4937871e8433e70",
         "type": "github"
       },
       "original": {
