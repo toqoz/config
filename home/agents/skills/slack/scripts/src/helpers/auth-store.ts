@@ -71,7 +71,7 @@ export function authConfigPath(): string {
   return `${xdgData}/slack-skill/auth.json`;
 }
 
-export function loadAuth(): AuthConfig {
+export function loadAuth(opts: { hydrateSecrets?: boolean } = {}): AuthConfig {
   let config: AuthConfig;
   try {
     const text = readFileSync(authConfigPath(), "utf-8");
@@ -79,6 +79,8 @@ export function loadAuth(): AuthConfig {
   } catch {
     return { workspaces: {} };
   }
+
+  if (opts.hydrateSecrets === false) return config;
 
   // Check if any workspace needs hydration
   const needsHydration = Object.values(config.workspaces).some(

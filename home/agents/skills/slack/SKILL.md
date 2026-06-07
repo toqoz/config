@@ -18,6 +18,12 @@ Import credentials from Slack Desktop (macOS, one-time):
 ./scripts/slack-cli auth import-desktop
 ```
 
+List configured workspaces and verify each credential with `auth.test`:
+
+```bash
+./scripts/slack-cli auth list
+```
+
 ## Message operations
 
 ### Fetch a single message

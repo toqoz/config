@@ -2,6 +2,7 @@
  * Auth management: import credentials from Slack Desktop or manual tokens.
  *
  * Subcommands:
+ *   list                 List configured workspaces
  *   import-desktop       Extract xoxc+xoxd from Slack Desktop (macOS)
  *   import-desktop --set-default
  *   import-token --token xoxb-...
@@ -12,7 +13,7 @@ import { execFileSync } from "node:child_process";
 import { statSync, mkdtempSync, rmSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, basename } from "node:path";
-import { loadAuth, saveAuth, slackGet, parseArgs, fatal, output, findKeysContaining } from "./helpers/index.ts";
+import { loadAuth, saveAuth, slackGet, parseArgs, fatal, output, usage, findKeysContaining } from "./helpers/index.ts";
 
 interface DesktopTeam {
   url: string;
@@ -20,19 +21,94 @@ interface DesktopTeam {
   token: string;
 }
 
+const AUTH_USAGE = `Usage: slack-cli auth <subcommand> [args]
+
+Subcommands:
+  list                              List configured workspaces
+  import-desktop [--set-default]    Import credentials from Slack Desktop
+  import-token --token ...          Import a bot/user token
+  import-token --token ... --cookie xoxd-...
+
+Common options:
+  --workspace <url-or-substring>    Select workspace where supported`;
+
 export async function main(args: string[]) {
   const { flags, positional } = parseArgs(args);
   const cmd = positional[0];
 
-  if (cmd === "import-token" || flags["token"]) {
-    await importManualToken(
-      (flags["token"] as string) ?? fatal("--token is required"),
-      flags["cookie"] as string | undefined,
-    );
-    return;
+  switch (cmd) {
+    case "list":
+      await listAuth();
+      return;
+    case "import-desktop":
+      await importDesktop(flags["set-default"] === true);
+      return;
+    case "import-token":
+      await importManualToken(
+        (flags["token"] as string) ?? fatal("--token is required"),
+        flags["cookie"] as string | undefined,
+      );
+      return;
+    case undefined:
+      if (flags["token"]) {
+        await importManualToken(
+          flags["token"] as string,
+          flags["cookie"] as string | undefined,
+        );
+        return;
+      }
+      usage(AUTH_USAGE);
+    default:
+      usage(`Unknown auth subcommand: ${cmd}\n\n${AUTH_USAGE}`);
   }
+}
 
-  // Default: import-desktop
+async function listAuth(): Promise<void> {
+  const config = loadAuth();
+  const workspaces = await Promise.all(
+    Object.entries(config.workspaces)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(async ([workspaceUrl, ws]) => {
+        const base = {
+          workspace: workspaceUrl,
+          team: ws.teamName,
+          token_type: ws.type,
+          default: workspaceUrl === config.default,
+        };
+
+        try {
+          const authInfo = await slackGet<{ url: string; team: string; user: string }>(
+            "auth.test",
+            {},
+            ws,
+          );
+          return {
+            ...base,
+            status: "ok",
+            team: authInfo.team ?? ws.teamName,
+            user: authInfo.user,
+            api_url: authInfo.url,
+          };
+        } catch (e) {
+          return {
+            ...base,
+            status: "error",
+            error: e instanceof Error ? e.message : String(e),
+          };
+        }
+      }),
+  );
+  const ok = workspaces.every((ws) => ws.status === "ok");
+
+  output({
+    ok,
+    default: config.default,
+    workspaces,
+  });
+  if (!ok) process.exitCode = 1;
+}
+
+async function importDesktop(setDefault: boolean): Promise<void> {
   const home = process.env.HOME ?? fatal("$HOME not set");
   const slackDir = `${home}/Library/Application Support/Slack`;
 
@@ -58,7 +134,7 @@ export async function main(args: string[]) {
   }
 
   console.error(`Found ${teams.length} workspace(s). Verifying…`);
-  await importAllTeams(teams, xoxd, flags["set-default"] === true);
+  await importAllTeams(teams, xoxd, setDefault);
 }
 
 // ── Team extraction (LevelDB reader) ─────────────────────────────

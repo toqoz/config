@@ -7,7 +7,7 @@
  *   slack-cli channel list [--all] [--limit N]
  *   slack-cli search  <messages|files|all> <query> [options]
  *   slack-cli file    download <permalink>
- *   slack-cli auth    [import-desktop|import-token --token ...]
+ *   slack-cli auth    <list|import-desktop|import-token --token ...>
  */
 
 const USAGE = `Usage: slack-cli <command> [subcommand] [args]
@@ -17,7 +17,7 @@ Commands:
   channel   list
   search    messages|files|all <query>
   file      download <permalink>
-  auth      import-desktop | import-token --token ...
+  auth      list | import-desktop | import-token --token ...
 
 Common options:
   --workspace <url-or-substring>   Select workspace (multi-workspace)
