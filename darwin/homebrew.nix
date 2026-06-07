@@ -9,6 +9,11 @@
       autoUpdate = true;
       upgrade = true;
       cleanup = "uninstall";
+      # Force cleanup is required for cask rename cleanup; see
+      # https://github.com/nix-darwin/nix-darwin/issues/1787
+      extraFlags = [
+        "--force-cleanup"
+      ];
     };
   };
 }
