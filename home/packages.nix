@@ -22,6 +22,7 @@
     fd
     bun
     deno
+    zig
     mariadb.client
     # fonttools CLI (pyftsubset, ttx, fonttools, ...). brotli is an optional
     # dependency required for WOFF2 read/write.
