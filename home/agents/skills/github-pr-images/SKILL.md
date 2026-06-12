@@ -26,12 +26,53 @@ edits a PR body — it only uploads and reports URLs.
   explicit value from the user when running outside a clone.
 - Image paths — resolve any globs *before* calling `gh`.
 
+## Release target branch
+
+Use a dedicated orphan branch named `pr-images` as the target for image
+release tags. This keeps `pr-<PR_NUMBER>-images` tags off mainline commits
+and PR commits; many image releases can safely target the same anchor commit.
+
+If the branch is missing, create it as an orphan branch before creating the
+release. Use GitHub's Git Data API so this also works when running outside a
+local clone:
+
+```bash
+ensure_image_release_target_branch() {
+  branch="$1"
+
+  if gh api "repos/${REPO}/branches/${branch}" -R "$REPO" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  empty_tree_sha="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+  commit_sha=$(gh api "repos/${REPO}/git/commits" -R "$REPO" \
+    --method POST \
+    --field message="Release asset anchor branch" \
+    --field tree="$empty_tree_sha" \
+    --jq .sha)
+
+  if gh api "repos/${REPO}/git/refs" -R "$REPO" \
+    --method POST \
+    --field ref="refs/heads/${branch}" \
+    --field sha="$commit_sha" >/dev/null
+  then
+    return 0
+  fi
+
+  # Another uploader may have created it concurrently. Treat that as success.
+  gh api "repos/${REPO}/branches/${branch}" -R "$REPO" >/dev/null
+}
+```
+
 ## Preflight
 
 Fail early, not mid-upload:
 
 ```bash
+IMAGE_RELEASE_TARGET_BRANCH="${IMAGE_RELEASE_TARGET_BRANCH:-pr-images}"
+
 gh pr view "$PR_NUMBER" -R "$REPO" --json number >/dev/null   # PR exists
+ensure_image_release_target_branch "$IMAGE_RELEASE_TARGET_BRANCH"
 for f in "$@"; do [ -f "$f" ] || { echo "missing: $f" >&2; exit 1; }; done
 # Unique basenames — the URL lookup below keys off basename.
 basenames=$(for f in "$@"; do basename "$f"; done | sort)
@@ -44,6 +85,7 @@ The release is tagged `pr-<PR_NUMBER>-images`. Branch on existence so
 genuine failures surface instead of being swallowed by a `||` fallback:
 
 ```bash
+IMAGE_RELEASE_TARGET_BRANCH="${IMAGE_RELEASE_TARGET_BRANCH:-pr-images}"
 TAG="pr-${PR_NUMBER}-images"
 
 if gh release view "$TAG" -R "$REPO" >/dev/null 2>&1; then
@@ -52,12 +94,16 @@ else
   gh release create "$TAG" "$@" \
     --title "PR #${PR_NUMBER} screenshots" \
     --notes "Image assets for PR #${PR_NUMBER}. Auto-generated." \
-    --prerelease -R "$REPO"
+    --prerelease \
+    --target "$IMAGE_RELEASE_TARGET_BRANCH" \
+    -R "$REPO"
 fi
 ```
 
-`--prerelease` keeps these out of the normal release list. `--clobber`
-overwrites existing assets of the same name on re-upload.
+`--target` anchors new release tags to the dedicated image branch instead
+of whatever commit happens to be the default branch HEAD. `--prerelease`
+keeps these out of the normal release list. `--clobber` overwrites existing
+assets of the same name on re-upload.
 
 ## Return URLs
 
