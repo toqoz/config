@@ -7,7 +7,7 @@ description: Create stacked PRs by splitting a large change into a chain of inde
 
 A stacked PR is a chain of pull requests where each PR targets the branch of the PR below it, and the bottom PR targets the repository's default branch (e.g. `main`). The benefit: reviewers can evaluate each focused layer independently, rather than wading through one enormous diff.
 
-This skill uses [gh-stack](https://github.github.com/gh-stack/) (`gh extension install github/gh-stack`) to manage the stack.
+This skill uses [gh-stack](https://github.github.com/gh-stack/) (`gh stack ...`) to manage the stack.
 
 ## Prerequisites
 
@@ -15,16 +15,12 @@ Verify before doing any work:
 
 ```bash
 gh auth status                          # gh installed and authenticated
-gh extension list | grep gh-stack       # gh-stack extension present
+gh stack --help >/dev/null              # gh-stack extension present
 git remote -v | grep github.com         # GitHub remote exists
 gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'  # resolve base branch
 ```
 
-If `gh-stack` is missing, prompt the user to install it — do not install silently:
-
-```
-gh extension install github/gh-stack
-```
+On ToQoz machines, `gh-stack` is managed declaratively in `~/src/github.com/toqoz/config/home/gh.nix` via `programs.gh.extensions = [ pkgs.gh-stack ];`. If `gh stack` is missing, stop and ask the user to activate/update the Nix config; do not run `gh extension install` silently.
 
 If `gh` or auth is missing, stop and describe the missing prerequisite.
 
@@ -79,7 +75,7 @@ Stack plan:
     Files: src/ui/users.tsx
     Summary: Add users UI
 
-  Draft PRs? yes (default)
+  Draft PRs? yes (gh-stack default)
   Proceed?
 ```
 
@@ -122,33 +118,33 @@ git checkout -b <layer-1-branch> <base-branch>
 # ... stage and commit layer 1 changes ...
 
 # initialize the stack
-gs init <layer-1-branch>
+gh stack init <layer-1-branch>
 
 # add subsequent layers
-gs add <layer-2-branch>
+gh stack add <layer-2-branch>
 # ... stage and commit layer 2 changes on the new branch ...
 
-gs add <layer-3-branch>
+gh stack add <layer-3-branch>
 # ... stage and commit layer 3 changes ...
 ```
 
 #### 4c. Push and submit
 
 ```bash
-gs push       # push all stack branches to origin
-gs submit     # create PRs for all layers
+gh stack push       # push all stack branches to origin
+gh stack submit     # create/update draft PRs for all layers
 ```
 
-`gs submit` will open PRs where each PR targets the branch below it. The bottom PR targets the base branch.
+`gh stack submit` will open PRs where each PR targets the branch below it. The bottom PR targets the base branch. New PRs are drafts by default; pass `--open` only when the user wants ready-for-review PRs.
 
-Pass `--draft` if submitting as drafts (recommended by default for generated stacks):
+Use `--auto` when non-interactive PR title generation is acceptable:
 ```bash
-gs submit --draft
+gh stack submit --auto
 ```
 
 ### 5. PR body
 
-`gs submit` creates PRs automatically. After creation, update each PR body to include lightweight stack metadata — this helps reviewers who open a PR directly via notification or link, where the native stack map UI may not be visible:
+`gh stack submit` creates PRs automatically. After creation, update each PR body to include lightweight stack metadata — this helps reviewers who open a PR directly via notification or link, where the native stack map UI may not be visible:
 
 ```markdown
 > **Stack**: Part 1 of 3 — auth-refactor
@@ -182,30 +178,30 @@ After completing, report:
 
 ### Rebase conflicts
 
-If `gs rebase` fails with conflicts:
+If `gh stack rebase` fails with conflicts:
 1. Stop immediately — do not push or submit.
 2. Show conflicted files: `git status --short`
 3. Show which branch/layer is mid-rebase: `git branch --show-current`
-4. Tell the user how to abort: `git rebase --abort`
+4. Tell the user how to abort: `gh stack rebase --abort`
 5. Ask whether to resolve manually or let Claude attempt resolution.
 
-Claude may resolve straightforward textual conflicts, but should not guess at semantic conflicts. After resolution, continue with `git rebase --continue`, then rerun `gs push`.
+Claude may resolve straightforward textual conflicts, but should not guess at semantic conflicts. After resolution, continue with `gh stack rebase --continue`, then rerun `gh stack push`.
 
 ### Partial failures
 
-If `gs push` or `gs submit` fails partway through:
+If `gh stack push` or `gh stack submit` fails partway through:
 - Do not retry blindly.
-- Inspect which layers pushed/didn't: `gs status` or `gh pr list`
+- Inspect which layers pushed/didn't: `gh stack view` or `gh pr list`
 - Fix the specific failure and rerun only what's needed.
 
 ## Recovery commands
 
 ```bash
-gs status               # current state of the stack
-gs push                 # re-push after fixing a layer
-gs submit               # re-create missing PRs
-gs rebase               # rebase entire stack after base branch updated
-git rebase --abort      # abort a stuck rebase
+gh stack view           # current state of the stack
+gh stack push           # re-push after fixing a layer
+gh stack submit         # re-create or update missing PRs
+gh stack rebase         # rebase entire stack after base branch updated
+gh stack rebase --abort # abort a stuck stack rebase
 gh pr list --head <branch>  # find PR for a specific layer
 ```
 
@@ -213,7 +209,7 @@ gh pr list --head <branch>  # find PR for a specific layer
 
 | Flag | Effect |
 |---|---|
-| `--draft` | Submit all PRs as drafts (default for generated stacks) |
-| `--ready` | Submit all PRs as ready for review |
-| `--base <branch>` | Use a different base branch instead of the default |
-| `--no-confirm` | Skip the plan confirmation prompt and execute immediately |
+| `gh stack submit` default | Submit new PRs as drafts |
+| `gh stack submit --open` | Mark new and existing PRs as ready for review |
+| `gh stack init --base <branch>` | Use a different base branch instead of the default |
+| `--no-confirm` | Skill-level convention: skip the plan confirmation prompt and execute immediately |
