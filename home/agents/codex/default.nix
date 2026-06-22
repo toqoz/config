@@ -13,16 +13,18 @@ let
     }
     // lib.optionalAttrs config.programs.mcp.enable {
       mcp_servers = lib.mapAttrs (
-        _name: server:
-        (lib.removeAttrs server [
-          "disabled"
-          "headers"
-        ])
-        // (lib.optionalAttrs (server ? headers && !(server ? http_headers)) {
-          http_headers = server.headers;
-        })
-        // {
-          enabled = !(server.disabled or false);
+        name: server:
+        lib.hm.mcp.transformMcpServer {
+          inherit server;
+          exclude = [
+            "headers"
+            "type"
+          ];
+          extraTransforms = [
+            (s: s // lib.optionalAttrs (s.headers or { } != { }) { http_headers = s.headers; })
+            lib.hm.mcp.addType
+            (lib.hm.mcp.wrapEnvFilesCommand { inherit pkgs name; })
+          ];
         }
       ) config.programs.mcp.servers;
     };
