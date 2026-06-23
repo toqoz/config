@@ -83,6 +83,17 @@
             ${if useSudo then "exec sudo darwin-rebuild ${command} --flake \"$repo_root#remilis\" \"$@\"" else "exec darwin-rebuild ${command} --flake \"$repo_root#remilis\" \"$@\""}
           '';
         };
+
+      gcCommand = pkgs.writeShellApplication {
+        name = "nix-gc";
+        text = ''
+          set -euo pipefail
+          echo "Collecting garbage older than 30 days..."
+          nix-collect-garbage --delete-older-than 30d
+          echo "Optimising nix store..."
+          nix store optimise
+        '';
+      };
     in
     {
       packages.${system} = {
@@ -101,6 +112,10 @@
         switch = {
           type = "app";
           program = "${self.packages.${system}.switch}/bin/darwin-switch";
+        };
+        gc = {
+          type = "app";
+          program = "${gcCommand}/bin/nix-gc";
         };
       };
 
