@@ -21,10 +21,8 @@
     ./apps/wezterm.nix
     ./apps/zed.nix
     ./fonts.nix
-    ./gc.nix
     ./homebrew.nix
     ./nix.nix
-    ./optimise.nix
     ./system.nix
     ./unfree.nix
   ];
