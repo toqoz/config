@@ -186,7 +186,6 @@ let
   #
   # Upstream additions need to be named here explicitly.
   anthropicPassthroughSkills = [
-    "claude-api"
     "doc-coauthoring"
     "frontend-design"
     "internal-comms"
