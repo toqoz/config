@@ -12,6 +12,7 @@
     ./fzf.nix
     ./gh.nix
     ./git.nix
+    ./hunk.nix
     ./karabiner
     ./less.nix
     ./neovim

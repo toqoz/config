@@ -40,6 +40,14 @@
       url = "github:googleworkspace/cli";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    herdr = {
+      url = "github:ogulcancelik/herdr";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    hunk = {
+      url = "github:modem-dev/hunk";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     android-nixpkgs = {
       url = "github:tadfisher/android-nixpkgs/stable";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -59,6 +67,8 @@
       makenotion-skills,
       sence,
       gws,
+      herdr,
+      hunk,
       android-nixpkgs,
       ...
     }:
@@ -218,6 +228,7 @@
             home-manager.useUserPackages = true;
             home-manager.sharedModules = [
               agent-skills.homeManagerModules.default
+              hunk.homeManagerModules.default
               android-nixpkgs.hmModule
             ];
             home-manager.extraSpecialArgs = {
@@ -227,6 +238,7 @@
               inherit makenotion-skills;
               inherit sence;
               inherit gws;
+              inherit herdr;
             };
             home-manager.users."toqoz" = ./home/home.nix;
           }

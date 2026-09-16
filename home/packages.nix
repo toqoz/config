@@ -3,6 +3,7 @@
   llm-agents,
   sence,
   gws,
+  herdr,
   ...
 }:
 {
@@ -44,6 +45,7 @@
     (callPackage ../packages/vite-plus.nix { })
     sence.packages.${pkgs.stdenv.hostPlatform.system}.default
     gws.packages.${pkgs.stdenv.hostPlatform.system}.default
+    herdr.packages.${pkgs.stdenv.hostPlatform.system}.default
     llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.agent-browser
     llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.amp
     llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.ccusage
