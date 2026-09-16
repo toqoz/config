@@ -55,6 +55,14 @@ config.keys = {
 		action = wezterm.action.DisableDefaultAssignment,
 	},
 
+	-- Let pi handle Alt-Enter as its follow-up message shortcut instead of
+	-- letting wezterm consume the key as a default assignment.
+	{
+		key = "Enter",
+		mods = "ALT",
+		action = wezterm.action.DisableDefaultAssignment,
+	},
+
 	-- Send Shift-Enter as Alt-J through to pi for input newlines.
 	{
 		key = "Enter",
