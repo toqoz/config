@@ -41,6 +41,7 @@
     (callPackage ../packages/portless.nix { })
     (callPackage ../packages/mo.nix { })
     (callPackage ../packages/ntn.nix { })
+    (callPackage ../packages/orca.nix { })
     (callPackage ../packages/jrf.nix { })
     (callPackage ../packages/vite-plus.nix { })
     sence.packages.${pkgs.stdenv.hostPlatform.system}.default
