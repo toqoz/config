@@ -16,6 +16,7 @@
     mkcert
     openssh
     wget
+    oha
     tig
     ghq
     lazygit
