@@ -96,8 +96,12 @@ in
       "backspace"
       "ctrl+h"
     ];
+    # Keep Alt-J for WezTerm, which remaps Shift-Enter to Alt-J.
+    # Orca/xterm can report Shift-Enter directly, so bind that too instead of
+    # synthesizing an OS-level Alt-J that AeroSpace may intercept.
     "tui.input.newLine" = [
       "alt+j"
+      "shift+enter"
     ];
     "tui.select.up" = [
       "up"
