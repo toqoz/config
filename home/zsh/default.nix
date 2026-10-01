@@ -55,6 +55,10 @@
     ];
     # .zshenv
     envExtra = ''
+      # Login shells source this before Home Manager session variables are
+      # loaded, so set asdf's XDG paths before asdf-prepare mutates PATH.
+      export ASDF_CONFIG_FILE="${config.xdg.configHome}/asdf/.asdfrc"
+      export ASDF_DATA_DIR="${config.xdg.dataHome}/asdf"
       source "${pkgs.asdf-vm}/etc/profile.d/asdf-prepare.sh"
       fpath=(${pkgs.asdf-vm}/share/zsh/site-functions ${config.xdg.configHome}/zsh/functions $fpath)
 
