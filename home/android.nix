@@ -1,5 +1,9 @@
 { ... }:
 {
+  my.unfreePackages = [
+    "android-cli"
+  ];
+
   # Android SDK + emulator via tadfisher/android-nixpkgs.
   # SDK is materialized at `~/.local/share/android` (the module default) and
   # exports ANDROID_HOME / ANDROID_SDK_ROOT.
