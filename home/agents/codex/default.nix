@@ -5,11 +5,12 @@ let
 
   managedSettings =
     {
-      model = "gpt-5.4";
+      model = "gpt-6.1-sol";
 
       features.multi_agent = true;
 
-      notice.model_migrations."gpt-5.1-codex-mini" = "gpt-5.4";
+      notice.model_migrations."gpt-5.1-codex-mini" = "gpt-6.1-sol";
+      notice.model_migrations."gpt-5.4" = "gpt-6.1-sol";
     }
     // lib.optionalAttrs config.programs.mcp.enable {
       mcp_servers = lib.mapAttrs (

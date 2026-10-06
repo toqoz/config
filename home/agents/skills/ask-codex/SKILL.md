@@ -15,10 +15,12 @@ Select a model in three steps: **family → depth → resolve**. If the user exp
 
 | Task is mainly about… | Family |
 |---|---|
-| Code, diffs, tests, shell commands, stack traces, refactors | **codex** (code-optimized) |
-| Writing, planning, policy, product/UX, broad synthesis | **general** (gpt-5.x) |
-| Mixed — answer will contain code/commands/diff-level advice | **codex** |
+| Code, diffs, tests, shell commands, stack traces, refactors | **coding** |
+| Writing, planning, policy, product/UX, broad synthesis | **general** |
+| Mixed — answer will contain code/commands/diff-level advice | **coding** |
 | Mixed — answer is prose reasoning about a code decision | **general** |
+
+Codex CLI's current ChatGPT-backed catalog uses GPT slugs rather than `*-codex` slugs. Do not prefer old `gpt-5.x-codex*` names unless the user explicitly requests one.
 
 ### Step 2: Choose depth
 
@@ -30,25 +32,27 @@ Select a model in three steps: **family → depth → resolve**. If the user exp
 
 ### Step 3: Resolve to a model name
 
-Available models (availability depends on account/plan — on "model unavailable" errors, fall back to the next candidate):
+Available models (availability depends on account/plan — on "model unavailable" errors, fall back to the next candidate). Check the local catalog with `codex debug models --bundled` if these names stop working.
 
-- `gpt-5.5`             — Frontier model for complex coding, research, and real-world work
-- `gpt-5.4`             — Strong model for everyday coding
-- `gpt-5.4-mini`        — Small, fast, and cost-efficient model for simpler coding tasks
-- `gpt-5.3-codex`       — Coding-optimized model
-- `gpt-5.3-codex-spark` — Ultra-fast coding model
-- `gpt-5.2`             — Optimized for professional work and long-running agents
+- `gpt-6-astra`         — Frontier model for the most demanding work
+- `gpt-6.1-sol`         — Current workhorse model for coding and everyday work
+- `gpt-6-sol`           — Previous-generation workhorse model
+- `gpt-6-luna`          — Fast and affordable model for easier tasks
+- `gpt-5.6-sol`         — Older workhorse model
+- `gpt-5.6-terra`       — Older balanced model for straightforward work
+- `gpt-5.6-luna`        — Older fast and efficient model
+- `gpt-5.5`             — Legacy coding model
 
 | Slot | Try in order |
 |---|---|
-| Fast code | `gpt-5.3-codex-spark` → `gpt-5.4-mini` → `gpt-5.3-codex` |
-| Deep code | `gpt-5.3-codex` → `gpt-5.5` |
-| Max code | `gpt-5.5` → `gpt-5.3-codex` |
-| Fast general | `gpt-5.4-mini` → `gpt-5.4` |
-| Deep general | `gpt-5.4` → `gpt-5.5` |
-| Max general | `gpt-5.5` → `gpt-5.4` |
+| Fast code | `gpt-6-luna` → `gpt-6.1-sol` → `gpt-5.5` |
+| Deep code | `gpt-6.1-sol` → `gpt-6-sol` → `gpt-5.5` |
+| Max code | `gpt-6-astra` → `gpt-6.1-sol` → `gpt-5.5` |
+| Fast general | `gpt-6-luna` → `gpt-6.1-sol` |
+| Deep general | `gpt-6.1-sol` → `gpt-6-sol` → `gpt-5.5` |
+| Max general | `gpt-6-astra` → `gpt-6.1-sol` |
 
-If all candidates fail, omit `-m` entirely and let Codex CLI use its default.
+If all candidates fail, omit `-m` only after checking that Codex CLI's configured default is valid.
 
 ## Consultation Mode
 
@@ -75,14 +79,14 @@ codex exec -m MODEL --sandbox read-only --ephemeral - < ./.agents/cache/ask-code
 **Examples:**
 
 ```bash
-# Fast code — codex-spark for a quick naming check
-codex exec -m gpt-5.3-codex-spark --sandbox read-only --ephemeral - < ./.agents/cache/ask-codex/20260417-naming-check.md
+# Fast code — luna for a quick naming check
+codex exec -m gpt-6-luna --sandbox read-only --ephemeral - < ./.agents/cache/ask-codex/20260417-naming-check.md
 
-# Deep code — full codex model for architecture review
-codex exec -m gpt-5.3-codex --sandbox read-only --ephemeral - < ./.agents/cache/ask-codex/20260417-arch-review.md
+# Deep code — current workhorse model for architecture review
+codex exec -m gpt-6.1-sol --sandbox read-only --ephemeral - < ./.agents/cache/ask-codex/20260417-arch-review.md
 
 # General — non-code planning question
-codex exec -m gpt-5.4 --sandbox read-only --ephemeral - < ./.agents/cache/ask-codex/20260417-product-tradeoff.md
+codex exec -m gpt-6.1-sol --sandbox read-only --ephemeral - < ./.agents/cache/ask-codex/20260417-product-tradeoff.md
 ```
 
 ## Code Review Mode
@@ -106,10 +110,10 @@ The `review` subcommand accepts the same `-m` flag for model selection. Note: `r
 ### Examples
 
 ```bash
-# Fast review — codex-spark
-codex exec review -m gpt-5.3-codex-spark --uncommitted --ephemeral
+# Fast review — luna
+codex exec review -m gpt-6-luna --uncommitted --ephemeral
 
-# Deep review — full codex model
+# Deep review — current default model
 codex exec review --base main --ephemeral
 
 # Review a specific commit
