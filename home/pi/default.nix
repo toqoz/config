@@ -9,15 +9,15 @@ let
   piPackages = [
     {
       name = "pi-mcp-adapter";
-      version = "2.8.0";
+      version = "5.1.0";
     }
     {
       name = "pi-subagents";
-      version = "0.27.0";
+      version = "0.76.1";
     }
     {
       name = "pi-intercom";
-      version = "0.6.0";
+      version = "0.16.1";
     }
   ];
 in
@@ -36,6 +36,24 @@ in
     export PI_TELEMETRY=0
 
     settings="$HOME/.pi/agent/settings.json"
+
+    mkdir -p "$(dirname "$settings")"
+    tmp_settings="$(mktemp)"
+    if [ -f "$settings" ]; then
+      jq '. + {
+        defaultProvider: "openai-codex",
+        defaultModel: "gpt-6.1-sol",
+        defaultThinkingLevel: "medium"
+      }' "$settings" > "$tmp_settings"
+    else
+      jq -n '{
+        defaultProvider: "openai-codex",
+        defaultModel: "gpt-6.1-sol",
+        defaultThinkingLevel: "medium"
+      }' > "$tmp_settings"
+    fi
+    install -m 0600 "$tmp_settings" "$settings"
+    rm -f "$tmp_settings"
 
     ${lib.concatMapStringsSep "\n" (pkg: ''
       source="npm:${pkg.name}@${pkg.version}"
