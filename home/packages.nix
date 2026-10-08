@@ -54,6 +54,7 @@
     (callPackage ../packages/ntn.nix { })
     (callPackage ../packages/orca.nix { })
     (callPackage ../packages/jrf.nix { })
+    (callPackage ../packages/ketch.nix { })
     (callPackage ../packages/vite-plus.nix { })
     sence.packages.${pkgs.stdenv.hostPlatform.system}.default
     gws.packages.${pkgs.stdenv.hostPlatform.system}.default

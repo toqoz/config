@@ -1,5 +1,6 @@
 { lib, pkgs, vercel-agent-browser, makenotion-skills, ... }:
 let
+  ketch = pkgs.callPackage ../../../packages/ketch.nix { };
   modern-web-guidance = pkgs.callPackage ../../../packages/modern-web-guidance.nix { };
   modernWebGuidanceBin = "${modern-web-guidance}/bin/modern-web-guidance";
   injectAfterFrontmatter = note: content:
@@ -68,6 +69,10 @@ in
         path = makenotion-skills;
         subdir = "skills";
       };
+      ketch = {
+        path = "${ketch}/share/ketch";
+        subdir = "skills";
+      };
       googlechrome-modern-web-guidance = {
         path = "${modern-web-guidance}/lib/modern-web-guidance";
         subdir = "skills";
@@ -78,6 +83,7 @@ in
         "local"
         "vercel"
         "makenotion"
+        "ketch"
       ];
       explicit.modern-web-guidance = {
         from = "googlechrome-modern-web-guidance";
