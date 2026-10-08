@@ -260,7 +260,9 @@ Include screenshots when visuals, layout, screenshots in a PR template, or revie
 - Crop screenshots to the changed component or region when the surrounding page is noise; keep the full page only when page-level layout context matters.
 - Before uploading or embedding screenshots, redact tokens, cookies, customer data, personal information, internal URLs, unreleased confidential content, and any other sensitive details.
 - Include only enough images to review the change; avoid dumping every capture.
-- If local images need GitHub URLs, use the `github-pr-images` skill, then embed the returned URLs yourself.
+- Attach local images or videos with the official `gh pr create` / `gh pr edit --attach` flag; no image-storage release is needed. Check the installed command's `--help` for support.
+- To control placement, write `![Changed UI state](./screenshot.png)` in the body file and pass `--body-file body.md --attach ./screenshot.png`; `gh` replaces the local reference with the uploaded asset URL. Repeat `--attach` for multiple files.
+- To append an image without replacing the existing body, use `gh pr edit 123 --attach './screenshot.png#Changed UI state'`. The text after `#` supplies alt text; a reference already in the body keeps its own alt text.
 
 ## Verification section
 
