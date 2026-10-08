@@ -24,6 +24,7 @@
     fd
     bun
     deno
+    pnpm
     zig
     mariadb.client
     # fonttools CLI (pyftsubset, ttx, fonttools, ...). brotli is an optional
