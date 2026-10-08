@@ -12,6 +12,10 @@
   # General-purpose CLI tools and third-party packages without a dedicated
   # module. Tool-specific installs live with their owning module (e.g.
   # `pkgs.tmux` in `tmux.nix`) to keep each module self-contained.
+  home.file.".npmrc".text = ''
+    minimum-release-age=4320
+  '';
+
   home.packages = with pkgs; [
     mkcert
     openssh
