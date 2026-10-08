@@ -40,16 +40,18 @@ in
     mkdir -p "$(dirname "$settings")"
     tmp_settings="$(mktemp)"
     if [ -f "$settings" ]; then
-      jq '. + {
+      jq '. as $settings | $settings + {
         defaultProvider: "openai-codex",
         defaultModel: "gpt-6.1-sol",
-        defaultThinkingLevel: "medium"
+        defaultThinkingLevel: "medium",
+        extensions: (($settings.extensions // []) | if index("-builtin:mcp") then . else . + ["-builtin:mcp"] end)
       }' "$settings" > "$tmp_settings"
     else
       jq -n '{
         defaultProvider: "openai-codex",
         defaultModel: "gpt-6.1-sol",
-        defaultThinkingLevel: "medium"
+        defaultThinkingLevel: "medium",
+        extensions: ["-builtin:mcp"]
       }' > "$tmp_settings"
     fi
     install -m 0600 "$tmp_settings" "$settings"
