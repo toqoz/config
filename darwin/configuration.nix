@@ -4,6 +4,7 @@
     ./aerospace.nix
     ./apps/1password.nix
     ./apps/aqua-voice.nix
+    ./apps/capcut.nix
     ./apps/chatgpt.nix
     ./apps/chrome.nix
     ./apps/claude-desktop.nix
