@@ -11,6 +11,7 @@
     ./apps/codex.nix
     ./apps/figma.nix
     ./apps/karabiner.nix
+    ./apps/lark.nix
     ./apps/macskk.nix
     ./apps/music.nix
     ./apps/nani.nix
