@@ -10,6 +10,7 @@
     ./apps/claude-desktop.nix
     ./apps/codex.nix
     ./apps/figma.nix
+    ./apps/grok-bot.nix
     ./apps/karabiner.nix
     ./apps/lark.nix
     ./apps/macskk.nix
