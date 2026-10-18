@@ -1,7 +1,17 @@
 # 003. Chrome を Managed Policy 付きで使う
 
-- Status: Accepted
+- Status: Superseded（Managed Policy 管理を廃止）
 - Date: 2026-04-14
+
+## 現在の方針
+
+Chrome 本体は引き続き Homebrew cask で導入するが、Managed Policy の生成・配置と拡張機能の強制インストールは行わない。サインイン設定と拡張機能は Chrome 側で手動管理する。
+
+配置先の plist が消失する問題の再発を受け、管理を簡素化する。消失原因は未確定。
+
+以前の設定が残っている環境では、`/Library/Managed Preferences/com.google.Chrome.plist` のみを手動で削除し、Chrome を完全終了して再起動する。ほかの Managed Preferences や configuration profile は削除しない。
+
+以下は廃止前の判断の記録。
 
 ## Context
 
