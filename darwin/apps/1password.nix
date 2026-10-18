@@ -9,7 +9,4 @@
   # 1Password desktop (GUI + browser integration) and Safari extension
   homebrew.casks = [ "1password" ];
   homebrew.masApps."1Password for Safari" = 1569813296;
-
-  # 1Password Chrome extension (force-installed via managed policy)
-  my.chromeForceInstallExtensions = [ "aeblfdkhhhdcdjpifhhbdiojplfjncoa" ];
 }
