@@ -16,6 +16,7 @@
     ./apps/macskk.nix
     ./apps/music.nix
     ./apps/nani.nix
+    ./apps/notion-calendar.nix
     ./apps/orbstack.nix
     ./apps/paper-design.nix
     ./apps/safari.nix
