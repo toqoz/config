@@ -19,7 +19,7 @@ let
     }
     {
       name = "pi-intercom";
-      version = "0.16.1";
+      version = "0.18.1";
     }
   ];
 in
