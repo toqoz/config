@@ -15,7 +15,7 @@ let
     }
     {
       name = "pi-subagents";
-      version = "0.76.1";
+      version = "0.82.1";
     }
     {
       name = "pi-intercom";
