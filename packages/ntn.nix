@@ -5,7 +5,7 @@
 }:
 
 let
-  version = "0.13.2";
+  version = "0.23.25";
 
   # Pre-built release artifacts published at https://ntn.dev/releases/.
   # No source repository is published (Beta), so we consume the
@@ -15,19 +15,19 @@ let
   sources = {
     aarch64-darwin = {
       target = "aarch64-apple-darwin";
-      sha256 = "40ce5ed7490f9371bc52a28918723f5c2010bf7d9b7a7b30273d8b63b30d5054";
+      sha256 = "53196c36f98fbf94f56837dd5997872b51baf5226824c3cbd8cf7dc1f966ea5c";
     };
     x86_64-darwin = {
       target = "x86_64-apple-darwin";
-      sha256 = "18dd6f6c289d24f6ef609160923d4ca02f66ea46910b45feae44a028096d7254";
+      sha256 = "eca69bc0bf6f4a26c8aff8608d779aeba9233d77801d962d15e9d8fc45c1b5bb";
     };
     aarch64-linux = {
       target = "aarch64-unknown-linux-musl";
-      sha256 = "21c6b57dd7e7dbf8bd653191b3b8c0c0142042c24939ebab46048a7b9f22e2e7";
+      sha256 = "8379954cdb82a3c60866a18923da5f43a3358a6c8c698c085cc2905e7255a927";
     };
     x86_64-linux = {
       target = "x86_64-unknown-linux-musl";
-      sha256 = "44bbcf91e113bd33ef5275d1ee45160f4463bddae53beaeb381273f797d349c9";
+      sha256 = "99faf81af403553b66d0f06a466ba6ba6b0e2708fb6b8f1eac2cf7ad1d5db47f";
     };
   };
 
