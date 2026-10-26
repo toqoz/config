@@ -85,6 +85,7 @@ in
   '';
 
   home.file.".pi/agent/AGENTS.md".source = ../agents/AGENTS.md;
+  home.file.".pi/agent/pstack-models.md".source = ./pstack-models.md;
 
   home.file.".pi/agent/keybindings.json".text = builtins.toJSON {
     "app.model.cycleForward" = [ "alt+n" ];
