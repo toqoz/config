@@ -19,6 +19,7 @@
     ./apps/nani.nix
     ./apps/notion-calendar.nix
     ./apps/orbstack.nix
+    ./apps/orca.nix
     ./apps/paper-design.nix
     ./apps/safari.nix
     ./apps/slack.nix
