@@ -14,6 +14,7 @@
     ./apps/kanary.nix
     ./apps/karabiner.nix
     ./apps/lark.nix
+    ./apps/linear.nix
     ./apps/macskk.nix
     ./apps/music.nix
     ./apps/nani.nix
