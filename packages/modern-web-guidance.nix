@@ -2,11 +2,11 @@
 
 stdenvNoCC.mkDerivation rec {
   pname = "modern-web-guidance";
-  version = "0.0.169";
+  version = "0.0.195";
 
   src = fetchurl {
     url = "https://registry.npmjs.org/${pname}/-/${pname}-${version}.tgz";
-    hash = "sha512-grDxBu7SflBSyKMYlgKtp0eE276LQAUIr/4qVKgnZouvlA0VLpszigYpmFfl+URqYxqjLr0u4Er3KiHpIAs6RQ==";
+    hash = "sha256-ccdRPbhG+WdowpVxzVPKXT9fRWC1xpbFiTLsqNpBzss=";
   };
 
   nativeBuildInputs = [ makeWrapper ];

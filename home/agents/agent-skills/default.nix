@@ -34,19 +34,25 @@ The package and its model/assets are pinned by Nix, so do not install or fetch i
         "npx -y modern-web-guidance…"
         "npx.cmd"
         "npx --offline"
+        "## Using npx / pnpx"
         "## Using npx"
         "Run `modern-web-guidance` directly with `npx`."
         "using `npx`"
         "with `npx`"
+        "pnpx modern-web-guidance@latest"
+        "Prefer `pnpx` over `npx` if `pnpm` is available (note: `pnpx` does not use the `-y` flag)."
       ] [
         modernWebGuidanceBin
         modernWebGuidanceBin
         modernWebGuidanceBin
         modernWebGuidanceBin
         "## Using the Nix-pinned command"
+        "## Using the Nix-pinned command"
         "Run the Nix-pinned command shown in the local override above."
         "using the Nix-pinned command"
         "with the Nix-pinned command"
+        modernWebGuidanceBin
+        "Use the Nix-pinned command shown in the local override above."
       ] original;
     in
     injectAfterFrontmatter nixUsage rewritten;
