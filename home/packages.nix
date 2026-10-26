@@ -46,7 +46,6 @@
     (callPackage ../packages/fence.nix { })
     slack
     (callPackage ../packages/portless.nix { })
-    (callPackage ../packages/mo.nix { })
     (callPackage ../packages/ntn.nix { })
     (callPackage ../packages/orca.nix { })
     (callPackage ../packages/jrf.nix { })
