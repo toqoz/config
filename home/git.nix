@@ -71,6 +71,7 @@
       "*.env$"
       # Claude
       "settings.local.json"
+      ".claude/worktrees/"
       # Agents tools
       ".agents/cache"
       ".agents/share"
