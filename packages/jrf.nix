@@ -9,8 +9,8 @@ let
   oj = buildRubyGem rec {
     inherit ruby;
     gemName = "oj";
-    version = "3.17.3";
-    source.sha256 = "1v87lxi5cdaw3fvdf046fwzrgfbmi2ndkl31clh4zb5p1dxrdqzb";
+    version = "3.17.7";
+    source.sha256 = "sha256-eiHTrI5USoUPHNr3EbDIFEulh9FNPkkXwIVf17BIPbc=";
 
     meta = with lib; {
       description = "Optimized JSON parser and object serializer for Ruby";
