@@ -6,6 +6,8 @@
 }:
 let
   piPackage = llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
+  # pstack 0.9.102; pin the Git source like the npm packages below.
+  pstackRevision = "356c6e0f978df729eb16f227d795f34d221c5aad";
   piPackages = [
     {
       name = "pi-mcp-adapter";
@@ -29,6 +31,7 @@ in
   home.activation.installPiPackages = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     export PATH="${lib.makeBinPath [
       piPackage
+      pkgs.git
       pkgs.jq
       pkgs.nodejs
     ]}:$PATH"
@@ -70,6 +73,15 @@ in
         pi install "$source"
       fi
     '') piPackages}
+
+    source="git:github.com/michael-denyer/pstack-claude@${pstackRevision}"
+    checkout="$HOME/.pi/agent/git/github.com/michael-denyer/pstack-claude"
+    if [ "$(git -C "$checkout" rev-parse HEAD 2>/dev/null)" = "${pstackRevision}" ] \
+      && jq -e --arg source "$source" '(.packages // []) | any(. == $source or (.source? == $source))' "$settings" >/dev/null; then
+      echo "pstack 0.9.102 is already installed"
+    else
+      pi install "$source"
+    fi
   '';
 
   home.file.".pi/agent/AGENTS.md".source = ../agents/AGENTS.md;
