@@ -6,30 +6,30 @@
 }:
 
 let
-  version = "0.18.1";
+  version = "0.20.0";
   inherit (stdenvNoCC.hostPlatform) system;
   sources = {
     aarch64-darwin = {
       platform = "darwin_arm64";
-      sha256 = "209ad49fcd6a8a863681291f2689edc0fe29ed77dfe7c19d1c8e39153f2316d1";
+      sha256 = "fb51e6e17c157a2dc91aa6ea8d19e498c07550599747d989f81aebb6fa2143c1";
     };
     x86_64-darwin = {
       platform = "darwin_x86_64";
-      sha256 = "eafdfb7c0e3ae57fb41ea63f3e3b535e5443b456575e8c836d4d63e2bb0b7f9a";
+      sha256 = "34580ceacc93569c269072d7f9b3896faca954727d50f7fb518c3e90671c3243";
     };
     aarch64-linux = {
       platform = "linux_arm64";
-      sha256 = "ed491074272223651577549ccf0eabba4c63d0dca82370a9fd1a94e71b141fa4";
+      sha256 = "3d56bcacee4da209f19f1728802830083df1d7c6c71a70a03930bce8b5b22602";
     };
     x86_64-linux = {
       platform = "linux_x86_64";
-      sha256 = "fa4ab93fcf16a4dc0f8ac01a32c53bd7e302ba1061d0246b70ca7656baacd995";
+      sha256 = "791720b097f86d7b369f3353e3ea8337ece3f59f8e1275d459b5694ab27b6565";
     };
   };
   source = sources.${system} or (throw "ketch: unsupported platform ${system}");
   upstream = fetchzip {
     url = "https://github.com/1broseidon/ketch/archive/refs/tags/v${version}.tar.gz";
-    hash = "sha256-vXSYQJBZ0Eypy3S0qvJUEEk9SZnnIWmQ5DU3TGyuwfk=";
+    hash = "sha256-+XtyOg+JClB5hzdYJIAm1IK3ZXp1A4sjAh2jSuExzOw=";
   };
 in
 stdenvNoCC.mkDerivation {
