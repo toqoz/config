@@ -5,7 +5,7 @@
   runtimeShell,
 }:
 let
-  version = "0.1.18";
+  version = "1.4.0";
   inherit (stdenv.hostPlatform) system;
   # The `vp` binary is a Rust dispatcher: most subcommands invoke a Node.js
   # entrypoint at `../node_modules/vite-plus/dist/bin.js` relative to the
@@ -20,7 +20,7 @@ let
   sources = {
     "aarch64-darwin" = {
       suffix = "darwin-arm64";
-      hash = "sha256-+bSMp26+TcjH0NJCJIgyH/J2iz4rTvGBctuUp2eHFMw=";
+      hash = "sha256-h8OmqE6TVswjuyHwbGUJ3/M892WTS/9mO6RAQCqO4rU=";
     };
   };
   src = sources.${system} or (throw "Unsupported system: ${system}");
