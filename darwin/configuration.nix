@@ -8,7 +8,6 @@
     ./apps/chatgpt.nix
     ./apps/chrome.nix
     ./apps/claude-desktop.nix
-    ./apps/codex.nix
     ./apps/figma.nix
     ./apps/grok-bot.nix
     ./apps/kanary.nix

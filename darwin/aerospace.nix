@@ -159,11 +159,6 @@ in
           "if".app-id = apps.wezterm.appId;
           run = [ "move-node-to-workspace 1" ];
         }
-        # workspace 2: coding agents
-        {
-          "if".app-id = apps.codex.appId;
-          run = [ "move-node-to-workspace 2" ];
-        }
         # workspace 3: browser
         {
           "if".app-id = apps.chrome.appId;

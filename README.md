@@ -89,7 +89,6 @@ If a self-updater falls behind, force an upgrade:
 | `aqua-voice` | self | `darwin/apps/aqua-voice.nix` |
 | `chatgpt` | self | `darwin/apps/chatgpt.nix` |
 | `claude` | self | `darwin/apps/claude-desktop.nix` |
-| `codex-app` | self | `darwin/apps/codex.nix` |
 | `figma` | self | `darwin/apps/figma.nix` |
 | `google-chrome` | self | `darwin/apps/chrome.nix` |
 | `karabiner-elements` | self | `darwin/apps/karabiner.nix` |

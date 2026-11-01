@@ -67,18 +67,29 @@ assert lib.assertMsg (missingTools == [ ])
   "forge01 is missing required tools: ${lib.concatStringsSep ", " missingTools}";
 assert lib.assertMsg (missingToolNames == [ ])
   "forge01 is missing shared tools: ${lib.concatStringsSep ", " missingToolNames}";
-assert lib.assertMsg (lib.sort builtins.lessThan (map (cask: cask.name) forge.homebrew.casks) == [ "1password" "codex-app" "google-chrome" "orbstack" "tailscale-app" ])
-  "forge01 must manage exactly the 1password, codex-app, google-chrome, orbstack, and tailscale-app casks";
+assert lib.assertMsg (lib.sort builtins.lessThan (map (cask: cask.name) forge.homebrew.casks) == [ "1password" "chatgpt" "google-chrome" "orbstack" "tailscale-app" ])
+  "forge01 must manage exactly the 1password, chatgpt, google-chrome, orbstack, and tailscale-app casks";
 assert lib.assertMsg (forge.homebrew.brews == [ ] && forge.homebrew.masApps == { })
   "forge01 must not manage Homebrew formulae or Mac App Store apps";
 assert lib.assertMsg (forge.my.apps == {
   "1password".appId = "com.1password.1password";
-  codex.appId = "com.openai.codex";
+  chatgpt.appId = "com.openai.chat";
   chrome.appId = "org.google.Chrome";
   orbstack.appId = "dev.kdrag0n.MacVirt";
   slack.appId = "com.tinyspeck.slackmacgap";
   tailscale.appId = "io.tailscale.ipn.macsys";
-}) "forge01 must register exactly 1Password, Codex, Chrome, OrbStack, Slack, and Tailscale";
+}) "forge01 must register exactly 1Password, ChatGPT, Chrome, OrbStack, Slack, and Tailscale";
+assert lib.assertMsg (
+  lib.all (host:
+    let casks = map (cask: cask.name) host.homebrew.casks;
+    in lib.elem "chatgpt" casks && !(lib.elem "codex-app" casks)
+  ) [ forge remilis ]
+  && forge.my.apps.chatgpt == remilis.my.apps.chatgpt
+  && lib.all (home:
+    lib.elem llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex.outPath
+      (paths home.home.packages)
+  ) [ forgeHome remilisHome ]
+) "both hosts must share ChatGPT without Codex.app and retain the llm-agents Codex CLI";
 assert lib.assertMsg (
   forge.programs._1password.enable
   && forge.programs._1password.package.outPath == remilis.programs._1password.package.outPath
