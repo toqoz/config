@@ -10,9 +10,30 @@ Both hosts share `home/base.nix`; host entry points select their additional tool
 
 ## Set up
 
-On the target Apple Silicon Mac, install Xcode command line tools, Homebrew at `/opt/homebrew`, and Nix.
-The Nix installer must manage the daemon and `/etc/nix/nix.conf`, with `!include nix.custom.conf` enabled.
-No separate nix-darwin installation is needed; the commands below provide the locked version.
+On the target Apple Silicon Mac, install any missing prerequisites:
+
+1. Install Xcode Command Line Tools and wait for installation to finish.
+
+   ```sh
+	xcode-select --install
+   ```
+
+2. Install [Homebrew](https://brew.sh/) into `/opt/homebrew`.
+
+   ```sh
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	eval "$(/opt/homebrew/bin/brew shellenv)"
+   ```
+
+3. Install Nix with the [NixOS community installer](https://github.com/NixOS/nix-installer).
+
+   ```sh
+	curl -sSfL https://artifacts.nixos.org/nix-installer | sh -s -- install --enable-flakes
+   ```
+
+   Open a new terminal before continuing.
+
+Keep the installer's `!include nix.custom.conf` directive in `/etc/nix/nix.conf`.
 
 Clone only if this checkout does not already exist. Keep it at this path because some tool configurations link into it.
 
