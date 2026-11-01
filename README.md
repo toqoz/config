@@ -93,7 +93,6 @@ If a self-updater falls behind, force an upgrade:
 | `google-chrome` | self | `darwin/apps/chrome.nix` |
 | `karabiner-elements` | self | `darwin/apps/karabiner.nix` |
 | `macskk` | brew | `darwin/apps/macskk.nix` |
-| `nani` | self | `darwin/apps/nani.nix` |
 | `orbstack` | self | `darwin/apps/orbstack.nix` |
 | `paper-design` | self | `darwin/apps/paper-design.nix` |
 | `tailscale-app` | self | `darwin/apps/tailscale.nix` |
