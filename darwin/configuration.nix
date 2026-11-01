@@ -1,7 +1,7 @@
 { ... }:
 {
   imports = [
-    ./aerospace.nix
+    ./app-registry.nix
     ./apps/1password.nix
     ./apps/aqua-voice.nix
     ./apps/capcut.nix

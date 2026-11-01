@@ -1,5 +1,0 @@
-#!/bin/sh
-
-NAME=${NAME:-date}
-
-sketchybar --set "$NAME" label="$(date '+%m/%d (%a) %H:%M')"

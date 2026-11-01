@@ -22,7 +22,7 @@
   # belong with a specific app (Safari, ChatGPT) live in the app module.
   system.defaults = {
     NSGlobalDomain = {
-      _HIHideMenuBar = true;
+      _HIHideMenuBar = false;
       AppleShowAllExtensions = true;
       ApplePressAndHoldEnabled = false; # For fast key repeat
       InitialKeyRepeat = 16;

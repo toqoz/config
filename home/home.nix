@@ -13,7 +13,6 @@
     ./obsidian.nix
     ./packages.nix
     ./ssh.nix
-    ./sketchybar
     ./vscode-family
     ./wezterm
     ./zed
