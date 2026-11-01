@@ -18,7 +18,6 @@
     agent-skills = {
       url = "github:Kyure-A/agent-skills-nix";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
     };
     anthropic-skills = {
       url = "github:anthropics/skills";
@@ -78,10 +77,11 @@
       mkDarwinCommand =
         {
           command,
+          host,
           useSudo ? false,
         }:
         pkgs.writeShellApplication {
-          name = "darwin-${command}";
+          name = "darwin-${command}-${host}";
           runtimeInputs = [
             pkgs.git
             nix-darwin.packages.${system}.default
@@ -90,7 +90,7 @@
             set -euo pipefail
 
             repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-            ${if useSudo then "exec sudo darwin-rebuild ${command} --flake \"$repo_root#remilis\" \"$@\"" else "exec darwin-rebuild ${command} --flake \"$repo_root#remilis\" \"$@\""}
+            ${if useSudo then "exec sudo \"$(command -v darwin-rebuild)\" ${command} --flake \"$repo_root#${host}\" \"$@\"" else "exec darwin-rebuild ${command} --flake \"$repo_root#${host}\" \"$@\""}
           '';
         };
 
@@ -104,59 +104,12 @@
           nix store optimise
         '';
       };
-    in
-    {
-      packages.${system} = {
-        build = mkDarwinCommand { command = "build"; };
-        switch = mkDarwinCommand {
-          command = "switch";
-          useSudo = true;
-        };
-      };
-
-      apps.${system} = {
-        build = {
-          type = "app";
-          program = "${self.packages.${system}.build}/bin/darwin-build";
-        };
-        switch = {
-          type = "app";
-          program = "${self.packages.${system}.switch}/bin/darwin-switch";
-        };
-        gc = {
-          type = "app";
-          program = "${gcCommand}/bin/nix-gc";
-        };
-      };
-
-      # Auto-discover per-module tests at `home/<mod>/tests.nix`. Each such
-      # file is a function `{ pkgs }: { <test-name> = drv; ... }` whose keys
-      # are then prefixed with `<mod>-` to land at
-      # `checks.<system>.<mod>-<test-name>`. Adding tests for a new module
-      # is a matter of dropping a `tests.nix` next to it; no edit here.
-      checks.${system} =
-        let
-          inherit (nixpkgs) lib;
-          modules = builtins.readDir ./home;
-          candidates = lib.mapAttrsToList
-            (name: _: { mod = name; path = ./home + "/${name}/tests.nix"; })
-            modules;
-          present = builtins.filter ({ path, ... }: builtins.pathExists path) candidates;
-        in
-        builtins.listToAttrs (lib.concatMap
-          ({ mod, path }:
-            lib.mapAttrsToList
-              (testName: drv: { name = "${mod}-${testName}"; value = drv; })
-              (import path { inherit pkgs; })
-          )
-          present);
-
-      darwinConfigurations."remilis" = nix-darwin.lib.darwinSystem {
+      mkDarwinHost = { username, darwinModule, homeModule }: nix-darwin.lib.darwinSystem {
         modules = [
-          ./darwin/configuration.nix
+          darwinModule
           home-manager.darwinModules.home-manager
           {
-            users.users."toqoz".home = "/Users/toqoz";
+            users.users.${username}.home = "/Users/${username}";
             # android-nixpkgs' hmModule references `pkgs.androidSdk`, which is
             # supplied by its overlay. Because `home-manager.useGlobalPkgs` is
             # true, the overlay must live at the nix-darwin `nixpkgs` level.
@@ -240,9 +193,75 @@
               inherit gws;
               inherit herdr;
             };
-            home-manager.users."toqoz" = ./home/home.nix;
+            home-manager.users.${username} = homeModule;
           }
         ];
+      };
+    in
+    {
+      packages.${system} = builtins.listToAttrs (nixpkgs.lib.concatMap
+        (host: map
+          (command: {
+            name = "${command}-${host}";
+            value = mkDarwinCommand {
+              inherit command host;
+              useSudo = command == "switch";
+            };
+          })
+          [ "build" "switch" ])
+        (builtins.attrNames self.darwinConfigurations));
+
+      apps.${system} = builtins.mapAttrs
+        (name: package: {
+          type = "app";
+          program = "${package}/bin/darwin-${name}";
+        })
+        self.packages.${system} // {
+        gc = {
+          type = "app";
+          program = "${gcCommand}/bin/nix-gc";
+        };
+      };
+
+      # Auto-discover per-module tests at `home/<mod>/tests.nix`. Each such
+      # file is a function `{ pkgs }: { <test-name> = drv; ... }` whose keys
+      # are then prefixed with `<mod>-` to land at
+      # `checks.<system>.<mod>-<test-name>`. Adding tests for a new module
+      # is a matter of dropping a `tests.nix` next to it; no edit here.
+      checks.${system} =
+        let
+          inherit (nixpkgs) lib;
+          modules = builtins.readDir ./home;
+          candidates = lib.mapAttrsToList
+            (name: _: { mod = name; path = ./home + "/${name}/tests.nix"; })
+            modules;
+          present = builtins.filter ({ path, ... }: builtins.pathExists path) candidates;
+        in
+        builtins.listToAttrs (lib.concatMap
+          ({ mod, path }:
+            lib.mapAttrsToList
+              (testName: drv: { name = "${mod}-${testName}"; value = drv; })
+              (import path { inherit pkgs; })
+          )
+          present) // {
+            forge01 = import ./checks/forge01.nix {
+              inherit pkgs lib llm-agents;
+              forge = self.darwinConfigurations.forge01.config;
+              remilis = self.darwinConfigurations.remilis.config;
+            };
+          };
+
+      darwinConfigurations = nixpkgs.lib.mapAttrs (_: mkDarwinHost) {
+        remilis = {
+          username = "toqoz";
+          darwinModule = ./darwin/configuration.nix;
+          homeModule = ./home/home.nix;
+        };
+        forge01 = {
+          username = "agent";
+          darwinModule = ./darwin/forge01.nix;
+          homeModule = ./home/forge01.nix;
+        };
       };
     };
 }

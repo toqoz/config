@@ -16,6 +16,6 @@
     pkg:
     builtins.elem (lib.getName pkg) (
       config.my.unfreePackages
-      ++ (config.home-manager.users.toqoz.my.unfreePackages or [ ])
+      ++ (config.home-manager.users.${config.system.primaryUser}.my.unfreePackages or [ ])
     );
 }

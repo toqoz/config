@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 {
   home.sessionVariables = {
     Z_DATA_DIR = "${config.xdg.dataHome}/zsh";
@@ -13,8 +13,6 @@
     config.lib.file.mkOutOfStoreSymlink "${config.my.repoPath}/home/zsh/functions";
 
   programs.zsh = {
-    enable = true;
-    package = pkgs.emptyDirectory;
     dotDir = "${config.xdg.configHome}/zsh";
     history = {
       path = "${config.xdg.stateHome}/zsh/history";
@@ -41,7 +39,7 @@
       ];
     };
     enableCompletion = true; # For autocomplete
-    setOptions = [
+    setOptions = lib.mkAfter [
       "IGNORE_EOF"
       # Remove superfluous blanks before saving a command.
       "HIST_REDUCE_BLANKS"

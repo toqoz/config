@@ -4,26 +4,29 @@ This repo manages the machine environment with Nix, nix-darwin, and Home Manager
 
 ## Editing Guide
 
-Key split:
+Each tool's module owns its packages and settings. Host entry points select modules:
 
-- `dotfiles/` — app-native config files (read directly by each tool)
-- `home/home.nix` — program declarations, package installs, generated config, and tool integrations
-- `darwin/configuration.nix` — macOS system-level settings (nix-darwin)
+- `home/base.nix` — shared development profile for both hosts
+- `home/home.nix` — remilis account and additional tools/desktop modules
+- `home/forge01.nix` — forge01 account using the shared profile
+- `darwin/configuration.nix` — remilis system and app selection
+- `darwin/forge01.nix` — forge01 system and app selection
+- `darwin/apps/<app>.nix` — GUI app installation, settings, and app registration
+- `packages/` — custom Nix packages
 
-For app-specific config, look under `dotfiles/<app>/`. For installation, generated config, or Home Manager program options, edit `home/home.nix`.
-
-Non-obvious locations:
+Add shared tools through `home/base.nix`; keep host-specific additions in the host's import list or package module. Reuse tool modules rather than copying their settings between hosts.
 
 | Change | Edit |
 |---|---|
-| zsh init, aliases, env vars, history | `home/home.nix` → `programs.zsh.*` |
-| git global config | `home/home.nix` → `programs.git.*` |
-| Neovim packages, LSPs, extra tools | `home/home.nix` → `programs.neovim.*` |
-| Installed CLI tools / apps | `home/home.nix` → `home.packages` |
-| Claude Code settings, permissions, MCP | `home/home.nix` → `programs.claude-code.*` |
-| Codex settings, AGENTS.md, rules | `home/home.nix` → `programs.codex.*` |
-| Claude global instructions / memory | `dotfiles/agents/CLAUDE.md` |
-| Claude Code skills | `home/agents/skills/<skill-name>/SKILL.md` |
+| zsh init, aliases, env vars, history | `home/zsh/default.nix` |
+| git global config | `home/git.nix` |
+| Neovim packages, LSPs, extra tools | `home/neovim/default.nix` |
+| Shared CLI tools / remilis-only CLI tools | `home/base.nix` / `home/packages.nix` |
+| Claude Code settings and permissions | `home/agents/claude-code/` |
+| Shared MCP server definitions | `home/agents/mcp.nix`, imported only by remilis |
+| Codex settings, instructions, rules | `home/agents/codex/` |
+| Shared agent instructions | `home/agents/AGENTS.md` |
+| Agent skills | `home/agents/skills/<skill-name>/SKILL.md` |
 
 ## Workspace Context
 
@@ -34,7 +37,7 @@ with its own in-flight change.
 
 Implications:
 
-- The host machine is shared across worktrees. `nix run .#switch`
+- The host machine is shared across worktrees. `nix run .#switch-<host>`
   changes the live system, so it must not run from a worktree —
   activation belongs on `main`, after merge, sequentially.
 - Build artifacts and flake evaluation are worktree-local and safe to
@@ -52,7 +55,7 @@ typically intends to work from a `git-wt` worktree.
 
 Before committing from this workspace, verify the change:
 
-- `nix run .#build` — builds the nix-darwin configuration without activating.
+- `nix run .#build-<host>` — builds the target nix-darwin configuration without activating (`remilis` or `forge01`).
 - `nix flake check` — evaluates the flake.
 - `node --test t/*.test.mts` — runs repo-level tests (plus any skill-local
   `*.test.ts` relevant to the change).

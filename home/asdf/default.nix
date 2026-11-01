@@ -8,7 +8,7 @@ in
     pkgs.asdf-vm
     # Elixir 1.19 supports OTP 26-28. Use Nix for Erlang to avoid
     # asdf-erlang's Homebrew dependency discovery during source builds.
-    pkgs.erlang_28
+    pkgs.beam28Packages.erlang
   ];
 
   home.sessionVariables = {
