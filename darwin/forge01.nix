@@ -2,6 +2,7 @@
 {
   imports = [
     ./app-registry.nix
+    ./apps/1password.nix
     ./apps/chrome.nix
     ./apps/codex.nix
     ./apps/orbstack.nix

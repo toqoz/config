@@ -6,7 +6,6 @@
   programs._1password.enable = true;
   my.unfreePackages = [ "1password-cli" ];
 
-  # 1Password desktop (GUI + browser integration) and Safari extension
+  # 1Password desktop (GUI + browser integration)
   homebrew.casks = [ "1password" ];
-  homebrew.masApps."1Password for Safari" = 1569813296;
 }

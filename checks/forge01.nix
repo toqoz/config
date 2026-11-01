@@ -67,17 +67,24 @@ assert lib.assertMsg (missingTools == [ ])
   "forge01 is missing required tools: ${lib.concatStringsSep ", " missingTools}";
 assert lib.assertMsg (missingToolNames == [ ])
   "forge01 is missing shared tools: ${lib.concatStringsSep ", " missingToolNames}";
-assert lib.assertMsg (lib.sort builtins.lessThan (map (cask: cask.name) forge.homebrew.casks) == [ "codex-app" "google-chrome" "orbstack" "tailscale-app" ])
-  "forge01 must manage exactly the codex-app, google-chrome, orbstack, and tailscale-app casks";
+assert lib.assertMsg (lib.sort builtins.lessThan (map (cask: cask.name) forge.homebrew.casks) == [ "1password" "codex-app" "google-chrome" "orbstack" "tailscale-app" ])
+  "forge01 must manage exactly the 1password, codex-app, google-chrome, orbstack, and tailscale-app casks";
 assert lib.assertMsg (forge.homebrew.brews == [ ] && forge.homebrew.masApps == { })
   "forge01 must not manage Homebrew formulae or Mac App Store apps";
 assert lib.assertMsg (forge.my.apps == {
+  "1password".appId = "com.1password.1password";
   codex.appId = "com.openai.codex";
   chrome.appId = "org.google.Chrome";
   orbstack.appId = "dev.kdrag0n.MacVirt";
   slack.appId = "com.tinyspeck.slackmacgap";
   tailscale.appId = "io.tailscale.ipn.macsys";
-}) "forge01 must register exactly Codex, Chrome, OrbStack, Slack, and Tailscale";
+}) "forge01 must register exactly 1Password, Codex, Chrome, OrbStack, Slack, and Tailscale";
+assert lib.assertMsg (
+  forge.programs._1password.enable
+  && forge.programs._1password.package.outPath == remilis.programs._1password.package.outPath
+  && forge.my.apps."1password" == remilis.my.apps."1password"
+  && remilis.homebrew.masApps."1Password for Safari" == 1569813296
+) "forge01 must share 1Password desktop and CLI while keeping the Safari extension on remilis";
 assert lib.assertMsg (
   lib.elem "tailscale-app" (map (cask: cask.name) remilis.homebrew.casks)
   && forge.my.apps.tailscale == remilis.my.apps.tailscale
