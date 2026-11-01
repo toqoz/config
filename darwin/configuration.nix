@@ -25,6 +25,7 @@
     ./apps/safari.nix
     ./apps/slack.nix
     ./apps/system-preferences.nix
+    ./apps/tailscale.nix
     ./apps/wezterm.nix
     ./apps/zed.nix
     ./fonts.nix

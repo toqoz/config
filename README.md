@@ -76,3 +76,4 @@ If a self-updater falls behind, force an upgrade:
 | `nani` | self | `darwin/apps/nani.nix` |
 | `orbstack` | self | `darwin/apps/orbstack.nix` |
 | `paper-design` | self | `darwin/apps/paper-design.nix` |
+| `tailscale-app` | self | `darwin/apps/tailscale.nix` |

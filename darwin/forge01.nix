@@ -6,6 +6,7 @@
     ./apps/codex.nix
     ./apps/orbstack.nix
     ./apps/slack.nix
+    ./apps/tailscale.nix
     ./homebrew.nix
     ./nix.nix
     ./unfree.nix

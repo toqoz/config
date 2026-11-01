@@ -67,8 +67,8 @@ assert lib.assertMsg (missingTools == [ ])
   "forge01 is missing required tools: ${lib.concatStringsSep ", " missingTools}";
 assert lib.assertMsg (missingToolNames == [ ])
   "forge01 is missing shared tools: ${lib.concatStringsSep ", " missingToolNames}";
-assert lib.assertMsg (lib.sort builtins.lessThan (map (cask: cask.name) forge.homebrew.casks) == [ "codex-app" "google-chrome" "orbstack" ])
-  "forge01 must manage exactly the codex-app, google-chrome, and orbstack casks";
+assert lib.assertMsg (lib.sort builtins.lessThan (map (cask: cask.name) forge.homebrew.casks) == [ "codex-app" "google-chrome" "orbstack" "tailscale-app" ])
+  "forge01 must manage exactly the codex-app, google-chrome, orbstack, and tailscale-app casks";
 assert lib.assertMsg (forge.homebrew.brews == [ ] && forge.homebrew.masApps == { })
   "forge01 must not manage Homebrew formulae or Mac App Store apps";
 assert lib.assertMsg (forge.my.apps == {
@@ -76,7 +76,14 @@ assert lib.assertMsg (forge.my.apps == {
   chrome.appId = "org.google.Chrome";
   orbstack.appId = "dev.kdrag0n.MacVirt";
   slack.appId = "com.tinyspeck.slackmacgap";
-}) "forge01 must register exactly Codex, Chrome, OrbStack, and Slack";
+  tailscale.appId = "io.tailscale.ipn.macsys";
+}) "forge01 must register exactly Codex, Chrome, OrbStack, Slack, and Tailscale";
+assert lib.assertMsg (
+  lib.elem "tailscale-app" (map (cask: cask.name) remilis.homebrew.casks)
+  && forge.my.apps.tailscale == remilis.my.apps.tailscale
+  && !(forge.services.tailscale.enable or false)
+  && !(remilis.services.tailscale.enable or false)
+) "both hosts must use the shared Tailscale app without the Nix daemon";
 assert lib.assertMsg (
   forgeHome.android-sdk.enable
   && forgeHome.android-sdk.finalPackage.outPath == remilisHome.android-sdk.finalPackage.outPath
