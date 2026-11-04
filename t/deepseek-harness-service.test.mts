@@ -36,6 +36,7 @@ if (args.join(' ') === 'serve status --json') {
   process.exit(Number(process.env.SERVE_STATUS_EXIT || 0));
 }
 if (args.join(' ') !== 'serve --bg --yes --https=3080 http://127.0.0.1:3080') process.exit(90);
+console.log('Tailscale configured HTTPS');
 process.exit(Number(process.env.SERVE_EXIT || 0));
 `);
   chmodSync(tailscale, 0o755);
@@ -53,15 +54,20 @@ process.exit(Number(process.env.DSH_EXIT || 0));
   const script = join(root, 'service');
   const jq = spawnSync('which', ['jq'], { encoding: 'utf8' });
   assert.equal(jq.status, 0, 'jq is required for service tests');
+  const tailscaleServe = join(root, 'tailscale-serve');
+  const guard = readFileSync(join(REPO, 'packages/tailscale-serve.bash'), 'utf8')
+    .replaceAll('@tailscale@', tailscale).replaceAll('@jq@', jq.stdout.trim());
+  writeFileSync(tailscaleServe, `#!/bin/bash\n${guard}`);
+  chmodSync(tailscaleServe, 0o755);
   let text = readFileSync(join(REPO, 'home/deepseek-harness/service.sh'), 'utf8');
-  for (const [key, value] of Object.entries({ tailscale, jq: jq.stdout.trim(), port: '3080', dataDir })) {
+  for (const [key, value] of Object.entries({ tailscaleServe, port: '3080', dataDir })) {
     text = text.replaceAll(`@${key}@`, value);
   }
   assert.doesNotMatch(text, /@[a-zA-Z]+@/);
   writeFileSync(script, text);
   const result = join(root, 'result.json');
   return {
-    root, dataDir, status, serve, result,
+    root, dataDir, status, serve, result, tailscaleServe,
     calls: (): string[][] => existsSync(calls)
       ? readFileSync(calls, 'utf8').trim().split('\n').map((line) => JSON.parse(line)) : [],
     run: (extra: NodeJS.ProcessEnv = {}) => spawnSync('/bin/bash', [script], {
@@ -88,6 +94,23 @@ test('service configures only HTTPS 3080 and execs the loopback backend with dur
   });
   assert.equal(statSync(w.result).mode & 0o777, 0o600);
   assert.match(r.stdout, /One-time login URL: .*token=test-secret/);
+  assert.doesNotMatch(r.stdout, /Tailscale configured/);
+  assert.match(r.stderr, /Tailscale configured HTTPS/);
+});
+
+test('shared Serve guard validates its port and reserves stdout for DNS:port', (t) => {
+  const w = makeService(t);
+  const env = { ...process.env, CALLS: join(w.root, 'calls.jsonl'), STATUS: w.status, SERVE: w.serve };
+  for (const args of [[], [''], ['0'], ['01'], ['-1'], ['65536'], ['9'.repeat(100)], ['4500x'], ['3080', '4500']]) {
+    const r = spawnSync('/bin/bash', [w.tailscaleServe, ...args], { encoding: 'utf8', env });
+    assert.equal(r.status, 1, JSON.stringify(args));
+    assert.equal(r.stdout, '');
+    assert.deepEqual(w.calls(), []);
+  }
+  const r = spawnSync('/bin/bash', [w.tailscaleServe, '3080'], { encoding: 'utf8', env });
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(r.stdout, `${HOST}\n`);
+  assert.match(r.stderr, /Tailscale configured HTTPS/);
 });
 
 test('explicit runtime home overrides remain available for isolated troubleshooting', (t) => {

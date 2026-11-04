@@ -14,6 +14,9 @@ let
   deepseekAgent = forgeHome.launchd.agents.deepseek-harness;
   deepseekInstall = forgeHome.home.activation.installDeepseekHarness;
   deepseekData = "${forgeHome.xdg.dataHome}/deepseek-harness";
+  codexAgent = forgeHome.launchd.agents.codex-app-server;
+  codexPrepare = forgeHome.home.activation.prepareCodexAppServer;
+  codexState = "${forgeHome.xdg.stateHome}/codex-app-server";
   extraHome = lib.subtractLists (toolPaths remilisHome ++ paths forgeDeepseek) (toolPaths forgeHome);
   extraSystem = lib.subtractLists
     (paths remilis.environment.systemPackages)
@@ -104,6 +107,29 @@ assert lib.assertMsg (
   && deepseekAgent.config.StandardOutPath == "${deepseekData}/log/stdout.log"
   && deepseekAgent.config.StandardErrorPath == "${deepseekData}/log/stderr.log"
 ) "forge01 must automatically start and restart the pinned service in HOME with private logs";
+assert lib.assertMsg (
+  !(remilisHome.home.activation ? prepareCodexAppServer)
+  && !(remilisHome.launchd.agents ? codex-app-server)
+  && lib.elem "linkGeneration" codexPrepare.after
+  && lib.elem "mergeCodexConfig" codexPrepare.after
+  && lib.elem "setupLaunchAgents" codexPrepare.before
+) "Codex app-server must be forge01-only and prepare state after Codex config but before launchd setup";
+assert lib.assertMsg (
+  codexAgent.enable
+  && codexAgent.domain == "user"
+  && builtins.length codexAgent.config.ProgramArguments == 1
+  && lib.hasPrefix "/nix/store/" (builtins.head codexAgent.config.ProgramArguments)
+  && lib.hasSuffix "-codex-app-server" (builtins.head codexAgent.config.ProgramArguments)
+  && codexAgent.config.WorkingDirectory == forgeHome.home.homeDirectory
+  && codexAgent.config.EnvironmentVariables.HOME == forgeHome.home.homeDirectory
+  && codexAgent.config.EnvironmentVariables.PATH == deepseekAgent.config.EnvironmentVariables.PATH
+  && codexAgent.config.RunAtLoad
+  && codexAgent.config.KeepAlive == true
+  && codexAgent.config.ThrottleInterval == 10
+  && codexAgent.config.Umask == 63
+  && codexAgent.config.StandardOutPath == "${codexState}/log/stdout.log"
+  && codexAgent.config.StandardErrorPath == "${codexState}/log/stderr.log"
+) "forge01 must run the store-pinned Codex app-server in HOME with private logs and automatic restart";
 assert lib.assertMsg (extraSystem == [ ])
   "forge01 environment.systemPackages contains packages absent from remilis: ${lib.concatStringsSep ", " extraSystem}";
 assert lib.assertMsg (missingTools == [ ])

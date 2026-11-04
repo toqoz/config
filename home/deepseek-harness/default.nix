@@ -3,7 +3,6 @@ let
   service = {
     port = 3080;
     dataDir = "${config.xdg.dataHome}/deepseek-harness";
-    tailscale = "/Applications/Tailscale.app/Contents/MacOS/Tailscale";
   };
   # Single source of truth for the shiguredo fork pin and its toolchain.
   # The fork has no releases, so the installer clones this revision into a
@@ -76,9 +75,9 @@ let
       install -m 755 ${pkgs.replaceVars ./install.sh vars} "$out/bin/deepseek-harness-install"
       install -m 755 ${pkgs.replaceVars ./dsh.sh { inherit (vars) node rev dataDir; }} "$out/bin/dsh"
       install -m 755 ${pkgs.replaceVars ./service.sh {
-        inherit (service) tailscale dataDir;
+        inherit (service) dataDir;
         port = toString service.port;
-        jq = lib.getExe pkgs.jq;
+        tailscaleServe = pkgs.callPackage ../../packages/tailscale-serve.nix { };
       }} "$out/bin/deepseek-harness-service"
       runHook postInstall
     '';
