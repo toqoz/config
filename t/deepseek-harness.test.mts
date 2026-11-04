@@ -75,6 +75,12 @@ function makeWorld(): World {
   const log = join(root, 'stub.log');
   mkdirSync(origin, { recursive: true });
   mkdirSync(bin);
+  const compilerBin = join(root, 'toolchain/bin');
+  mkdirSync(compilerBin, { recursive: true });
+  writeFileSync(join(compilerBin, 'cc'), `#!/usr/bin/env bash
+echo "cc argv=$*" >> "$STUB_LOG"
+`);
+  chmodSync(join(compilerBin, 'cc'), 0o755);
 
   git(origin, 'init', '-b', 'main');
   git(origin, 'config', 'user.email', 'test@example.com');
@@ -114,6 +120,7 @@ case "$1" in
     exit 0
     ;;
   run)
+    node -e 'const r = require("node:child_process").spawnSync("cc", ["--version"], { stdio: "inherit" }); if (r.error) throw r.error; process.exit(r.status ?? 1)' || exit "$?"
     mkdir -p apps/cli/lib
     cp apps/cli/src/bin.ts apps/cli/lib/bin.js
     exit "\${STUB_PNPM_RUN_EXIT:-0}"
@@ -150,6 +157,7 @@ function renderScripts(w: World, rev: string): { install: string; dsh: string } 
     git: 'git',
     node: join(w.bin, 'node'),
     pnpm: join(w.bin, 'pnpm'),
+    ccPath: join(w.root, 'toolchain/bin'),
   };
   const destDir = join(w.root, `rendered-${rev.slice(0, 8)}`);
   return {
@@ -233,6 +241,22 @@ test('install is idempotent while the pin is published', () => {
   assert.match(second.stdout, /already installed/);
   assert.equal(readFileSync(w.log, 'utf8'), logAfterFirst, 'pnpm/node must not rerun');
   assert.equal(readdirSync(join(w.home, 'builds')).length, 1);
+});
+
+test('build scripts find the configured compiler from Node instead of the caller PATH', () => {
+  const w = makeWorld();
+  const { install } = renderScripts(w, w.revA);
+  const ambientBin = join(w.root, 'ambient/bin');
+  mkdirSync(ambientBin, { recursive: true });
+  writeFileSync(join(ambientBin, 'cc'), '#!/bin/sh\nexit 99\n');
+  chmodSync(join(ambientBin, 'cc'), 0o755);
+
+  const r = run(install, [], {
+    cwd: w.root,
+    env: { ...w.env, PATH: `${ambientBin}:${w.env.PATH}` },
+  });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(readFileSync(w.log, 'utf8'), /cc argv=--version/);
 });
 
 test('a failed install publishes nothing and cleans the attempt', () => {

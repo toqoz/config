@@ -49,8 +49,8 @@ echo "==> cloning $REPO_URL at $REV"
 "$GIT" -C "$attempt" checkout --detach "$REV"
 [ "$("$GIT" -C "$attempt" rev-parse HEAD)" = "$REV" ] || fail "checkout did not converge onto $REV"
 
-# Build scripts resolve node and node_modules/.bin via PATH.
-PATH=$(dirname "$NODE"):$PATH
+# Build scripts spawn node and cc via PATH, including during activation.
+PATH=$(dirname "$NODE"):@ccPath@:$PATH
 export PATH
 
 echo "==> pnpm install --frozen-lockfile"

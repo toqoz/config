@@ -61,6 +61,7 @@ let
     git = lib.getExe pkgs.git;
     node = lib.getExe node;
     pnpm = lib.getExe pnpm;
+    ccPath = lib.makeBinPath [ pkgs.stdenv.cc ];
   };
 
   package = pkgs.stdenv.mkDerivation {
