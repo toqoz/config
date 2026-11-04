@@ -6,7 +6,15 @@ let
   toolPaths = home: builtins.filter
     (path: path != home.home.sessionVariablesPackage.outPath)
     (paths home.home.packages);
-  extraHome = lib.subtractLists (toolPaths remilisHome) (toolPaths forgeHome);
+  # deepseek-harness is the sole permitted home.packages divergence:
+  # forge01-only by design, asserted present there and absent on remilis below.
+  byPname = pname: builtins.filter (package: (package.pname or "") == pname);
+  forgeDeepseek = byPname "deepseek-harness" forgeHome.home.packages;
+  remilisDeepseek = byPname "deepseek-harness" remilisHome.home.packages;
+  deepseekAgent = forgeHome.launchd.agents.deepseek-harness;
+  deepseekInstall = forgeHome.home.activation.installDeepseekHarness;
+  deepseekData = "${forgeHome.xdg.dataHome}/deepseek-harness";
+  extraHome = lib.subtractLists (toolPaths remilisHome ++ paths forgeDeepseek) (toolPaths forgeHome);
   extraSystem = lib.subtractLists
     (paths remilis.environment.systemPackages)
     (paths forge.environment.systemPackages);
@@ -61,6 +69,41 @@ assert lib.assertMsg (
 ) "forge01 must manage the agent account at /Users/agent";
 assert lib.assertMsg (extraHome == [ ])
   "forge01 home.packages contains packages absent from remilis: ${lib.concatStringsSep ", " extraHome}";
+assert lib.assertMsg (builtins.length forgeDeepseek == 1)
+  "forge01 must install exactly one deepseek-harness package";
+assert lib.assertMsg (
+  remilisDeepseek == [ ]
+  && !(remilisHome.home.activation ? installDeepseekHarness)
+  && !(remilisHome.launchd.agents ? deepseek-harness)
+) "remilis must not install or run deepseek-harness";
+assert lib.assertMsg (
+  lib.elem "writeBoundary" deepseekInstall.after
+  && lib.elem "linkGeneration" deepseekInstall.after
+  && lib.elem "setupLaunchAgents" deepseekInstall.before
+  && forgeHome.home.activation ? setupLaunchAgents
+  && lib.hasInfix "run mkdir -p" deepseekInstall.data
+  && lib.hasInfix "run chmod 700" deepseekInstall.data
+  && lib.hasInfix "run touch" deepseekInstall.data
+  && lib.hasInfix "run chmod 600" deepseekInstall.data
+  && lib.hasInfix "umask 077" deepseekInstall.data
+  && lib.hasInfix
+    (builtins.unsafeDiscardStringContext "run env DEEPSEEK_HARNESS_HOME=${lib.escapeShellArg deepseekData} ${(builtins.head forgeDeepseek).outPath}/bin/deepseek-harness-install")
+    deepseekInstall.data
+) "forge01 must install deepseek-harness privately after user configuration and before launchd setup";
+assert lib.assertMsg (
+  deepseekAgent.enable
+  && deepseekAgent.domain == "user"
+  && deepseekAgent.config.ProgramArguments == [ "${(builtins.head forgeDeepseek).outPath}/bin/deepseek-harness-service" ]
+  && deepseekAgent.config.WorkingDirectory == forgeHome.home.homeDirectory
+  && lib.all (path: lib.elem path (lib.splitString ":" deepseekAgent.config.EnvironmentVariables.PATH))
+    (forgeHome.home.sessionPath ++ [ "${forgeHome.home.profileDirectory}/bin" "/run/current-system/sw/bin" "/usr/bin" "/bin" ])
+  && deepseekAgent.config.RunAtLoad
+  && deepseekAgent.config.KeepAlive == true
+  && deepseekAgent.config.ThrottleInterval == 10
+  && deepseekAgent.config.Umask == 63
+  && deepseekAgent.config.StandardOutPath == "${deepseekData}/log/stdout.log"
+  && deepseekAgent.config.StandardErrorPath == "${deepseekData}/log/stderr.log"
+) "forge01 must automatically start and restart the pinned service in HOME with private logs";
 assert lib.assertMsg (extraSystem == [ ])
   "forge01 environment.systemPackages contains packages absent from remilis: ${lib.concatStringsSep ", " extraSystem}";
 assert lib.assertMsg (missingTools == [ ])

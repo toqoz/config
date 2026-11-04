@@ -2,6 +2,7 @@
 {
   imports = [
     ./base.nix
+    ./deepseek-harness
   ];
 
   home.username = "agent";
