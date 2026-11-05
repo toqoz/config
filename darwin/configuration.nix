@@ -23,6 +23,7 @@
     ./apps/safari.nix
     ./apps/slack.nix
     ./apps/system-preferences.nix
+    ./apps/t3code.nix
     ./apps/tailscale.nix
     ./apps/wezterm.nix
     ./apps/zed.nix

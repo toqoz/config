@@ -6,8 +6,9 @@ let
   toolPaths = home: builtins.filter
     (path: path != home.home.sessionVariablesPackage.outPath)
     (paths home.home.packages);
-  # deepseek-harness is the sole permitted home.packages divergence:
-  # forge01-only by design, asserted present there and absent on remilis below.
+  # deepseek-harness and t3code are the permitted home.packages divergences:
+  # both are forge01-only by design, asserted present there and absent on
+  # remilis below. remilis gets the T3 Code desktop app as a cask instead.
   byPname = pname: builtins.filter (package: (package.pname or "") == pname);
   forgeDeepseek = byPname "deepseek-harness" forgeHome.home.packages;
   remilisDeepseek = byPname "deepseek-harness" remilisHome.home.packages;
@@ -17,7 +18,14 @@ let
   codexAgent = forgeHome.launchd.agents.codex-app-server;
   codexPrepare = forgeHome.home.activation.prepareCodexAppServer;
   codexState = "${forgeHome.xdg.stateHome}/codex-app-server";
-  extraHome = lib.subtractLists (toolPaths remilisHome ++ paths forgeDeepseek) (toolPaths forgeHome);
+  forgeT3Code = byPname "t3code" forgeHome.home.packages;
+  remilisT3Code = byPname "t3code" remilisHome.home.packages;
+  t3codeAgent = forgeHome.launchd.agents.t3code;
+  t3codePrepare = forgeHome.home.activation.prepareT3CodeLogs;
+  t3codeState = "${forgeHome.xdg.stateHome}/t3code";
+  extraHome = lib.subtractLists
+    (toolPaths remilisHome ++ paths forgeDeepseek ++ paths forgeT3Code)
+    (toolPaths forgeHome);
   extraSystem = lib.subtractLists
     (paths remilis.environment.systemPackages)
     (paths forge.environment.systemPackages);
@@ -131,6 +139,37 @@ assert lib.assertMsg (
   && codexAgent.config.StandardOutPath == "${codexState}/log/stdout.log"
   && codexAgent.config.StandardErrorPath == "${codexState}/log/stderr.log"
 ) "forge01 must run the store-pinned Codex app-server in HOME with private logs and automatic restart";
+assert lib.assertMsg (
+  builtins.length forgeT3Code == 1
+  && remilisT3Code == [ ]
+  && !(remilisHome.home.activation ? prepareT3CodeLogs)
+  && !(remilisHome.launchd.agents ? t3code)
+) "T3 Code must be forge01-only and must not leak its server into remilis";
+assert lib.assertMsg (
+  t3codeAgent.enable
+  && t3codeAgent.domain == "user"
+  && t3codeAgent.config.ProgramArguments == [
+    "${(builtins.head forgeT3Code).outPath}/bin/t3"
+    "serve"
+    "--no-browser"
+  ]
+  && t3codeAgent.config.WorkingDirectory == forgeHome.home.homeDirectory
+  && t3codeAgent.config.EnvironmentVariables.T3CODE_HOST == "127.0.0.1"
+  && t3codeAgent.config.EnvironmentVariables.T3CODE_PORT == "3773"
+  && t3codeAgent.config.RunAtLoad
+  && t3codeAgent.config.KeepAlive == true
+  && t3codeAgent.config.ThrottleInterval == 10
+  && t3codeAgent.config.Umask == 63
+  && t3codeAgent.config.StandardOutPath == "${t3codeState}/log/stdout.log"
+  && t3codeAgent.config.StandardErrorPath == "${t3codeState}/log/stderr.log"
+  && lib.elem "linkGeneration" t3codePrepare.after
+  && lib.elem "setupLaunchAgents" t3codePrepare.before
+) "forge01 must run the T3 Code server on loopback with private logs and automatic restart";
+assert lib.assertMsg (
+  lib.elem "t3-code" (map (cask: cask.name) remilis.homebrew.casks)
+  && remilis.my.apps.t3code == { appId = "com.t3tools.t3code"; }
+  && !(forge.my.apps ? t3code)
+) "remilis must install the T3 Code desktop app; forge01 must not";
 assert lib.assertMsg (extraSystem == [ ])
   "forge01 environment.systemPackages contains packages absent from remilis: ${lib.concatStringsSep ", " extraSystem}";
 assert lib.assertMsg (missingTools == [ ])
