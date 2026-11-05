@@ -420,7 +420,6 @@
         "makenotion-skills": "makenotion-skills",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
-        "sence": "sence",
         "vercel-agent-browser": "vercel-agent-browser"
       }
     },
@@ -442,26 +441,6 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "type": "github"
-      }
-    },
-    "sence": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1780286880,
-        "narHash": "sha256-xGucNcpHCgc+iOvEzwrk9JxfgmW5IGhxLdo8VxMLdD8=",
-        "owner": "toqoz",
-        "repo": "sence",
-        "rev": "94d0b7b60b8c5f921ad0e89ad4937871e8433e70",
-        "type": "github"
-      },
-      "original": {
-        "owner": "toqoz",
-        "repo": "sence",
         "type": "github"
       }
     },

@@ -25,11 +25,10 @@ in
   #
   # prStatusFooterEnabled = false:
   #   The "PR #<n>" footer next to the auto-mode indicator polls
-  #   GitHub every 60 s by spawning `gh api ...` per active session.
-  #   Inside the sence/fence sandbox this surfaces as a steady stream
-  #   of network-outbound denials in fence:logstream and a constant
-  #   gh exec churn even while idle. The display itself isn't useful
-  #   to me, so we turn it off at the source.
+  #   GitHub every 60 s by spawning `gh api ...` per active session,
+  #   which is constant `gh` exec churn even while idle when several
+  #   sessions are open. The display itself isn't useful to me, so we
+  #   turn it off at the source.
   home.activation.mergeClaudeUserState =
     lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       export PATH="${lib.makeBinPath [ pkgs.jq ]}:$PATH"

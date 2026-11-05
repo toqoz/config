@@ -31,10 +31,6 @@
       url = "github:makenotion/skills";
       flake = false;
     };
-    sence = {
-      url = "github:toqoz/sence";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     gws = {
       url = "github:googleworkspace/cli";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -64,7 +60,6 @@
       anthropic-skills,
       vercel-agent-browser,
       makenotion-skills,
-      sence,
       gws,
       herdr,
       hunk,
@@ -189,7 +184,6 @@
               inherit anthropic-skills;
               inherit vercel-agent-browser;
               inherit makenotion-skills;
-              inherit sence;
               inherit gws;
               inherit herdr;
             };

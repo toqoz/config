@@ -130,16 +130,10 @@
         tmux && exit
       fi
 
-      # Starship: skip in sandbox shells (e.g. fence) where the prompt
-      # would be wasted. HM's auto integration is disabled in
+      # Starship: HM's auto integration is disabled in
       # home/starship/default.nix so this branch is the sole source.
-      if [[ -n "$FENCE_SANDBOX" ]]; then
-        PS1="[sandbox] %~ %# "
-        RPROMPT=""
-      else
-        if [[ $TERM != "dumb" ]]; then
-          eval "$(${pkgs.starship}/bin/starship init zsh)"
-        fi
+      if [[ $TERM != "dumb" ]]; then
+        eval "$(${pkgs.starship}/bin/starship init zsh)"
       fi
     '';
   };

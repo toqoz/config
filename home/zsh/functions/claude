@@ -1,47 +1,30 @@
 emulate -L zsh
 
-# USAGE: claude [-p] [--no-sandbox] [<claude args>...]
+# USAGE: claude [-p] [<claude args>...]
 #
 # Wrapper around the real claude CLI.
 #
-#   -p            Print mode. Passes -p to claude, forces
-#                 --output-format stream-json --verbose, and pipes output
-#                 through jq for readable streaming. Used by ai-commit*.
-#   --no-sandbox  Bypass the sence sandbox and run the claude binary
-#                 directly. Consumed by this wrapper; not forwarded.
-#
-# Sandbox behavior (default when --no-sandbox is absent):
-#   - Interactive:  sence --profile code:claude --interactive -- claude
-#                                               --permission-mode auto
-#   - Print (-p):   sence --profile code:claude -- claude
-#                                               --permission-mode auto
-#                   (no --interactive: -p has no TTY for approval prompts)
+#   -p  Print mode. Passes -p to claude, forces
+#       --output-format stream-json --verbose, and pipes output
+#       through jq for readable streaming. Used by ai-commit*.
+#       Print mode has no TTY for approval prompts, so it also runs
+#       with --permission-mode auto.
 #
 # Remaining args are forwarded verbatim to claude.
 
 local print=false
-local no_sandbox=false
 local args=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -p) print=true; shift ;;
-    --no-sandbox) no_sandbox=true; shift ;;
     *) args+=("$1"); shift ;;
   esac
 done
 
-local -a cmd
-if $no_sandbox; then
-  cmd=(command claude)
-elif $print; then
-  cmd=(sence --profile code:claude -- claude --permission-mode auto)
-else
-  cmd=(sence --profile code:claude --interactive -- claude --permission-mode auto)
-fi
-
 if $print; then
   local hr="$(printf '%*s\n' "$(tput cols)" "" | tr ' ' '-')"
-  "${cmd[@]}" -p --output-format stream-json --verbose "${args[@]}" | jq -cr '
+  command claude -p --permission-mode auto \
+    --output-format stream-json --verbose "${args[@]}" | jq -cr '
     if .type == "assistant" then
       (.message.content[] | .text // empty)
     elif .type == "result" then
@@ -52,9 +35,8 @@ if $print; then
     end | ., "'"$hr"'"
   '
 else
-  # Replace tmux's auto-rename of `.claude-wrapped` (the Nix wrapper's
-  # underlying binary) with `claude/<branch>` for the duration of the
-  # session.
+  # Replace tmux's auto-rename of the claude process with
+  # `claude/<branch>` for the duration of the session.
   local prev_window_name="" prev_auto_rename="" label=""
   if [[ -n "$TMUX" ]]; then
     prev_window_name=$(tmux display-message -p '#W' 2>/dev/null)
@@ -66,7 +48,7 @@ else
   fi
 
   {
-    "${cmd[@]}" "${args[@]}"
+    command claude "${args[@]}"
   } always {
     if [[ -n "$TMUX" ]]; then
       if [[ "$prev_auto_rename" == "off" && -n "$prev_window_name" ]]; then
