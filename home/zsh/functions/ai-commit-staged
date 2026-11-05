@@ -1,2 +1,2 @@
 emulate -L zsh
-claude -p "/commit-staged $*"
+claude -p --permission-mode auto "/commit-staged $*"

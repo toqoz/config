@@ -60,9 +60,9 @@
       source "${pkgs.asdf-vm}/etc/profile.d/asdf-prepare.sh"
       fpath=(${pkgs.asdf-vm}/share/zsh/site-functions ${config.xdg.configHome}/zsh/functions $fpath)
 
-      # Autoload agent wrappers here (not in .zshrc) so git aliases and
-      # other non-interactive zsh subshells can resolve them.
-      autoload -Uz claude op
+      # Autoload wrapper functions here (not in .zshrc) so git aliases
+      # and other non-interactive zsh subshells can resolve them.
+      autoload -Uz op
     '';
     # .zprofile
     profileExtra = ''
