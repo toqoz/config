@@ -7,12 +7,13 @@ let
   # Single source of truth for the toqoz fork pin and its toolchain.
   # The fork is a personal fork of shiguredo/deepseek-harness that squashes
   # per-feature commits onto `toqoz/main` (currently mobile Enter inserts a
-  # newline, and the pre-auth index accepts a pasted launch URL).
+  # newline, and an unauthenticated load offers the launch URL while retrying
+  # a withheld-cookie PWA launch once).
   # It has no releases, so the installer clones this revision into a
   # dedicated XDG data checkout at runtime instead of fetching a tarball.
   source = {
     url = "https://github.com/toqoz/deepseek-harness.git";
-    rev = "f163c825afc7eb84ffe7992d46998c2d129513c1";
+    rev = "701f13ec19413c811aa2742c1becfa94251de280";
     version = "0.2.2-rc.1"; # root package.json version at rev
   };
 
