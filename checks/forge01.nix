@@ -95,7 +95,8 @@ assert lib.assertMsg (
 ) "forge01 must install deepseek-harness privately after user configuration and before launchd setup";
 assert lib.assertMsg (
   deepseekAgent.enable
-  && deepseekAgent.domain == "user"
+  && deepseekAgent.domain == "gui"
+  && deepseekAgent.config.LimitLoadToSessionType == null
   && deepseekAgent.config.ProgramArguments == [ "${(builtins.head forgeDeepseek).outPath}/bin/deepseek-harness-service" ]
   && deepseekAgent.config.WorkingDirectory == forgeHome.home.homeDirectory
   && lib.all (path: lib.elem path (lib.splitString ":" deepseekAgent.config.EnvironmentVariables.PATH))
@@ -106,7 +107,7 @@ assert lib.assertMsg (
   && deepseekAgent.config.Umask == 63
   && deepseekAgent.config.StandardOutPath == "${deepseekData}/log/stdout.log"
   && deepseekAgent.config.StandardErrorPath == "${deepseekData}/log/stderr.log"
-) "forge01 must automatically start and restart the pinned service in HOME with private logs";
+) "forge01 must automatically start and restart the pinned service in HOME with private logs, from the gui domain so the login keychain is available";
 assert lib.assertMsg (
   !(remilisHome.home.activation ? prepareCodexAppServer)
   && !(remilisHome.launchd.agents ? codex-app-server)

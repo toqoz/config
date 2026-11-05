@@ -246,7 +246,11 @@ test('evaluated activation is dry-run safe and installs private data before laun
   assert.deepEqual(contract.activation.before, ['setupLaunchAgents']);
   assert.equal(contract.remilisAbsent, true);
   assert.equal(contract.agent.enable, true);
-  assert.equal(contract.agent.domain, 'user');
+  assert.equal(contract.agent.domain, 'gui');
+  // The gui domain relies on the Aqua session, where the login keychain is
+  // unlocked; the Background session type would break keychain-backed tools
+  // such as gh and the git credential helper.
+  assert.equal(contract.agent.config.LimitLoadToSessionType, null);
   assert.deepEqual(contract.agent.config.ProgramArguments, [contract.service]);
   assert.equal(contract.agent.config.WorkingDirectory, '/Users/agent');
   for (const path of ['/etc/profiles/per-user/agent/bin', '/Users/agent/.local/share/home-scripts/bin', '/run/current-system/sw/bin', '/usr/bin', '/bin']) {

@@ -105,7 +105,12 @@ in
 
   launchd.agents.deepseek-harness = {
     enable = true;
-    domain = "user";
+    # The `user` domain runs in a Background session, which cannot unlock the
+    # login keychain, so keychain-backed tools (gh's token, git's credential
+    # helper) fail with errSecInteractionNotAllowed. The `gui` domain runs in
+    # the Aqua session, where the keychain is unlocked while the user is
+    # logged in. A true logout stops the service; screen lock does not.
+    domain = "gui";
     config = {
       ProgramArguments = [ "${package}/bin/deepseek-harness-service" ];
       WorkingDirectory = config.home.homeDirectory;
