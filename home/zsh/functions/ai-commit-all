@@ -1,3 +1,0 @@
-emulate -L zsh
-git add -A
-claude -p --permission-mode auto "/commit $*"

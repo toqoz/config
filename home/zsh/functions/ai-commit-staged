@@ -1,2 +1,0 @@
-emulate -L zsh
-claude -p --permission-mode auto "/commit-staged $*"

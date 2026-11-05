@@ -95,7 +95,7 @@
       zle -N bracketed-paste bracketed-paste-magic
 
       # Site-functions dir already added to fpath in .zshenv.
-      autoload -Uz enter-workspace tmux ghq ai-commit ai-commit-all ai-commit-staged git-wt-now
+      autoload -Uz enter-workspace tmux ghq git-wt-now
       zle -N enter-workspace
 
       # C-Space: Start completion
