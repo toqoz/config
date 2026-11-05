@@ -29,7 +29,7 @@ let
   requiredToolNames = [
     "asdf-vm" "erlang" "direnv" "gh" "ghq" "pnpm" "slack" "gws"
     "portless" "ntn" "ketch" "pi" "agent-browser" "fzf" "starship" "tmux"
-    "tmux-window-picker" "tmux-swap-window" "tmux-window-tag"
+    "tmux-window-picker" "tmux-swap-window" "tmux-window-tag" "claude-code"
   ];
   missingToolNames = lib.subtractLists (map lib.getName forgeHome.home.packages) requiredToolNames;
   normalize = home: lib.replaceStrings [ home.home.homeDirectory ] [ "$HOME" ];

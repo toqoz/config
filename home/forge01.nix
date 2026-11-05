@@ -2,6 +2,7 @@
 {
   imports = [
     ./base.nix
+    ./agents/claude-code
     ./agents/codex/app-server.nix
     ./deepseek-harness
   ];
