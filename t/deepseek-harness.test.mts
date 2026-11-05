@@ -29,7 +29,7 @@ const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MODULE_NIX = `${REPO}/home/deepseek-harness/default.nix`;
 const INSTALL_SH = `${REPO}/home/deepseek-harness/install.sh`;
 const DSH_SH = `${REPO}/home/deepseek-harness/dsh.sh`;
-const UPSTREAM_REV = '767265cf34e09b57dcace16035adc51a7308e6d6';
+const UPSTREAM_REV = 'f163c825afc7eb84ffe7992d46998c2d129513c1';
 
 const VERSION = '0.0.0-test';
 
@@ -190,9 +190,9 @@ function escapeRegExp(s: string): string {
 
 test('default.nix keeps the fork pin as the single source of truth', () => {
   const nix = readFileSync(MODULE_NIX, 'utf8');
-  assert.match(nix, /url = "https:\/\/github\.com\/shiguredo\/deepseek-harness\.git"/);
-  assert.match(nix, /rev = "767265cf34e09b57dcace16035adc51a7308e6d6"/);
-  assert.match(nix, /version = "0\.2\.2-alpha\.3"/);
+  assert.match(nix, /url = "https:\/\/github\.com\/toqoz\/deepseek-harness\.git"/);
+  assert.match(nix, /rev = "f163c825afc7eb84ffe7992d46998c2d129513c1"/);
+  assert.match(nix, /version = "0\.2\.2-rc\.1"/);
   assert.match(nix, /node-v24\.21\.0-darwin-arm64\.tar\.gz/);
   assert.match(nix, /pnpm-11\.28\.5\.tgz/);
   for (const script of [INSTALL_SH, DSH_SH]) {

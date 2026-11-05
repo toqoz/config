@@ -4,13 +4,16 @@ let
     port = 3080;
     dataDir = "${config.xdg.dataHome}/deepseek-harness";
   };
-  # Single source of truth for the shiguredo fork pin and its toolchain.
-  # The fork has no releases, so the installer clones this revision into a
+  # Single source of truth for the toqoz fork pin and its toolchain.
+  # The fork is a personal fork of shiguredo/deepseek-harness that squashes
+  # per-feature commits onto `toqoz/main` (currently mobile Enter inserts a
+  # newline, and the pre-auth index accepts a pasted launch URL).
+  # It has no releases, so the installer clones this revision into a
   # dedicated XDG data checkout at runtime instead of fetching a tarball.
   source = {
-    url = "https://github.com/shiguredo/deepseek-harness.git";
-    rev = "767265cf34e09b57dcace16035adc51a7308e6d6";
-    version = "0.2.2-alpha.3"; # root package.json version at rev
+    url = "https://github.com/toqoz/deepseek-harness.git";
+    rev = "f163c825afc7eb84ffe7992d46998c2d129513c1";
+    version = "0.2.2-rc.1"; # root package.json version at rev
   };
 
   # The runtime's native loader inspects Node machine code and rejects the
@@ -83,7 +86,7 @@ let
       runHook postInstall
     '';
     meta = {
-      description = "Pinned shiguredo/deepseek-harness Web CLI installer and dsh launcher";
+      description = "Pinned toqoz/deepseek-harness Web CLI installer and dsh launcher";
       mainProgram = "dsh";
     };
   };
