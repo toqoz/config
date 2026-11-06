@@ -153,6 +153,8 @@ assert lib.assertMsg (
     "serve"
     "--no-browser"
     "--tailscale-serve"
+    "--tailscale-serve-port"
+    "3773"
   ]
   && lib.elem "/usr/local/bin"
     (lib.splitString ":" t3codeAgent.config.EnvironmentVariables.PATH)

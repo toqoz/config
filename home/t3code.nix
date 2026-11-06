@@ -29,7 +29,11 @@ in
       port = lib.mkOption {
         type = lib.types.port;
         default = 3773;
-        description = "Loopback port the T3 Code server listens on.";
+        description = ''
+          Port the T3 Code server listens on, on loopback and on the
+          Tailscale Serve HTTPS listener. Both use the same number so the
+          tailnet URL mirrors `http://127.0.0.1:<port>`.
+        '';
       };
     };
   };
@@ -77,6 +81,10 @@ in
           "serve"
           "--no-browser"
           "--tailscale-serve"
+          # Keep Serve on the same number as the loopback port, so the tailnet
+          # URL is https://<host>.<tailnet>.ts.net:<port> rather than :443.
+          "--tailscale-serve-port"
+          (toString config.my.t3code.server.port)
         ];
         WorkingDirectory = config.home.homeDirectory;
         EnvironmentVariables = {
