@@ -152,7 +152,10 @@ assert lib.assertMsg (
     "${(builtins.head forgeT3Code).outPath}/bin/t3"
     "serve"
     "--no-browser"
+    "--tailscale-serve"
   ]
+  && lib.elem "/usr/local/bin"
+    (lib.splitString ":" t3codeAgent.config.EnvironmentVariables.PATH)
   && t3codeAgent.config.WorkingDirectory == forgeHome.home.homeDirectory
   && t3codeAgent.config.EnvironmentVariables.T3CODE_HOST == "127.0.0.1"
   && t3codeAgent.config.EnvironmentVariables.T3CODE_PORT == "3773"

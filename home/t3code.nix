@@ -68,14 +68,26 @@ in
       enable = true;
       domain = "user";
       config = {
-        # A resident server should never try to open a browser on login.
-        ProgramArguments = [ "${t3code}/bin/t3" "serve" "--no-browser" ];
+        # A resident server should never try to open a browser on login, and
+        # Tailscale Serve is the only way the desktop app reaches it from
+        # another host. The server still binds 127.0.0.1; Serve proxies the
+        # tailnet HTTPS URL to it.
+        ProgramArguments = [
+          "${t3code}/bin/t3"
+          "serve"
+          "--no-browser"
+          "--tailscale-serve"
+        ];
         WorkingDirectory = config.home.homeDirectory;
         EnvironmentVariables = {
           HOME = config.home.homeDirectory;
           T3CODE_HOST = "127.0.0.1";
           T3CODE_PORT = toString config.my.t3code.server.port;
+          # /usr/local/bin carries the Tailscale.app CLI shim; launchd does
+          # not read the shell rc that puts it on PATH, and `t3 serve
+          # --tailscale-serve` shells out to `tailscale`.
           PATH = lib.concatStringsSep ":" (config.home.sessionPath ++ [
+            "/usr/local/bin"
             "${config.home.profileDirectory}/bin"
             "/run/current-system/sw/bin"
             "/usr/bin"
