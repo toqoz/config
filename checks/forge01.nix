@@ -166,7 +166,7 @@ assert lib.assertMsg (
     "--no-browser"
     "--tailscale-serve"
     "--tailscale-serve-port"
-    "3374"
+    "3373"
   ]
   && remilisT3codeAgent.config.EnvironmentVariables.T3CODE_HOST == "127.0.0.1"
   && remilisT3codeAgent.config.EnvironmentVariables.T3CODE_PORT == "3773"
