@@ -152,6 +152,12 @@ assert lib.assertMsg (
   && !(lib.elem "t3-code" (map (cask: cask.name) remilis.homebrew.casks))
 ) "remilis must link the T3 Code desktop bundle from nix instead of installing the cask";
 assert lib.assertMsg (
+  !(forgeHome.home.activation ? mergeT3CodeDesktopSettings)
+  && remilisHome.home.activation ? mergeT3CodeDesktopSettings
+  && lib.hasInfix "localEnvironmentEnabled: false"
+    remilisHome.home.activation.mergeT3CodeDesktopSettings.data
+) "remilis must turn off the desktop app's local environment so it can use the service";
+assert lib.assertMsg (
   remilisT3codeAgent.enable
   && remilisT3codeAgent.domain == "user"
   && remilisT3codeAgent.config.ProgramArguments == [

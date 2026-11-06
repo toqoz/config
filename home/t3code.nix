@@ -65,6 +65,34 @@ in
         "${t3codeDesktop}/Applications/T3 Code (Beta).app";
     };
 
+    # The desktop app refuses to share a T3 home with a server it did not
+    # start: it tries to take ownership of ~/.t3 and shows "This T3 home is
+    # unavailable" when the service already holds it. Point the app at the
+    # service instead by turning off its local environment, which makes it a
+    # pure client for the paired environment.
+    home.activation.mergeT3CodeDesktopSettings =
+      lib.mkIf (config.my.t3code.desktop.enable && config.my.t3code.server.enable)
+        (lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+          export PATH="${lib.makeBinPath [ pkgs.jq ]}:$PATH"
+
+          state="$HOME/.t3/userdata/desktop-settings.json"
+
+          umask 077
+          mkdir -p "$(dirname "$state")"
+          tmp=$(mktemp "$state.XXXXXX")
+          trap 'rm -f "$tmp"' EXIT
+
+          if [ -e "$state" ]; then
+            jq '. + {localEnvironmentEnabled: false}' "$state" > "$tmp"
+          else
+            jq -n '{localEnvironmentEnabled: false}' > "$tmp"
+          fi
+
+          mv "$tmp" "$state"
+          chmod 600 "$state"
+          trap - EXIT
+        '');
+
     # launchd cannot create the log directory, and a symlinked log target would
     # let the service write outside its own state.
     home.activation.prepareT3CodeLogs = lib.mkIf config.my.t3code.server.enable (
