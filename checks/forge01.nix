@@ -318,7 +318,12 @@ assert lib.assertMsg (
 assert lib.assertMsg (
   forgeHome.home.activation.installPiPackages == remilisHome.home.activation.installPiPackages
   && forgeHome.home.file.".pi/agent/AGENTS.md".source == remilisHome.home.file.".pi/agent/AGENTS.md".source
-  && forgeHome.home.file.".pi/agent/pstack-models.md".source == remilisHome.home.file.".pi/agent/pstack-models.md".source
+  && lib.all (home:
+    !(home.home.file ? ".pi/agent/pstack-models.md")
+    && !(home.home.file ? ".agents/pstack-src")
+    && !(home.programs.agent-skills.sources ? pstack)
+    && !(home.programs.agent-skills.skills.explicit ? pstack-dsh)
+  ) [ forgeHome remilisHome ]
   && sameText ".pi/agent/keybindings.json"
 ) "forge01 must share Pi configuration and package activation with remilis";
 assert lib.assertMsg (

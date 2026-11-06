@@ -3,7 +3,6 @@
   imports = [
     ./agents/agent-skills
     ./agents/codex
-    ./agents/pstack
     ./android.nix
     ./asdf
     ./direnv.nix

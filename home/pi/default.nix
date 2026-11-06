@@ -6,8 +6,6 @@
 }:
 let
   piPackage = llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
-  # pstack 0.9.102; pin the Git source like the npm packages below.
-  pstackRevision = "356c6e0f978df729eb16f227d795f34d221c5aad";
   piPackages = [
     {
       name = "pi-mcp-adapter";
@@ -43,19 +41,9 @@ in
     mkdir -p "$(dirname "$settings")"
     tmp_settings="$(mktemp)"
     if [ -f "$settings" ]; then
-      jq '. as $settings | $settings + {
-        defaultProvider: "openai-codex",
-        defaultModel: "gpt-6.1-sol",
-        defaultThinkingLevel: "medium",
-        extensions: (($settings.extensions // []) | if index("-builtin:mcp") then . else . + ["-builtin:mcp"] end)
-      }' "$settings" > "$tmp_settings"
+      jq -f ${./settings.jq} "$settings" > "$tmp_settings"
     else
-      jq -n '{
-        defaultProvider: "openai-codex",
-        defaultModel: "gpt-6.1-sol",
-        defaultThinkingLevel: "medium",
-        extensions: ["-builtin:mcp"]
-      }' > "$tmp_settings"
+      jq -n -f ${./settings.jq} > "$tmp_settings"
     fi
     install -m 0600 "$tmp_settings" "$settings"
     rm -f "$tmp_settings"
@@ -74,18 +62,9 @@ in
       fi
     '') piPackages}
 
-    source="git:github.com/michael-denyer/pstack-claude@${pstackRevision}"
-    checkout="$HOME/.pi/agent/git/github.com/michael-denyer/pstack-claude"
-    if [ "$(git -C "$checkout" rev-parse HEAD 2>/dev/null)" = "${pstackRevision}" ] \
-      && jq -e --arg source "$source" '(.packages // []) | any(. == $source or (.source? == $source))' "$settings" >/dev/null; then
-      echo "pstack 0.9.102 is already installed"
-    else
-      pi install "$source"
-    fi
   '';
 
   home.file.".pi/agent/AGENTS.md".source = ../agents/AGENTS.md;
-  home.file.".pi/agent/pstack-models.md".source = ./pstack-models.md;
 
   home.file.".pi/agent/keybindings.json".text = builtins.toJSON {
     "app.model.cycleForward" = [ "alt+n" ];
