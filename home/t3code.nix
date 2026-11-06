@@ -10,6 +10,9 @@ let
       llm-agents.packages.${system}.claude-code
     ];
   };
+  # The desktop output of the same derivation, so the app carries the same
+  # version and the same slim provider set as the CLI.
+  t3codeDesktop = t3code.desktop;
   server = rec {
     logDir = "${config.xdg.stateHome}/t3code/log";
     stdout = "${logDir}/stdout.log";
@@ -19,6 +22,10 @@ in
 {
   options.my.t3code = {
     enable = lib.mkEnableOption "the T3 Code CLI";
+
+    desktop = {
+      enable = lib.mkEnableOption "the T3 Code desktop app";
+    };
 
     server = {
       enable = lib.mkOption {
@@ -40,6 +47,14 @@ in
 
   config = lib.mkIf config.my.t3code.enable {
     home.packages = [ t3code ];
+
+    # macOS only surfaces apps through ~/Applications; a store path on its own
+    # is not indexed by LaunchServices. The bundle comes from the same pinned
+    # llm-agents revision as the server, so both hosts run one version.
+    home.file = lib.mkIf config.my.t3code.desktop.enable {
+      "Applications/T3 Code (Beta).app".source =
+        "${t3codeDesktop}/Applications/T3 Code (Beta).app";
+    };
 
     # launchd cannot create the log directory, and a symlinked log target would
     # let the service write outside its own state.

@@ -8,7 +8,8 @@ let
     (paths home.home.packages);
   # deepseek-harness and t3code are the permitted home.packages divergences:
   # both are forge01-only by design, asserted present there and absent on
-  # remilis below. remilis gets the T3 Code desktop app as a cask instead.
+  # remilis below. The T3 Code desktop bundle on remilis comes from the same
+  # pinned llm-agents revision as the CLI.
   byPname = pname: builtins.filter (package: (package.pname or "") == pname);
   forgeDeepseek = byPname "deepseek-harness" forgeHome.home.packages;
   remilisDeepseek = byPname "deepseek-harness" remilisHome.home.packages;
@@ -141,10 +142,18 @@ assert lib.assertMsg (
 ) "forge01 must run the store-pinned Codex app-server in HOME with private logs and automatic restart";
 assert lib.assertMsg (
   builtins.length forgeT3Code == 1
-  && remilisT3Code == [ ]
-  && !(remilisHome.home.activation ? prepareT3CodeLogs)
+  && builtins.length remilisT3Code == 1
+  && (builtins.head forgeT3Code).outPath == (builtins.head remilisT3Code).outPath
+) "both hosts must install the same pinned T3 Code CLI";
+assert lib.assertMsg (
+  remilisHome.home.file ? "Applications/T3 Code (Beta).app"
+  && !(forgeHome.home.file ? "Applications/T3 Code (Beta).app")
+  && !(lib.elem "t3-code" (map (cask: cask.name) remilis.homebrew.casks))
+) "remilis must link the T3 Code desktop bundle from nix instead of installing the cask";
+assert lib.assertMsg (
+  !(remilisHome.home.activation ? prepareT3CodeLogs)
   && !(remilisHome.launchd.agents ? t3code)
-) "T3 Code must be forge01-only and must not leak its server into remilis";
+) "the T3 Code server must stay forge01-only";
 assert lib.assertMsg (
   t3codeAgent.enable
   && t3codeAgent.domain == "user"
@@ -171,10 +180,9 @@ assert lib.assertMsg (
   && lib.elem "setupLaunchAgents" t3codePrepare.before
 ) "forge01 must run the T3 Code server on loopback with private logs and automatic restart";
 assert lib.assertMsg (
-  lib.elem "t3-code" (map (cask: cask.name) remilis.homebrew.casks)
-  && remilis.my.apps.t3code == { appId = "com.t3tools.t3code"; }
+  remilis.my.apps.t3code == { appId = "org.nixos.T3 Code (Beta)"; }
   && !(forge.my.apps ? t3code)
-) "remilis must install the T3 Code desktop app; forge01 must not";
+) "remilis must register the T3 Code bundle identifier; forge01 must not";
 assert lib.assertMsg (extraSystem == [ ])
   "forge01 environment.systemPackages contains packages absent from remilis: ${lib.concatStringsSep ", " extraSystem}";
 assert lib.assertMsg (missingTools == [ ])
