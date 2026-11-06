@@ -18,12 +18,11 @@
     ./zed
   ];
 
-  # The desktop app and the CLI come from the same pinned llm-agents revision
-  # as the forge01 server, so both hosts run one version. The server itself
-  # stays on forge01.
+  # Both hosts run the server the same way; this one also runs the desktop
+  # app, which attaches to the local server instead of starting its own.
   my.t3code.enable = true;
   my.t3code.desktop.enable = true;
-  my.t3code.server.enable = false;
+  my.t3code.server.servePort = 3374;
 
   # Home Manager needs a bit of information about you and the paths it should
   # manage.

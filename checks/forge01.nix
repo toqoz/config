@@ -22,6 +22,7 @@ let
   forgeT3Code = byPname "t3code" forgeHome.home.packages;
   remilisT3Code = byPname "t3code" remilisHome.home.packages;
   t3codeAgent = forgeHome.launchd.agents.t3code;
+  remilisT3codeAgent = remilisHome.launchd.agents.t3code;
   t3codePrepare = forgeHome.home.activation.prepareT3CodeLogs;
   t3codeState = "${forgeHome.xdg.stateHome}/t3code";
   extraHome = lib.subtractLists
@@ -151,9 +152,22 @@ assert lib.assertMsg (
   && !(lib.elem "t3-code" (map (cask: cask.name) remilis.homebrew.casks))
 ) "remilis must link the T3 Code desktop bundle from nix instead of installing the cask";
 assert lib.assertMsg (
-  !(remilisHome.home.activation ? prepareT3CodeLogs)
-  && !(remilisHome.launchd.agents ? t3code)
-) "the T3 Code server must stay forge01-only";
+  remilisT3codeAgent.enable
+  && remilisT3codeAgent.domain == "user"
+  && remilisT3codeAgent.config.ProgramArguments == [
+    "${(builtins.head remilisT3Code).outPath}/bin/t3"
+    "serve"
+    "--no-browser"
+    "--tailscale-serve"
+    "--tailscale-serve-port"
+    "3374"
+  ]
+  && remilisT3codeAgent.config.EnvironmentVariables.T3CODE_HOST == "127.0.0.1"
+  && remilisT3codeAgent.config.EnvironmentVariables.T3CODE_PORT == "3773"
+  && lib.elem "/usr/local/bin"
+    (lib.splitString ":" remilisT3codeAgent.config.EnvironmentVariables.PATH)
+  && remilisHome.home.activation ? prepareT3CodeLogs
+) "remilis must run the same T3 Code server as forge01, with its own tailnet port";
 assert lib.assertMsg (
   t3codeAgent.enable
   && t3codeAgent.domain == "user"

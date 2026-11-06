@@ -13,6 +13,10 @@ let
   # The desktop output of the same derivation, so the app carries the same
   # version and the same slim provider set as the CLI.
   t3codeDesktop = t3code.desktop;
+  servePort =
+    if config.my.t3code.server.servePort != null
+    then config.my.t3code.server.servePort
+    else config.my.t3code.server.port;
   server = rec {
     logDir = "${config.xdg.stateHome}/t3code/log";
     stdout = "${logDir}/stdout.log";
@@ -36,10 +40,15 @@ in
       port = lib.mkOption {
         type = lib.types.port;
         default = 3773;
+        description = "Loopback port the T3 Code server listens on.";
+      };
+      servePort = lib.mkOption {
+        type = lib.types.nullOr lib.types.port;
+        default = null;
         description = ''
-          Port the T3 Code server listens on, on loopback and on the
-          Tailscale Serve HTTPS listener. Both use the same number so the
-          tailnet URL mirrors `http://127.0.0.1:<port>`.
+          HTTPS port for the Tailscale Serve listener. Defaults to `port`, so
+          the tailnet URL mirrors `http://127.0.0.1:<port>`; set it to keep
+          the tailnet port distinct from the loopback one.
         '';
       };
     };
@@ -96,10 +105,11 @@ in
           "serve"
           "--no-browser"
           "--tailscale-serve"
-          # Keep Serve on the same number as the loopback port, so the tailnet
-          # URL is https://<host>.<tailnet>.ts.net:<port> rather than :443.
+          # Publish on `servePort` (the loopback port unless overridden), so
+          # the tailnet URL is https://<host>.<tailnet>.ts.net:<servePort>
+          # rather than :443.
           "--tailscale-serve-port"
-          (toString config.my.t3code.server.port)
+          (toString servePort)
         ];
         WorkingDirectory = config.home.homeDirectory;
         EnvironmentVariables = {
