@@ -30,26 +30,14 @@ Add shared tools through `home/base.nix`; keep host-specific additions in the ho
 
 ## Workspace Context
 
-You may be running inside a git worktree (or a fresh clone) created
-outside this session — typically by the user via `git-wt`. Multiple
-worktrees of this repo can exist on the host at the same time, each
-with its own in-flight change.
+Work in the existing checkout by default. This repository does not
+require a worktree or confirmation before working in the primary checkout.
+Inspect the working tree first and preserve unrelated changes.
 
-Implications:
-
-- The host machine is shared across worktrees. `nix run .#switch-<host>`
-  changes the live system, so it must not run from a worktree —
-  activation belongs on `main`, after merge, sequentially.
-- Build artifacts and flake evaluation are worktree-local and safe to
-  run in parallel. Use them as the pre-commit gate (next section).
-- Treat the worktree as your sandbox: edit, build, test, commit. Leave
-  `switch` to the user.
-
-If you are about to start work and you are *not* in a worktree (i.e.
-the primary checkout — `git rev-parse --git-dir` equals
-`git rev-parse --git-common-dir`), pause and confirm with the user
-before proceeding. Other worktrees may be in flight, and the user
-typically intends to work from a `git-wt` worktree.
+Run builds and checks directly through the agent's command tool; no tmux
+session is required. `nix run .#build-<host>` builds without activating.
+Leave `nix run .#switch-<host>` to the user: it changes the live machine
+and should be run from `main` after changes are committed or merged.
 
 ## Pre-commit Gate
 
@@ -62,7 +50,7 @@ Before committing from this workspace, verify the change:
 
 A green build + flake check is the bar for committing. Activation-only
 failures that surface during `switch` are an accepted gap, caught
-post-merge on `main`.
+after committing or merging on `main`.
 
 ## Tests for Testable Code
 
