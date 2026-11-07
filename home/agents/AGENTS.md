@@ -24,6 +24,12 @@ Prefer these directories over ad-hoc paths like `tmp/` when a skill needs local 
 - Keep changes small, local, and easy to verify.
 - Verify with concrete checks, not assumptions.
 
+## Delegation
+
+When delegating, include the user's confirmed authorizations and explicit
+prohibitions in the brief. Preserve their scope; do not assume the child has
+the parent conversation.
+
 ## Debugging Mindset
 
 When something goes wrong, suspect your own code first. Do not blame frameworks, libraries, compilers, or runtimes until you have ruled out mistakes in the code you wrote or changed.

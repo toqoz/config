@@ -7,6 +7,8 @@ description: Default workflow for non-trivial coding tasks. Covers task clarific
 
 - Identify the problem, constraints, and success criteria from available context.
   Ask only for missing information that prevents progress.
+  An adoption evaluation does not authorize integrating the candidate; complete
+  the comparison and keep independently authorized changes separate.
 - Read the code that owns the behavior, its contracts, and existing tests before
   changing it. Names and paths are clues, not proof of behavior. Existing code
   is not proof of correctness; fit the intended structure without copying flaws.
