@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Create a git commit with a well-structured conventional commit message. Use this skill whenever the user asks to commit, create a commit, write a commit message, or stage and commit changes — even if they just say "commit this" or "let's commit". Always use this skill rather than ad-hoc git commit commands.
+description: Create a git commit with a well-structured conventional commit message. Use this skill whenever the user asks to commit, create a commit, write a commit message, or stage and commit changes — including only the current work, only staged changes, or everything, even if they just say "commit this" or "let's commit". Always use this skill rather than ad-hoc git commit commands.
 ---
 
 # Commit Skill
@@ -86,6 +86,45 @@ This guard may be relaxed when the active project or user instruction files
 (`CLAUDE.md`, `AGENTS.md`, or equivalent harness-provided guidance) explicitly
 permit direct commits to that branch.
 
+## Commit Scope
+
+Choose the scope from the user's request before changing the index:
+
+| Request | Scope |
+|---------|-------|
+| "commit", "commit this work", or no explicit scope | **Work (default):** changes belonging to the work discussed in this conversation, or the specific work the user names. |
+| "commit staged", "commit the index" | **Staged only:** the existing index exactly as selected. |
+| "commit everything", "commit all changes" | **All:** all staged, unstaged, and untracked changes. |
+
+Infer the work from the conversation; ask only when the intended scope or a
+change's ownership cannot be determined. An existing index does not override
+the default work scope. An empty selected scope is a no-op; report it rather
+than falling back to another scope. For contradictory scope requests, clarify.
+
+For work scope, classify files and hunks as belonging to the selected work,
+other work, or uncertain. Include only the selected work, including relevant
+new files. Preserve unrelated working-tree changes. If unrelated changes are
+already staged, stop before modifying the index and ask how to handle them;
+do not silently unstage or commit them. Summarize inclusions and exclusions.
+
+Check whether the selected changes depend on excluded uncommitted work
+(e.g. imports or symbols introduced elsewhere). If they do, explain the
+specific dependency and ask whether to include it, commit it first, or
+restructure the work. Do not silently broaden the scope. Verify the selected
+result independently of excluded changes where practical; a passing check on
+the full working tree alone does not prove the selected commit works.
+Use a disposable checkout of the selected tree for isolated checks; do not
+stash or rewrite the active working tree to hide excluded changes.
+
+For staged-only scope, do not add, remove, or rewrite index entries. Inspect
+unstaged changes and report related changes that will be excluded. If the
+index is incomplete or should be split, explain and ask before changing it.
+An empty index means there is nothing to commit.
+
+For all scope, include every uncommitted change unless repository rules
+exclude it; report any such exclusion. Plan coherent commits rather than
+assuming all changes belong in one commit.
+
 ## Workflow
 
 1. **Inspect repository state:**
@@ -97,20 +136,19 @@ permit direct commits to that branch.
    git ls-files --others --exclude-standard
    ```
 
-2. **Handle staged changes** — If changes are already staged, treat the index
-   as the user's selected commit by default. Do not add more changes unless the
-   user explicitly requested it or the staged diff is obviously incomplete and
-   the user confirms. Always inspect `git diff` too, and mention any related
-   unstaged changes that are being left out.
+2. **Select scope** — Apply Commit Scope above to both staged and unstaged
+   changes, including deletions, renames, and untracked files.
 
-3. **Plan commits** — If nothing is staged, group all modified, deleted,
-   renamed, and untracked changes into logical units. Each commit should be
-   coherent, reviewable, revertable, and leave the repository in a working
-   state.
+3. **Plan commits** — Group the selected changes into logical units. Each
+   commit should be coherent, reviewable, revertable, and leave the repository
+   in a working state. Staged-only scope commits the existing index as one
+   unit unless the user authorizes changing that selection.
 
-4. **Stage one logical unit at a time** — Prefer patch surgery with
-   `git apply --cached`. See the Staging section below. Always run
-   `git apply --cached --check --recount PATCH` before the actual apply.
+4. **Stage one logical unit at a time** — Skip staging for staged-only scope.
+   Otherwise prefer patch surgery with `git apply --cached`. See the Staging
+   section below. Always run `git apply --cached --check --recount PATCH`
+   before the actual apply. If related changes are already staged, account
+   for them in the plan; ask before unstaging or repartitioning them.
 
 5. **Verify the staged result:**
    ```bash
@@ -139,9 +177,9 @@ permit direct commits to that branch.
 8. **Post-commit actions** — Execute any actions required by the flags passed
    (see Arguments).
 
-9. **Final check** — After all commits, run `git status`. There should be no
-   staged changes. Any remaining unstaged changes were intentionally excluded;
-   call them out to the user.
+9. **Final check** — After all commits, run `git status`. Report the commits and
+   any remaining staged or unstaged changes, including intentionally excluded
+   work.
 
 ## Staging via Patch Surgery
 
@@ -279,6 +317,12 @@ thing?"** If reverting would also undo something unrelated, split further.
 Shared type, scope, or file is not sufficient reason to bundle — only tight
 logical coupling is.
 
+Changes across layers belong in separate commits, even within the same
+work: instruction/skill files vs application code, schema migrations vs
+application logic, infrastructure vs application, and build config vs source.
+If this conflicts with keeping each commit working independently, explain
+the dependency before choosing a commit plan.
+
 Concrete examples:
 
 - Bug fix and a refactor that touched the same function → two commits
@@ -299,10 +343,11 @@ reviewable, and leave the repository in a working state.
 ### Handling pre-commit hooks
 
 If `git commit` fails because hooks changed files, inspect `git status`,
-`git diff`, and `git diff --staged`. Do not assume the commit happened. Stage
-only hook-generated changes that belong to the same logical commit, then create
-a **new** commit (never amend). If hooks fail due to tests or lint errors,
-report the failure and relevant output.
+`git diff`, and `git diff --staged`. Do not assume the commit happened.
+For staged-only scope, ask before staging hook-generated changes; preserve
+the selected scope. For other scopes, stage only hook-generated changes that
+belong to the same logical commit, then create a **new** commit (never amend).
+If hooks fail due to tests or lint errors, report the failure and relevant output.
 
 ## Message Format
 

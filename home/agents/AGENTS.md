@@ -96,7 +96,7 @@ When a task depends on Figma and the agent cannot access the intended design rel
 
 ### Git Committing
 
-- Commit skills (`commit`, `commit-work`) normally refuse direct commits to the default/shared branch and require a topic branch.
+- The `commit` skill normally refuses direct commits to the default/shared branch and requires a topic branch.
 - Exception: for personal repositories under `~/src/github.com/toqoz/`, direct commits to the default branch are allowed. The commit Branch Guard is relaxed for these projects without requiring a per-project opt-in in the project's `CLAUDE.md`.
 
 ### Environment Configuration

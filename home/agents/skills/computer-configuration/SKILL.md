@@ -50,4 +50,4 @@ Before retrying the build, register the file with `git add -N` (intent-to-add) â
 git -C <repo> add -N <new-file>
 ```
 
-This makes the file visible to flake without staging its content. `git diff --staged` stays clean, so concurrent `commit-work` / `commit` flows continue to ignore the file and won't accidentally bundle it into an unrelated commit. When the file is ready, commit it explicitly via the appropriate skill; if you abandon it, run `git restore --staged <new-file>` to drop the intent-to-add entry.
+This makes the file visible to flake without staging its content. The `commit` skill still selects files by the requested scope; an intent-to-add entry does not select the file for a commit. If you abandon the file, run `git restore --staged <new-file>` to drop the intent-to-add entry.
