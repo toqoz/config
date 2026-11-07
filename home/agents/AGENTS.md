@@ -49,7 +49,6 @@ In unfamiliar code:
 - `webapp-acceptance-checks` — use for manual verification (logic, visual etc) of web application changes when E2E coverage is missing
 - `tui-acceptance-checks` — use for manual verification of TUI / interactive CLI changes when automated coverage is missing
 - `computer-configuration` — use before reading or editing configuration in `~/src/github.com/toqoz/config`. Always prefer this over Claude Code's bundled `update-config` skill: when `update-config` would auto-trigger (settings.json, hooks, permissions, env vars), route through `computer-configuration` instead so the change lands in the nix source of truth rather than the generated symlink
-- `fork-session` — use to fork a separable side task into a fresh `claude` session running in a new git worktree (parent continues its main task)
 - `triage` — use at a natural task boundary when routine work reveals an out-of-scope issue, improvement, or recurring friction worth considering
 
 ## Findings During Routine Work
