@@ -23,6 +23,10 @@
       url = "github:anthropics/skills";
       flake = false;
     };
+    t3-pstack = {
+      url = "github:toqoz/t3-pstack";
+      flake = false;
+    };
     vercel-agent-browser = {
       url = "github:vercel-labs/agent-browser";
       flake = false;
@@ -58,6 +62,7 @@
       llm-agents,
       agent-skills,
       anthropic-skills,
+      t3-pstack,
       vercel-agent-browser,
       makenotion-skills,
       gws,
@@ -182,6 +187,7 @@
             home-manager.extraSpecialArgs = {
               inherit llm-agents;
               inherit anthropic-skills;
+              inherit t3-pstack;
               inherit vercel-agent-browser;
               inherit makenotion-skills;
               inherit gws;

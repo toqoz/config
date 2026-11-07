@@ -1,4 +1,4 @@
-{ lib, pkgs, vercel-agent-browser, makenotion-skills, ... }:
+{ lib, pkgs, vercel-agent-browser, makenotion-skills, t3-pstack, ... }:
 let
   ketch = pkgs.callPackage ../../../packages/ketch.nix { };
   modern-web-guidance = pkgs.callPackage ../../../packages/modern-web-guidance.nix { };
@@ -63,6 +63,10 @@ in
   programs.agent-skills = {
     enable = true;
     sources = {
+      t3-pstack = {
+        path = t3-pstack;
+        subdir = "skills";
+      };
       local = {
         path = ../skills;
         filter.maxDepth = 1;
@@ -86,6 +90,7 @@ in
     };
     skills = {
       enableAll = [
+        "t3-pstack"
         "local"
         "vercel"
         "makenotion"

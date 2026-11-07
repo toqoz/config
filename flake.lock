@@ -420,6 +420,7 @@
         "makenotion-skills": "makenotion-skills",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
+        "t3-pstack": "t3-pstack",
         "vercel-agent-browser": "vercel-agent-browser"
       }
     },
@@ -501,6 +502,22 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "t3-pstack": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794013041,
+        "narHash": "sha256-UDiUT1PdPtLFgoh/IE8mXRgq6G1fHXWWBlU/3oQ/ruo=",
+        "owner": "toqoz",
+        "repo": "t3-pstack",
+        "rev": "982767a2edca9bfd43ede6c53940f76ba3384921",
+        "type": "github"
+      },
+      "original": {
+        "owner": "toqoz",
+        "repo": "t3-pstack",
         "type": "github"
       }
     },
