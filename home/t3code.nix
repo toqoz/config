@@ -122,7 +122,8 @@ in
     # desktop app and outside agents a stable endpoint.
     launchd.agents.t3code = lib.mkIf config.my.t3code.server.enable {
       enable = true;
-      domain = "user";
+      # Use the Aqua session so provider tools can access the login keychain.
+      domain = "gui";
       config = {
         # A resident server should never try to open a browser on login, and
         # Tailscale Serve is the only way the desktop app reaches it from

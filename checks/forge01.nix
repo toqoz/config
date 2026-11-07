@@ -159,7 +159,7 @@ assert lib.assertMsg (
 ) "remilis must turn off the desktop app's local environment so it can use the service";
 assert lib.assertMsg (
   remilisT3codeAgent.enable
-  && remilisT3codeAgent.domain == "user"
+  && remilisT3codeAgent.domain == "gui"
   && remilisT3codeAgent.config.ProgramArguments == [
     "${(builtins.head remilisT3Code).outPath}/bin/t3"
     "serve"
@@ -176,7 +176,7 @@ assert lib.assertMsg (
 ) "remilis must run the same T3 Code server as forge01, with its own tailnet port";
 assert lib.assertMsg (
   t3codeAgent.enable
-  && t3codeAgent.domain == "user"
+  && t3codeAgent.domain == "gui"
   && t3codeAgent.config.ProgramArguments == [
     "${(builtins.head forgeT3Code).outPath}/bin/t3"
     "serve"
