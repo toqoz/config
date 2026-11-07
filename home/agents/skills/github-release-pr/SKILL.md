@@ -236,7 +236,7 @@ Proceed to the workflow below once the base and head branches are determined.
 ## Optional Merge Handoff
 
 Merge only if the user explicitly authorized this PR/pair or an authorized
-caller supplies a satisfied merge condition. `slack-task` may authorize a
+caller supplies a satisfied merge condition. `handle-slack` may authorize a
 non-production release containing only that task's changes; recheck that
 condition if the release contents change. Never carry authorization to a
 higher environment. Its lowest environment means the first destination after
