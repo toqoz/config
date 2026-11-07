@@ -34,7 +34,7 @@ This is a verification skill, not a debugging skill. Use it to confirm correctne
 - Request handlers with browser-visible consequences
 - Client-side event handlers, initialization logic, or conditional rendering branches
 - Full-stack flows where server action and client re-render must be verified together
-- When `coding-practice` step 6 ("verify concretely") demands more than tests or manual checks
+- When `coding-practice` verification guidance demands more than tests or manual checks
 
 ## When NOT To Use
 
@@ -426,7 +426,7 @@ A verification is only valid if ALL of these exist in the session directory:
 
 ## Integration
 
-- **`coding-practice`** step 6 may invoke this skill for high-risk Node.js paths.
+- **`coding-practice`** verification guidance may invoke this skill for high-risk Node.js paths.
 - **`debugging-practice`** may invoke this skill after isolating a suspect code path, to confirm the fix.
 - **`webapp-acceptance-checks`** provides structured browser verification (screenshots, a11y inspection, network monitoring, test records). Use it when the browser interaction is verification, not just triggering.
 - **`tui-acceptance-checks`** provides structured TUI / interactive CLI verification through tmux (send-keys, capture-pane, marker-isolated runs). Use it when the acceptance check does not need debugger-level introspection — this skill and that one are complementary, not overlapping.

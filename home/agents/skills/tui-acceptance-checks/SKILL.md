@@ -188,7 +188,7 @@ Failing noisily because `tmux` is missing is worse than skipping with a clear re
 
 - **`step-through-code`** — use when you also need to inspect internal variable state line-by-line. `step-through-code` already depends on tmux for its debugger pane; this skill is complementary and handles the E2E / acceptance half independently.
 - **`webapp-acceptance-checks`** — sibling skill for browser-based webapps. Same artifact layout (`log.md`, `summary.md`, per-step snapshots), different driver.
-- **`coding-practice`** — step 6 ("verify concretely") may invoke this skill when the change lacks automated TUI coverage.
+- **`coding-practice`** — verification guidance may invoke this skill when the change lacks automated TUI coverage.
 - **`debugging-practice`** — use this skill to reproduce a reported TUI bug deterministically before root-causing.
 
 ## Reference Implementation
