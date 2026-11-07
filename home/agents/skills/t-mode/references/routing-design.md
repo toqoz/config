@@ -133,3 +133,33 @@ they do not establish long-context reliability or token savings. The output
 schema already requested sources in both conditions, and no context-limit or
 automatic-compaction test occurred. Keep the record compact and avoid requiring
 a separate log file: an in-context record or an accessible path can be handed on.
+
+## File-based resumption
+
+For concurrent or resumable work, use one coordinator-owned state file and carry
+its path/revision through handoff. A subsequent small fixture test used two
+Luna-low writers per condition and fresh readers. Baseline handoffs preserved
+open checks but omitted author assignments; real state files retained them.
+Initial pointer-only readers restored only open work, and one later reader
+misclassified a delivered result as pending. The state reference therefore
+requires restoring completed items too and separating pending checks from
+completed evidence. Final readers recovered all four work items, assignments,
+checks, decisions, and permissions in two trials; a newer artifact update also
+remained unapproved. These trials used real file writes/reads but synthetic
+work evidence, not real development or automatic compaction. Missing-file and
+tool-access failure remain separate recovery limits. The path must survive in
+the host's summary; no installed hook guarantees that. Simple work stays in
+context, and an existing poteto/project record is reused rather than duplicated.
+
+An Opus review identified assisted prompts, an untested final writer format,
+and operation/revision/ownership gaps. The reference now records started
+external operations before execution, checks uncertain outcomes before retry,
+compares revisions, identifies the writer, and defines intake's write ownership
+across poteto handoff. These are procedural rules, not crash-safe runtime locks.
+The duplicate aggregate verification field was removed. Fresh writers and
+pointer-only readers then ran twice with the final procedure: both files kept
+all four items, but only one reader returned completed items too. Both writers
+also misattributed an obsolete A permission to U2 instead of U3, while retaining
+the correct current revocation. Do not interpret the earlier assisted two-pass
+result as stable cold-start accuracy. The durable record helps retain and
+reinspect context; reader completeness and source accuracy remain limitations.

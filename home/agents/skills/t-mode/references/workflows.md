@@ -1,8 +1,9 @@
 # Routes and Completion Requirements
 
 Intake applies these rules; it does not decide technical correctness. Explicit
-user choices and stronger project requirements win. No mandatory task log or
-score table: keep the selected route and open requirements in context.
+user choices and stronger project requirements win. Keep simple work in context;
+parallel or resumable work uses the compact record in [state](state.md).
+No per-action log or score table is required.
 
 ## Choose the route from visible properties
 
@@ -105,6 +106,8 @@ or deliver through a gate that remains unmet. Honor actual action permissions.
 Read the installed poteto entrypoint and dispatch one coordinator with its
 absolute path, the user's goal and permissions, completed work/evidence, and
 open requirements. Explicitly authorize coordination. Poteto owns its playbooks,
-model preferences, and capability gates; preserve user/project completion
-requirements in the handoff rather than running two orchestration layers.
+model preferences, and capability gates. Intake retains its record's sole
+write ownership, links poteto's plan/trail, and incorporates returned results;
+include the state path in the brief when one exists. Preserve user/project
+completion requirements rather than running two orchestration layers.
 Workers report expansion to intake instead of spawning another coordinator.

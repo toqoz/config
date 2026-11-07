@@ -31,7 +31,9 @@ Host rules and project checks take precedence; do not spawn another router.
    author's done message is not an independent verdict.
 
 Reuse loaded rules for continuations. Re-route on material changes, not each
-message. The user should not micromanage: agents manage investigation, handoffs,
+message. For parallel work or a task spanning resumptions, use
+[persistent state](references/state.md); read it before resuming dispatch.
+The user should not micromanage: agents manage investigation, handoffs,
 review, repair, and necessary adjudication themselves. Ask only for unresolved
 intent or actual authorization needs. Do not seek approval for routine routing.
 Routing grants no additional commit, push, merge, deploy, or messaging authority.
