@@ -1,19 +1,16 @@
-# Routes and Completion Requirements
+# Development Routes and Completion Requirements
 
 Intake applies these rules; it does not decide technical correctness. Explicit
-user choices and stronger project requirements win. Keep simple work in context;
-parallel or resumable work uses the compact record in [state](state.md).
-No per-action log or score table is required.
+user choices and stronger project requirements win. Common intake owns work
+identity, briefs, and shared state; this file owns development evidence.
 
 ## Choose the route from visible properties
 
 | Observable task | Assignment and completion requirements |
 |---|---|
-| Question settled by visible evidence | Answer directly. Do not turn an explanation into implementation. |
-| Trivial deterministic edit, exact target known, directly inspectable and locally reversible | Intake edits and reads back the result; run applicable project checks. No reviewer solely for the edit. |
 | Read-only technical question requiring investigation | One investigator returns a cited answer and evidence. Do not implement. Add independent checking when conclusions support a consequential decision or the user requests it. |
 | Nontrivial bounded change | Author implements and checks; one different-vendor evaluator checks the result. Cheap author plus capable evaluation is a primary route. |
-| Local change with an already-established independent oracle covering the contract and limited, readily repairable consequences | Author plus that oracle can suffice. Intake records the basis before waiving independent review; the author's new assertions alone do not qualify. |
+| Local change with an already-established independent oracle covering the contract and limited, readily repairable consequences | Author implements and runs that oracle against the changed artifact. Intake records the basis before waiving separate review; the author's new assertions alone do not qualify. |
 | Unknown cause or feasibility | Assign investigation/trials with an explicit evidence outcome. Investigation may include a local fix if already authorized. Split later execution when the result changes scope or unlocks substantial cheaper work. Keep review required for resulting changes. |
 | Small difficult decision followed by substantial bounded execution, or a decision shared by several workers | Assign the decision first, capture the resulting contract, then execution and independent evaluation. No user approval between these steps unless genuinely needed. |
 | Independent workstreams or expensive trials that benefit from concurrency | Separate ownership and runtime resources, then integrate and verify the combined result. Delegate only when the role brief authorizes coordination under host rules. |
@@ -27,7 +24,9 @@ execution/evaluation briefs rather than commissioning a duplicate analysis.
 
 A solo-author exception removes a reviewer, not the author assignment. Intake
 only directly edits trivial deterministic text; delegate substantive code even
-when an independent oracle permits author-only completion.
+when an independent oracle permits author-only completion. If the host explicitly
+requires intake to fix a small review finding itself, that instruction wins;
+the artifact still needs the applicable checks and independent confirmation.
 
 ## Set the evidence before dispatch
 
@@ -40,7 +39,7 @@ is eligible only when the required independent evidence is otherwise satisfied.
   shared defaults, data, authorization, or billing, require non-author runtime
   verification on the affected surface. The same evaluator can review and run
   the change; this need not add a second reviewer.
-- For high consequences, use the high-consequence evaluation row in models.md,
+- For high consequences, use the high-consequence evaluation row in dev-models.md,
   not the standard review row merely because it is another vendor.
   For high consequences or subtle hard-to-detect failure modes, require a strong
   evaluator covering the decision, behavior, and failure paths. Prefer a vendor

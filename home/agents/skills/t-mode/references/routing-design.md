@@ -73,7 +73,7 @@ are not substitutes for independently established outcome quality.
 
 The current user preference Codex > Claude approximately equal to DeepSeek is
 headroom information, not a permanent model ranking. Keep changing preferences
-and model candidates in models.md, not in the always-read instructions.
+and model candidates in dev-models.md, not in the always-read instructions.
 
 ## Status and revision path
 
@@ -163,3 +163,37 @@ also misattributed an obsolete A permission to U2 instead of U3, while retaining
 the correct current revocation. Do not interpret the earlier assisted two-pass
 result as stable cold-start accuracy. The durable record helps retain and
 reinspect context; reader completeness and source accuracy remain limitations.
+
+## Common intake and domain playbooks
+
+The instruction hierarchy is now AGENTS entry -> common t-mode -> domain
+playbook, not three levels of delegated agents. Common intake owns continuity,
+briefs, permissions, and state. Development retains its model pools and evidence
+rules; visual design initially assigns one Opus designer without a new review
+process. Playbooks avoid extra globally discoverable skill descriptions and
+duplicate router guards. Read only the applicable domain references.
+
+Automatic intake applies to top-level T3 requests. Assigned work follows its
+brief; other sessions retain their host/project workflows. Explicit workflows
+and task choices win, without treating a generic style request as permission to
+waive existing checks. Mixed deliverables can be ordered without a mandatory
+human checkpoint. Prior routing and state evals concern the previous layout,
+not this migration; compare development behavior against its frozen sources.
+Migration evaluation compared twelve development-plan cases in frozen old/new
+source trees, two batches per condition. A blind Opus grader's final comparison
+scored 47/48 assertions for each condition after a rubric correction applied
+equally: the original program case lacked an entrypoint and inherited work
+required by its assertion. A focused fixture supplied those inputs separately.
+The migrated model table body was unchanged. Visual-only probes loaded no dev
+references; mixed/boundary probes preserved dependencies and work identity.
+
+A focused early candidate skipped dev loading and omitted DeepSeek evaluation.
+Common intake now requires domain rules before assignments and distinguishes a
+model override from a workflow override. One later twelve-case response was
+empty and required an exact-prompt retry; retain that as a coverage failure,
+not a semantic success. The compared complete outputs still vary in report
+wording and unnecessary roles. Explicit oracle execution and blocked-review
+reporting were clarified afterward and checked separately. These are synthetic
+plans, not executed development or statistical proof of non-inferiority. Prior
+state evals do not validate this new hierarchy. Host precedence for small review
+fixes and product-design routing were preserved during source review.

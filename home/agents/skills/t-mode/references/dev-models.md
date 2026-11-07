@@ -1,4 +1,4 @@
-# Model Profiles
+# Development Model Profiles
 
 These are provisional candidate pools informed by reference material and later
 discussion, not user-approved capability restrictions or proved benchmarks. Merge

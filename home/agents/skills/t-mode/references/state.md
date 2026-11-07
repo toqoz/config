@@ -23,9 +23,11 @@ Revision: <monotonic number>
 Recorded through: <last incorporated request/result reference>
 
 ## <stable work ID> — <goal>
-- Owner: <role, model/effort, returned task/thread references or not dispatched>
-- Evaluator: <role, model/effort, returned references or not dispatched>
-- Latest artifact: <exact tree/commit or scoped artifact identity and path>
+- Playbook: <dev, visual-design, explicit workflow, or direct>
+- Runs:
+  - <assignment ID; role; model/effort; host-returned reference keys and link verbatim>
+    <planned/dispatched/running/completed/failed/cancelled/replaced/unknown; target artifact; successor if replaced>
+- Latest artifact: <tree/commit, file/image path, or link with node/frame identity>
 - Checks: <name; requirement source; target; assigned role; pending/pass/unknown; evidence>
 - Latest decision: <decision; reason/source; supersedes what, if any>
 - Permissions: <allowed/conditional/revoked actions and source>
@@ -36,6 +38,11 @@ Recorded through: <last incorporated request/result reference>
 Requirement sources explain why a check exists; result evidence explains whether
 it passed. A new artifact does not inherit the old artifact's verdict. Keep
 enough completed state to avoid repeating work; link detailed history elsewhere.
+Keep current/unsettled assignments and past ones needed to interpret evidence;
+do not copy every historical tool response. A completed assignment need not mean
+the work is complete. Missing dispatch/status references remain unknown, not
+invented. Existing Owner/Evaluator records can be read without rewriting them;
+add execution details when assignments change.
 Record current decisions and their actual sources, not a retelling of
 superseded permissions; link history when needed rather than reconstructing it.
 Delivered results belong to completed evidence, not the open-check list.

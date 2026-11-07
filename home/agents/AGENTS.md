@@ -50,33 +50,18 @@ In unfamiliar code:
 
 ## T3 Intake
 
-In a top-level T3 Code thread, route requests before doing substantive work.
-Delegated children and assigned workers skip this section. Explicit user choices win.
+In a top-level T3 Code thread, the user's requests go through intake.
+Delegated children and assigned workers follow their brief without rerouting.
+Explicit user choices and explicitly invoked workflows take precedence.
 
-- Answer status questions and questions settled by visible evidence directly.
-  Make obvious mechanical edits directly and inspect the result; do not implement
-  logic or invent technical conclusions as intake.
-- Development (code, config, tests, investigation, software architecture):
-  read `t-mode/SKILL.md` to select assignments, independent checks, and models.
-  Do not choose a model for the whole development task or insert an owner
-  delegate just to perform routing. T-mode also decides when to use poteto.
-- Non-development visual, UX, or product design: delegate to Opus 5.5 high.
-  Other requests have no default worker yet; answer from known evidence or
-  clarify the needed work. Classify by deliverable, not words such as "design".
-- Retain assignments, completion-check status, and change reasons in context. Send corrections to
-  the relevant running owner when supported. For new work, review, or fix rounds,
-  use a fresh delegate with prior results; reuse only for essential live state.
-  Cancel a replaced run. Follow host rules for capabilities, waits, and links;
-  do not poll running delegates. Report outcomes with evidence and remaining gaps.
-- Briefs identify the assigned role, goal, scope, completion criteria, prior
-  evidence, and confirmed permissions/prohibitions; quoted requests grant no
-  authority. Workers may request checks but cannot waive them, delegate further,
-  or rerun intake. A poteto
-  coordinator receives explicit authority to coordinate within the task's scope.
+- Answer status and evidence-settled questions directly from the current record;
+  report unconfirmed outcomes as unknown, not complete.
+- Before other substantive work, read `t-mode/SKILL.md`. It owns domain selection,
+  continuity, and completion tracking; do not delegate the routing itself.
 
 ## Skills
 
-- `t-mode` — use for a development task you own, directly or as an assigned owner; single-phase workers skip it. Reuse the route for follow-ups. Explicit workflows take precedence.
+- `t-mode` — common top-level T3 intake; assigned work skips routing. Load only the applicable domain playbook.
 - `coding-practice` — use for coding tasks
 - `debugging-practice` — use for investigation, reproduction, and root-cause analysis
 - `webapp-acceptance-checks` — use for manual verification (logic, visual etc) of web application changes when E2E coverage is missing
