@@ -26,7 +26,7 @@ pushing that branch.
 - `--push`: push after committing. Check the remote and upstream first;
   use `git push -u origin HEAD` when no upstream exists, otherwise `git push`.
 - `--pr`: implies push, then create a PR with the host's PR tool when
-  available, otherwise the repository's forge CLI. Follow `pr-description`
+  available, otherwise the repository's forge CLI. Follow `github-writing`
   for wording and any active workflow's PR procedure. Follow host rules for
   PR linking and reporting; do not start a PR workflow for a commit-only ask.
 
