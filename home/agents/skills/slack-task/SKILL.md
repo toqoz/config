@@ -96,7 +96,7 @@ Run the applicable checks in order. Skip a check only if it genuinely does not a
 #### 4a. Create PR and Merge
 
 1. Invoke `/commit --pr` to commit, push, and create a pull request.
-2. Invoke `/github-merge-pr` to wait for CI, review, and merge the PR.
+2. Invoke `/safe-merge-pr` to wait for CI, review, and merge the PR.
 
 #### 4b. Release PR (if needed)
 
@@ -108,7 +108,7 @@ If the merge target was NOT a release branch (e.g., it was `main` or a feature b
 
 1. Invoke `/github-release-pr` targeting the **lowest environment branch** (e.g., if the project has `dev` → `staging` → `production`, target `dev`).
 2. Evaluate whether to auto-merge this release PR:
-   - **Auto-merge** (invoke `/github-merge-pr`) if BOTH conditions are true:
+   - **Auto-merge** (invoke `/safe-merge-pr`) if BOTH conditions are true:
      - The target is a non-production environment (e.g., `dev`, `staging` — not `production` or `prod`)
      - The release PR contains ONLY changes from this task (no other commits mixed in)
    - **Otherwise:** Notify the user that the release PR is ready and needs manual merge. Provide the PR URL. Wait for the user to confirm it has been merged before proceeding.
