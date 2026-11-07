@@ -50,11 +50,11 @@ In unfamiliar code:
 - `tui-acceptance-checks` — use for manual verification of TUI / interactive CLI changes when automated coverage is missing
 - `computer-configuration` — use before reading or editing configuration in `~/src/github.com/toqoz/config`. Always prefer this over Claude Code's bundled `update-config` skill: when `update-config` would auto-trigger (settings.json, hooks, permissions, env vars), route through `computer-configuration` instead so the change lands in the nix source of truth rather than the generated symlink
 - `fork-session` — use to fork a separable side task into a fresh `claude` session running in a new git worktree (parent continues its main task)
-- `retro-agent-instructions` — use after completing a task when friction signals were observed (see below)
+- `triage` — use at a natural task boundary when routine work reveals an out-of-scope issue, improvement, or recurring friction worth considering
 
-## Retrospective
+## Findings During Routine Work
 
-After completing a task, check whether any friction signals occurred during the session: instruction contradictions, repeated corrections, missing context, wrong/missed skill triggers, workarounds, or ambiguous triggers. If any are found, invoke the `retro-agent-instructions` skill to propose improvements to instruction files.
+When routine work reveals an out-of-scope issue, improvement, or friction, use `triage` at a natural boundary to decide whether to act, file it, dismiss it, or investigate through `reflect`. Keep the current task moving; do not run a full retrospective after every task.
 
 ## Webapp Testing
 
