@@ -102,7 +102,7 @@ git branch -a | grep <proposed-name>
 
 #### 4a. Commit each layer
 
-If starting from uncommitted changes, stage and commit each layer in turn using hunk-level staging (same approach as the `commit` skill — see its SKILL.md for patch surgery details if needed). Each commit should be coherent and leave the repo in a working state.
+If starting from uncommitted changes, stage and commit each layer in turn using hunk-level staging (same approach as the `commit` skill — see its `references/patch-surgery.md` for patch staging details if needed). Each commit should be coherent and leave the repo in a working state.
 
 If starting from existing commits on the branch, inspect `git log base..HEAD` and decide whether to:
 - Preserve commits as-is (if they already map cleanly to layers)

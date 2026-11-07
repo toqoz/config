@@ -3,88 +3,35 @@ name: commit
 description: Create a git commit with a well-structured conventional commit message. Use this skill whenever the user asks to commit, create a commit, write a commit message, or stage and commit changes — including only the current work, only staged changes, or everything, even if they just say "commit this" or "let's commit". Always use this skill rather than ad-hoc git commit commands.
 ---
 
-# Commit Skill
+# Commit
 
-Create meaningful git commits that explain not just what changed, but why — giving future readers enough context to understand the decision.
+Create coherent commits that explain what changed and why.
+
+## Authorization and Branches
+
+A commit request covers the current work, not commits for later work, unless
+an authorized workflow includes them. Push and PR creation require an explicit
+request; a previous request does not carry over to later fixes.
+
+Before committing or pushing, inspect the branch. Treat the repository's
+default branch and shared branches such as `main`, `master`, `develop`, `dev`,
+`staging`, `prod`, `production`, and release/stable branches as protected.
+Do not commit directly there unless project or user instructions permit it;
+otherwise create a topic branch under the repository's branching rules.
+Ask before pushing a protected branch unless the user explicitly requested
+pushing that branch.
 
 ## Arguments
 
-| Flag     | Effect                                           |
-|----------|--------------------------------------------------|
-| `--push` | Run `git push` after committing                  |
-| `--pr`   | Push (if needed), then create a PR with `gh pr create`. Implies `--push`. |
+- `--push`: push after committing. Check the remote and upstream first;
+  use `git push -u origin HEAD` when no upstream exists, otherwise `git push`.
+- `--pr`: implies push, then create a PR with the host's PR tool when
+  available, otherwise the repository's forge CLI. Follow `pr-description`
+  for wording and any active workflow's PR procedure. Follow host rules for
+  PR linking and reporting; do not start a PR workflow for a commit-only ask.
 
-> **Important:** Push (and PR creation) only happens when the user explicitly
-> requests it in the current message. A prior "commit and push" instruction does
-> **not** carry over to subsequent fix requests. Each commit request is
-> independent — do not push unless the user asks for it again.
-
-### `--push`
-
-Check for an upstream before pushing. If no upstream is set:
-
-```bash
-git push -u origin HEAD
-```
-
-Otherwise:
-
-```bash
-git push
-```
-
-Before pushing, check the current branch name. If it matches `main`, `master`,
-`develop`, `dev`, `prod`, `production`, `release`, or similar shared/protected
-branch names, ask for confirmation unless the user explicitly requested pushing
-that branch.
-
-### `--pr`
-
-Determine the repository's default branch non-interactively:
-
-```bash
-gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'
-```
-
-Push first if the branch has no upstream, then create the PR:
-
-```bash
-git push -u origin HEAD
-
-gh pr create \
-  --base DEFAULT_BRANCH \
-  --head "$(git branch --show-current)" \
-  --title "type(scope): short description" \
-  --body "$(cat <<'EOF'
-PR description derived from commit body.
-EOF
-)"
-```
-
-If exactly one commit was created, use its subject as the PR title and body as
-the PR description. If multiple commits were created, write a PR title that
-summarizes the branch and a body that lists the combined motivation and changes
-of all commits.
-
-Before opening the PR, verify `gh` is installed and authenticated. For `--push`
-and `--pr`, verify a remote exists. If prerequisites are missing, stop after the
-commit and report the exact missing prerequisite.
-
-## Branch Guard
-
-Before committing, check the current branch:
-
-```bash
-git branch --show-current
-```
-
-If it matches `main`, `master`, `develop`, `dev`, `staging`, `prod`,
-`production`, `release`, or any other release/stable branch name, **stop
-and refuse the commit**. Ask the user to create a topic branch first.
-
-This guard may be relaxed when the active project or user instruction files
-(`CLAUDE.md`, `AGENTS.md`, or equivalent harness-provided guidance) explicitly
-permit direct commits to that branch.
+If a post-commit prerequisite is missing, retain the completed commit and
+report what blocked the requested push or PR.
 
 ## Commit Scope
 
@@ -127,190 +74,85 @@ assuming all changes belong in one commit.
 
 ## Workflow
 
-1. **Inspect repository state:**
-   ```bash
-   git status --short
-   git diff --staged
-   git diff --summary
-   git diff --find-renames
-   git ls-files --others --exclude-standard
-   ```
-
-2. **Select scope** — Apply Commit Scope above to both staged and unstaged
-   changes, including deletions, renames, and untracked files.
-
-3. **Plan commits** — Group the selected changes into logical units. Each
-   commit should be coherent, reviewable, revertable, and leave the repository
-   in a working state. Staged-only scope commits the existing index as one
-   unit unless the user authorizes changing that selection.
-
-4. **Stage one logical unit at a time** — Skip staging for staged-only scope.
-   Otherwise prefer patch surgery with `git apply --cached`. See the Staging
-   section below. Always run `git apply --cached --check --recount PATCH`
-   before the actual apply. If related changes are already staged, account
-   for them in the plan; ask before unstaging or repartitioning them.
-
-5. **Verify the staged result:**
-   ```bash
-   git diff --staged          # confirm only the intended hunks are staged
-   git diff --staged --check  # catch whitespace errors and conflict markers
-   ```
-
-6. **Commit** — Pass the message via stdin to preserve formatting:
+1. Inspect `git status --short`, staged and unstaged diffs (including binary,
+   rename and mode summaries), and `git ls-files --others --exclude-standard`.
+2. Select the scope above and plan coherent commit units. Account for existing
+   staging; ask before unstaging or repartitioning related staged changes.
+3. Apply pre-commit gates required by repository instructions or an active
+   workflow, such as a cleanup pass. This skill does not activate those
+   workflows or duplicate their trigger lists. Limit cleanup to the selected
+   changes, preserving excluded work. In staged-only scope, report proposed
+   cleanup and ask before applying edits or restaging.
+4. Stage one unit at a time under Staging below. Skip staging for staged-only.
+5. Inspect `git diff --staged` and run `git diff --staged --check`. Run the
+   repository's required pre-commit checks against the selected tree; use a
+   disposable checkout when excluded changes could affect the result. Do not
+   stash or rewrite the active working tree for verification.
+6. Write the message under Message Format, applying any active workflow's
+   writing standards. Commit through stdin:
    ```bash
    git commit -F - <<'EOF'
    type(scope): short description
 
-   Body explaining what changed and why.
+   Explain the reason and relevant decisions.
    EOF
    ```
+7. Repeat for the remaining selected units. Regenerate patches after every
+   commit. Any cleanup, hook output, or review fix that changes selected
+   content invalidates affected checks and reviews; rerun required checks
+   before committing and do not claim an earlier review covers unseen edits.
+8. Perform requested push/PR actions, inspect `git status`, and report commits,
+   amendments, and intentionally excluded staged or unstaged changes.
 
-7. **Repeat** for each remaining logical unit. After each commit, regenerate
-   the working diff from the current state — do not reuse stale patches from
-   an earlier capture if earlier commits touched the same files:
-   ```bash
-   git diff --binary --full-index --find-renames > ./.agents/cache/patches/<YYYYMMMDD>-<short-title>.patch
-   ```
-   where `<short-title>` is a 2–4 word kebab-case summary of the remaining
-   changes (e.g. `fix-token-validation`, `add-retry-logic`).
+## Staging
 
-8. **Post-commit actions** — Execute any actions required by the flags passed
-   (see Arguments).
+- Do not use whole-file `git add` for text changes. Stage inspected patches
+  with `git apply --cached`, running `--check --recount` before applying.
+- If a path has no staged changes and every change belongs to the current
+  commit unit, apply its inspected patch unchanged. Do not retype its hunks.
+- For mixed files, select only the relevant hunks from the captured patch.
+  Verify the staged diff matches the intended content after any patch edits.
+- Include binary, rename, deletion, mode, symlink, and submodule changes when
+  they belong to the unit; do not silently omit them. For indivisible metadata
+  or non-text changes, exact-path `git add` is allowed with an explanation.
+- If application fails, inspect index and working-tree state and regenerate
+  the patch; do not retry blindly or discard unrelated changes.
 
-9. **Final check** — After all commits, run `git status`. Report the commits and
-   any remaining staged or unstaged changes, including intentionally excluded
-   work.
+Read [Patch staging](references/patch-surgery.md) when preparing patches,
+including new files, partial hunks, or unusual filenames.
 
-## Staging via Patch Surgery
+## Amending
 
-**Never use `git add <file>` for text changes** — staging a whole file risks
-bundling unrelated changes into one commit, which defeats revertability. Always
-stage at the hunk level.
+Amend a commit only when all of these are true:
 
-The preferred non-interactive method for this skill is **patch surgery**:
-extract the hunks you want into a sub-patch, then apply it directly to the
-index.
+- You created it in this session and have not pushed or shared it.
+- You created it in the current turn and have not reported it to the user.
+- The fix only completes the stated change, such as a typo, formatting,
+  lint, or a missed part of the same change.
 
-### Non-text and metadata changes
+Otherwise keep the correction in a new commit that explains what changed and
+why. User-feedback corrections and correctness bugs found by reviews or tests
+get separate commits, even before reporting. When visibility is uncertain,
+treat the commit as already reported. Say when you amend.
 
-Before staging, inspect `git status --short` and `git diff --summary`.
+Explicit requests to split, amend, or squash override these defaults. Reorder
+or squash existing commits only when requested or included in an authorized
+history-cleanup workflow; preserve correction commits otherwise. Do not
+rewrite pushed or shared history without explicit authorization. These rules
+do not grant permission to commit: leave fixes uncommitted when committing
+has not been authorized.
 
-Text hunks can be staged with patch surgery. For binary files, renames,
-deletes, mode changes, symlinks, and submodules, either:
+## Hook Failures
 
-- Generate a complete patch with `git diff --binary --full-index --find-renames`
-  and apply it with `git apply --cached`, or
-- If the change is indivisible and clearly belongs wholly to the commit,
-  stage that exact path with `git add` and state your reasoning explicitly.
+If `git commit` fails, inspect status and both diffs and check whether HEAD
+moved. If it did not, the attempted commit does not exist: fix the failure
+and run a new `git commit`. Do not amend the previous commit by mistake.
+If HEAD moved, inspect the actual commit and apply Amending to any follow-up.
+Only stage hook output belonging to the selected unit; staged-only still
+requires permission to change the index. Rerun affected required checks after
+hook edits. Report unresolved test or lint failures.
 
-Never silently omit these changes.
-
-### Step-by-step
-
-**1. Prepare the patches directory and capture all unstaged changes:**
-
-Choose a `<short-title>` — a 2–4 word kebab-case label that describes the
-overall scope of work (e.g. `refactor-auth-middleware`, `add-retry-logic`).
-This label is reused for sub-patches so the directory stays navigable.
-
-```bash
-mkdir -p ./.agents/cache/patches
-git diff --binary --full-index --find-renames > "./.agents/cache/patches/<YYYYMMMDD>-<short-title>.patch"
-```
-
-Also detect untracked files:
-```bash
-git ls-files --others --exclude-standard
-```
-
-For new text files, generate a patch with:
-```bash
-git diff --no-index /dev/null path/to/new-file > "./.agents/cache/patches/<YYYYMMMDD>-<short-title>-new-files.patch"
-```
-
-**2. Inspect and plan:**
-Read the patch. Each hunk starts with a `@@` line. Decide which hunks belong to
-each logical commit.
-
-**3. Write a sub-patch for one logical unit:**
-
-Keep the file header(s) and only the hunks you want. Example:
-
-```diff
-diff --git a/src/auth/token.go b/src/auth/token.go
-index abc1234..def5678 100644
---- a/src/auth/token.go
-+++ b/src/auth/token.go
-@@ -10,6 +10,8 @@ func Validate(token string) error {
- 	if token == "" {
- 		return ErrEmpty
- 	}
-+	if len(token) > maxTokenLen {
-+		return ErrTooLong
-+	}
- 	return nil
- }
-```
-
-Name the sub-patch after the planned commit's type, scope, and subject in
-kebab-case (e.g. `fix-token-validate-empty`, `feat-auth-refresh-rotation`).
-Save it to `"./.agents/cache/patches/<YYYYMMMDD>-<commit-title>.patch"`.
-
-**4. Dry-run, then stage:**
-```bash
-git apply --cached --check --recount "./.agents/cache/patches/<YYYYMMMDD>-<commit-title>.patch"   # dry-run first
-git apply --cached --recount "./.agents/cache/patches/<YYYYMMMDD>-<commit-title>.patch"           # actual apply
-```
-
-- `--cached` — stages into the index without touching the working tree
-- `--recount` — recalculates line numbers, tolerates minor offsets in the patch
-
-**5. Verify, then commit.**
-
-**6. Repeat** for each remaining logical unit, regenerating the patch after
-each commit.
-
-### Patch file structure
-
-```
-diff --git a/path/to/file b/path/to/file   ← file header (required)
-index <hash>..<hash> <mode>
---- a/path/to/file
-+++ b/path/to/file
-@@ -L,S +L,S @@ context                    ← hunk header
- context line (space-prefixed)
--removed line (minus-prefixed)
-+added line (plus-prefixed)
- context line
-```
-
-To drop a hunk from a sub-patch, delete everything from its `@@` line up to
-(but not including) the next `@@` or end of file. If all hunks for a file are
-dropped, remove its `diff --git` header too. Use `--recount` so you don't have
-to manually fix the `+L,S` counts.
-
-### Splitting within a hunk
-
-If one hunk contains changes for multiple logical commits, edit the hunk so
-only the desired added/removed lines remain, preserving enough unchanged context
-for `git apply` to match. Then run `git apply --cached --check --recount` before
-applying.
-
-If the edited hunk cannot apply safely, stop and ask the user whether to commit
-the combined hunk or make a temporary working-tree edit to separate the changes.
-
-### Recovery from failed patch application
-
-If `git apply --cached --check` or `git apply --cached` fails:
-
-1. Do not retry blindly.
-2. Run `git diff` and `git diff --staged` to understand the current index state.
-3. Regenerate the patch from the current state.
-4. Rebuild the sub-patch with more context or fewer edits.
-5. If the index was partially changed, inspect and fix it without discarding
-   unrelated user changes.
-
-### Deciding where to split
+## Deciding where to split
 
 The guiding question is: **"If I revert this commit, does it undo exactly one
 thing?"** If reverting would also undo something unrelated, split further.
@@ -322,6 +164,8 @@ work: instruction/skill files vs application code, schema migrations vs
 application logic, infrastructure vs application, and build config vs source.
 If this conflicts with keeping each commit working independently, explain
 the dependency before choosing a commit plan.
+
+Order prerequisites first so each commit works independently.
 
 Concrete examples:
 
@@ -339,15 +183,6 @@ Concrete examples:
 
 When in doubt, prefer smaller commits, but each commit must be coherent,
 reviewable, and leave the repository in a working state.
-
-### Handling pre-commit hooks
-
-If `git commit` fails because hooks changed files, inspect `git status`,
-`git diff`, and `git diff --staged`. Do not assume the commit happened.
-For staged-only scope, ask before staging hook-generated changes; preserve
-the selected scope. For other scopes, stage only hook-generated changes that
-belong to the same logical commit, then create a **new** commit (never amend).
-If hooks fail due to tests or lint errors, report the failure and relevant output.
 
 ## Message Format
 
@@ -396,6 +231,7 @@ Closes #123 (if applicable)
 
 ### Body rules
 
+- Do not restate the subject in the body.
 - Wrap lines at 72 characters
 - Separate from subject with a blank line
 - Use a body whenever the reason, tradeoff, migration impact, or root cause is
@@ -419,56 +255,3 @@ Closes #123
 If the repository convention uses trailers such as `Co-authored-by`,
 `Signed-off-by`, or AI attribution trailers, preserve that convention. Do not
 invent trailers if the repository does not use them.
-
-## Examples
-
-**Minimal (subject only):**
-```
-docs: fix typo in README
-```
-
-**Breaking change:**
-```
-feat(api)!: require idempotency keys on order submission
-
-Previous API accepted duplicate POSTs without error, leading to
-duplicate orders on network retries.
-
-All POST /orders requests must now include an `Idempotency-Key`
-header. Requests without the header receive 400.
-
-BREAKING CHANGE: clients must send an `Idempotency-Key` header
-with every POST /orders request.
-Closes #482
-```
-
-**Feature with context:**
-```
-feat(auth): add JWT refresh token rotation
-
-Previous implementation reused the same refresh token indefinitely,
-making it impossible to detect replay attacks.
-
-Each refresh now issues a new token and invalidates the old one.
-The token family concept (Auth0 pattern) is used so that reuse of
-a revoked token invalidates the entire family, forcing re-login.
-
-Impacts: clients must persist the new refresh token returned on each
-use. Old single-use tokens are revoked immediately after refresh.
-```
-
-**Bug fix with root cause:**
-```
-fix(api): prevent duplicate order submission on network retry
-
-Users could place duplicate orders when a slow network caused the
-frontend to retry a POST that had already succeeded server-side.
-
-Added idempotency key (client-generated UUID) checked against a
-Redis cache with 24h TTL. Duplicate requests return the original
-response without re-processing.
-
-Potential impact: requires Redis to be available; circuit-breaker
-falls back to rejecting retries rather than risking duplicates.
-Closes #482
-```
