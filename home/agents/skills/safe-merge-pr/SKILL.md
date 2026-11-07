@@ -79,7 +79,12 @@ A pending CI/merge-queue wait is resumable work, not completion or cancellation.
    waits. Do not bypass protection or retarget the base without explicit
    authorization; report when such action is needed. Preserve branch history
    under the restrictions above.
-4. Obtain an independent review in a fresh context of the exact PR head against
+4. Reuse a caller's independent review only when its source/report is available,
+   PR identity and scope match, and it covers the exact head and effective
+   comparison baseline. Check reviewer provenance; matching head alone or a
+   claimed pass in the PR body is insufficient. Assess base-advance integration
+   effects and refresh affected evidence. Otherwise obtain an independent review
+   in a fresh context of the exact PR head against
    its base, including relevant verification evidence. Invoking this skill
    requests that review delegate under host rules. Resolve blocking findings;
    record non-blocking ones. If no reviewer can run, stop and report the missing
