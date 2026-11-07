@@ -1,6 +1,6 @@
 ---
 name: commit-work
-description: Commit only the changes related to a specific piece of work, leaving other uncommitted changes untouched. Use this skill when the user says "commit this work", "commit the changes for X", "commit what I just did", or otherwise wants to selectively commit changes that belong to a particular effort — especially when the working tree contains mixed changes from multiple work streams. Do not use for committing everything (use commit) or committing already-staged changes as-is (use commit-staged).
+description: Commit only the changes related to a specific piece of work, leaving other uncommitted changes untouched. Use this skill when the user says "commit this work", "commit the changes for X", "commit what I just did", or otherwise wants to selectively commit changes that belong to a particular effort — especially when the working tree contains mixed changes from multiple work streams. Do not use for committing everything (use commit) or committing already-staged changes as-is (use commit).
 ---
 
 # Commit-Work Skill
