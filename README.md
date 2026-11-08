@@ -141,6 +141,17 @@ Unless noted below, these packages have no configured app self-update path.
 - Kanary: automatic checks and installation are disabled in [app settings](darwin/apps/kanary.nix). Restart the app after switching.
 - vite-plus: `VP_NO_UPDATE_CHECK=1` disables update checks and notices. The wrapper installs the pinned backend on first use and restores it if the active version changes. Manual `vp upgrade` can still change the version until the next wrapper invocation.
 
+### Pi extensions
+
+Versions are pinned in [home/pi/default.nix](home/pi/default.nix).
+Switch installs the selected versions on both hosts.
+
+| Extension | Upstream |
+| --------- | -------- |
+| `pi-mcp-adapter` | [npm](https://www.npmjs.com/package/pi-mcp-adapter) |
+| `pi-subagents` | [npm](https://www.npmjs.com/package/pi-subagents) |
+| `pi-intercom` | [npm](https://www.npmjs.com/package/pi-intercom) |
+
 ### Homebrew
 
 [Switch](darwin/homebrew.nix) refreshes Brew metadata and upgrades packages.
