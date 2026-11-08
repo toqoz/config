@@ -5,6 +5,7 @@
   # for apps, darwin/fonts.nix for fonts — and merge in from there.
   homebrew = {
     enable = true;
+    brews = [ "portless" ];
     onActivation = {
       autoUpdate = true;
       upgrade = true;

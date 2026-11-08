@@ -51,7 +51,6 @@
     pnpm
     mariadb.client
     slack
-    (callPackage ../packages/portless.nix { })
     (callPackage ../packages/ntn.nix { })
     (callPackage ../packages/ketch.nix { })
     gws.packages.${pkgs.stdenv.hostPlatform.system}.default

@@ -38,7 +38,7 @@ let
   missingTools = lib.subtractLists (toolPaths forgeHome) (paths requiredTools);
   requiredToolNames = [
     "asdf-vm" "erlang" "direnv" "gh" "ghq" "pnpm" "slack" "gws"
-    "portless" "ntn" "ketch" "pi" "agent-browser" "fzf" "starship" "tmux"
+    "ntn" "ketch" "pi" "agent-browser" "fzf" "starship" "tmux"
     "tmux-window-picker" "tmux-swap-window" "tmux-window-tag" "claude-code"
   ];
   missingToolNames = lib.subtractLists (map lib.getName forgeHome.home.packages) requiredToolNames;
@@ -211,8 +211,10 @@ assert lib.assertMsg (missingToolNames == [ ])
   "forge01 is missing shared tools: ${lib.concatStringsSep ", " missingToolNames}";
 assert lib.assertMsg (lib.sort builtins.lessThan (map (cask: cask.name) forge.homebrew.casks) == [ "1password" "chatgpt" "google-chrome" "orbstack" "tailscale-app" ])
   "forge01 must manage exactly the 1password, chatgpt, google-chrome, orbstack, and tailscale-app casks";
-assert lib.assertMsg (forge.homebrew.brews == [ ] && forge.homebrew.masApps == { })
-  "forge01 must not manage Homebrew formulae or Mac App Store apps";
+assert lib.assertMsg (map (brew: brew.name) forge.homebrew.brews == [ "portless" ]
+  && map (brew: brew.name) remilis.homebrew.brews == [ "portless" ]
+  && forge.homebrew.masApps == { })
+  "both hosts must install portless through Homebrew; forge01 must not manage Mac App Store apps";
 assert lib.assertMsg (forge.my.apps == {
   "1password".appId = "com.1password.1password";
   chatgpt.appId = "com.openai.chat";

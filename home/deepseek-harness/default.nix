@@ -38,7 +38,7 @@ let
   };
 
   # The fork declares packageManager: pnpm@11.28.5; pin the exact npm
-  # tarball the way packages/portless.nix does instead of pkgs.pnpm.
+  # tarball directly instead of using pkgs.pnpm.
   pnpm = pkgs.stdenv.mkDerivation {
     pname = "pnpm";
     version = "11.28.5";
