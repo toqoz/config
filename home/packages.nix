@@ -14,7 +14,6 @@
     tig
     lazygit
     bun
-    deno
     zig
     # fonttools CLI (pyftsubset, ttx, fonttools, ...). brotli is an optional
     # dependency required for WOFF2 read/write.
