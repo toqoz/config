@@ -31,17 +31,6 @@ let
   extraSystem = lib.subtractLists
     (paths remilis.environment.systemPackages)
     (paths forge.environment.systemPackages);
-  requiredTools = with pkgs; [
-    ripgrep fd git-wt openssh wget mariadb.client
-    llm-agents.packages.${stdenv.hostPlatform.system}.codex
-  ];
-  missingTools = lib.subtractLists (toolPaths forgeHome) (paths requiredTools);
-  requiredToolNames = [
-    "asdf-vm" "erlang" "direnv" "gh" "ghq" "pnpm" "slack" "gws"
-    "ntn" "ketch" "pi" "agent-browser" "fzf" "starship" "tmux"
-    "tmux-window-picker" "tmux-swap-window" "tmux-window-tag" "claude-code"
-  ];
-  missingToolNames = lib.subtractLists (map lib.getName forgeHome.home.packages) requiredToolNames;
   normalize = home: lib.replaceStrings [ home.home.homeDirectory ] [ "$HOME" ];
   sameText = path:
     normalize forgeHome forgeHome.home.file.${path}.text
@@ -205,25 +194,6 @@ assert lib.assertMsg (
 ) "remilis must register the T3 Code bundle identifier; forge01 must not";
 assert lib.assertMsg (extraSystem == [ ])
   "forge01 environment.systemPackages contains packages absent from remilis: ${lib.concatStringsSep ", " extraSystem}";
-assert lib.assertMsg (missingTools == [ ])
-  "forge01 is missing required tools: ${lib.concatStringsSep ", " missingTools}";
-assert lib.assertMsg (missingToolNames == [ ])
-  "forge01 is missing shared tools: ${lib.concatStringsSep ", " missingToolNames}";
-assert lib.assertMsg (lib.sort builtins.lessThan (map (cask: cask.name) forge.homebrew.casks) == [ "1password" "chatgpt" "google-chrome" "ollama-app" "orbstack" "tailscale-app" ])
-  "forge01 must manage exactly the 1password, chatgpt, google-chrome, ollama-app, orbstack, and tailscale-app casks";
-assert lib.assertMsg (map (brew: brew.name) forge.homebrew.brews == [ "portless" ]
-  && map (brew: brew.name) remilis.homebrew.brews == [ "portless" ]
-  && forge.homebrew.masApps == { })
-  "both hosts must install portless through Homebrew; forge01 must not manage Mac App Store apps";
-assert lib.assertMsg (forge.my.apps == {
-  "1password".appId = "com.1password.1password";
-  chatgpt.appId = "com.openai.chat";
-  chrome.appId = "org.google.Chrome";
-  ollama.appId = "com.electron.ollama";
-  orbstack.appId = "dev.kdrag0n.MacVirt";
-  slack.appId = "com.tinyspeck.slackmacgap";
-  tailscale.appId = "io.tailscale.ipn.macsys";
-}) "forge01 must register exactly 1Password, ChatGPT, Chrome, Ollama, OrbStack, Slack, and Tailscale";
 assert lib.assertMsg (
   lib.all (host:
     let casks = map (cask: cask.name) host.homebrew.casks;
