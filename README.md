@@ -97,8 +97,6 @@ Updating `flake.lock` does not update local package pins.
 | `llm-agents` | [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix) |
 | `agent-skills` | [Kyure-A/agent-skills-nix](https://github.com/Kyure-A/agent-skills-nix), skill deployment module |
 | `gws` | [googleworkspace/cli](https://github.com/googleworkspace/cli) |
-| `herdr` | [ogulcancelik/herdr](https://github.com/ogulcancelik/herdr) |
-| `hunk` | [modem-dev/hunk](https://github.com/modem-dev/hunk) |
 | `android-nixpkgs` | [tadfisher/android-nixpkgs](https://github.com/tadfisher/android-nixpkgs), `stable` |
 
 | Skill source | Upstream | Pin location |

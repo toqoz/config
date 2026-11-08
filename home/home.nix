@@ -4,7 +4,6 @@
     ./base.nix
     ./agents/claude-code
     ./agents/mcp.nix
-    ./hunk.nix
     ./karabiner
     ./less.nix
     ./neovim

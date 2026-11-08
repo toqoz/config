@@ -1,7 +1,6 @@
 {
   pkgs,
   llm-agents,
-  herdr,
   ...
 }:
 {
@@ -20,7 +19,6 @@
     (python3.withPackages (ps: with ps; [ fonttools brotli ]))
     (callPackage ../packages/jrf.nix { })
     (callPackage ../packages/vite-plus.nix { })
-    herdr.packages.${pkgs.stdenv.hostPlatform.system}.default
     llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.amp
     llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.ccusage
   ];

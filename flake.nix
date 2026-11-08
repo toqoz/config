@@ -39,14 +39,6 @@
       url = "github:googleworkspace/cli";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    herdr = {
-      url = "github:ogulcancelik/herdr";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    hunk = {
-      url = "github:modem-dev/hunk";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     android-nixpkgs = {
       url = "github:tadfisher/android-nixpkgs/stable";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -66,8 +58,6 @@
       vercel-agent-browser,
       makenotion-skills,
       gws,
-      herdr,
-      hunk,
       android-nixpkgs,
       ...
     }:
@@ -181,7 +171,6 @@
             home-manager.useUserPackages = true;
             home-manager.sharedModules = [
               agent-skills.homeManagerModules.default
-              hunk.homeManagerModules.default
               android-nixpkgs.hmModule
             ];
             home-manager.extraSpecialArgs = {
@@ -191,7 +180,6 @@
               inherit vercel-agent-browser;
               inherit makenotion-skills;
               inherit gws;
-              inherit herdr;
             };
             home-manager.users.${username} = homeModule;
           }
