@@ -71,28 +71,93 @@ For forge01 over SSH:
 The command runs on forge01. `-t` allows the remote sudo password prompt.
 Use an IP address or SSH alias if `forge01` does not resolve.
 
-## Cask apps
+## Package updates
 
-`homebrew.onActivation.upgrade = true` runs `brew bundle --upgrade`, which
-**skips casks that declare `auto_updates true`**. Those apps update themselves,
-so the switch commands do not upgrade them.
+### Update workflow
 
-If a self-updater falls behind, force an upgrade:
+| Upstream type | Where to update | Action |
+| ------------- | --------------- | ------ |
+| Nix packages and modules | `flake.lock` | Run `nix flake update`, or `nix flake update <input>` for one upstream. |
+| External skills | `flake.lock` | Update the skill inputs selected in [flake.nix](flake.nix). Switch deploys the selected revisions. |
+| Locally packaged releases | Definitions below | Update versions or revisions and fetch hashes together. |
+| Pi extensions | [home/pi/default.nix](home/pi/default.nix) | Bump the npm pins. Switch installs the selected versions. |
+| asdf runtimes | [home/asdf/.tool-versions](home/asdf/.tool-versions) | Change the pins here, then run `asdf install` on each host. |
+| Homebrew formulae and casks | Homebrew metadata | Switch upgrades Brew-managed packages. App-managed updates are listed below. |
+
+### Upstream sources
+
+The input names below work with `nix flake update <input>`.
+Updating `flake.lock` does not update local package pins.
+
+| Nix input | Upstream |
+| --------- | -------- |
+| `nixpkgs` | [NixOS/nixpkgs](https://github.com/NixOS/nixpkgs), `nixpkgs-unstable` |
+| `home-manager` | [nix-community/home-manager](https://github.com/nix-community/home-manager) |
+| `nix-darwin` | [nix-darwin/nix-darwin](https://github.com/nix-darwin/nix-darwin) |
+| `llm-agents` | [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix) |
+| `agent-skills` | [Kyure-A/agent-skills-nix](https://github.com/Kyure-A/agent-skills-nix), skill deployment module |
+| `gws` | [googleworkspace/cli](https://github.com/googleworkspace/cli) |
+| `herdr` | [ogulcancelik/herdr](https://github.com/ogulcancelik/herdr) |
+| `hunk` | [modem-dev/hunk](https://github.com/modem-dev/hunk) |
+| `android-nixpkgs` | [tadfisher/android-nixpkgs](https://github.com/tadfisher/android-nixpkgs), `stable` |
+
+| Skill source | Upstream | Pin location |
+| ------------ | -------- | ------------ |
+| Local | [home/agents/skills](home/agents/skills) | This checkout |
+| T3 pstack | [toqoz/t3-pstack](https://github.com/toqoz/t3-pstack) | `flake.lock`: `t3-pstack` |
+| Anthropic | [anthropics/skills](https://github.com/anthropics/skills) | `flake.lock`: `anthropic-skills` |
+| agent-browser | [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser) | `flake.lock`: `vercel-agent-browser` |
+| Notion | [makenotion/skills](https://github.com/makenotion/skills) | `flake.lock`: `makenotion-skills` |
+| ketch | [1broseidon/ketch](https://github.com/1broseidon/ketch) | [packages/ketch.nix](packages/ketch.nix) |
+| modern-web-guidance | [GoogleChrome/modern-web-guidance](https://github.com/GoogleChrome/modern-web-guidance), distributed through npm | [packages/modern-web-guidance.nix](packages/modern-web-guidance.nix) |
+
+Skill selection and local adaptations live in
+[home/agents/agent-skills](home/agents/agent-skills).
+
+For changes in this repository, build each affected host, run `nix flake check`
+and `node --test t/*.test.mts`, then commit. Apply committed changes from `main`
+with `switch-<host>` on each Mac.
+
+Some updates require work outside this repository:
+
+- Personal upstreams: update and publish `toqoz/t3-pstack` or merge changes into the `toqoz/deepseek-harness` fork first, then advance the corresponding lock or revision here.
+- Self-updating apps and App Store apps: update on each Mac through the app or store. A Nix lock update does not select their versions.
+- macOS and Xcode Command Line Tools: update through Apple's system tools on each Mac.
+- Project dependencies and project-specific runtimes: update their owning repositories and lockfiles.
+
+### Local Nix packages
+
+Update pins in the linked definitions, then build, check, and switch.
+Unless noted below, these packages have no configured app self-update path.
+
+| Package | Definition |
+| ------- | ---------- |
+| Kanary | [Package](packages/kanary.nix) |
+| ketch | [Package](packages/ketch.nix) |
+| modern-web-guidance | [Package](packages/modern-web-guidance.nix) |
+| ntn | [Package](packages/ntn.nix) |
+| jrf, oj | [Package](packages/jrf.nix) |
+| vite-plus | [Package](packages/vite-plus.nix) |
+| deepseek-harness, dedicated Node and pnpm | [Module](home/deepseek-harness/default.nix) |
+| tailscale-serve | [Wrapper](packages/tailscale-serve.nix) |
+
+- Kanary: automatic checks and installation are disabled in [app settings](darwin/apps/kanary.nix). Restart the app after switching.
+- vite-plus: `VP_NO_UPDATE_CHECK=1` disables update checks and notices. The wrapper installs the pinned backend on first use and restores it if the active version changes. Manual `vp upgrade` can still change the version until the next wrapper invocation.
+
+### Homebrew
+
+[Switch](darwin/homebrew.nix) refreshes Brew metadata and upgrades packages.
+Casks with `auto_updates true` use their app updater and are skipped by Brew.
+
+| Update path | Packages |
+| ----------- | -------- |
+| Brew on switch | `portless` (formula), `capcut`, `macskk` |
+| App self-update | `1password`, `aqua-voice`, `chatgpt`, `claude`, `figma`, `google-chrome`, `grok-bot`, `karabiner-elements`, `lark`, `linear`, `notion-calendar`, `orbstack`, `paper-design`, `stablyai/orca/orca`, `tailscale-app`, `zed` |
+| App Store; also Brew on switch | `1Password for Safari` |
+
+Cask policies checked on 2026-11-08. Definitions live in `darwin/apps/`.
+To force an update when an app updater falls behind:
 
 ```sh
 	brew upgrade --cask --greedy <name>
 ```
-
-| Cask | Updater | Source |
-| ---- | ------- | ------ |
-| `1password` | self | `darwin/apps/1password.nix` |
-| `aqua-voice` | self | `darwin/apps/aqua-voice.nix` |
-| `chatgpt` | self | `darwin/apps/chatgpt.nix` |
-| `claude` | self | `darwin/apps/claude-desktop.nix` |
-| `figma` | self | `darwin/apps/figma.nix` |
-| `google-chrome` | self | `darwin/apps/chrome.nix` |
-| `karabiner-elements` | self | `darwin/apps/karabiner.nix` |
-| `macskk` | brew | `darwin/apps/macskk.nix` |
-| `orbstack` | self | `darwin/apps/orbstack.nix` |
-| `paper-design` | self | `darwin/apps/paper-design.nix` |
-| `tailscale-app` | self | `darwin/apps/tailscale.nix` |

@@ -45,6 +45,7 @@ stdenv.mkDerivation {
     cat > $out/bin/vp <<EOF
     #!${runtimeShell}
     set -e
+    export VP_NO_UPDATE_CHECK=1
     : "\''${VP_HOME:=\$HOME/.vite-plus}"
     pinned="${version}"
     current=\$(readlink "\$VP_HOME/current" 2>/dev/null || true)
