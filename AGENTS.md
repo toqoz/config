@@ -59,3 +59,8 @@ behavior that can be exercised in isolation, prefer adding tests over
 relying on manual verification alone. Place repo-wide tests in `t/`
 (`node --test t/*.test.mts`); co-locate skill-internal tests next to the
 code they cover.
+
+For declarative configuration, test important invariants and observable
+behavior rather than duplicating package or app inventories. Prefer evaluation
+and builds for ordinary configuration changes; add assertions when they
+protect a meaningful cross-module or safety constraint.
