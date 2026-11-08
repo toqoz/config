@@ -18,6 +18,7 @@
     ./apps/macskk.nix
     ./apps/music.nix
     ./apps/notion-calendar.nix
+    ./apps/ollama.nix
     ./apps/orbstack.nix
     ./apps/orca.nix
     ./apps/paper-design.nix

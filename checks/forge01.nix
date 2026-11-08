@@ -209,8 +209,8 @@ assert lib.assertMsg (missingTools == [ ])
   "forge01 is missing required tools: ${lib.concatStringsSep ", " missingTools}";
 assert lib.assertMsg (missingToolNames == [ ])
   "forge01 is missing shared tools: ${lib.concatStringsSep ", " missingToolNames}";
-assert lib.assertMsg (lib.sort builtins.lessThan (map (cask: cask.name) forge.homebrew.casks) == [ "1password" "chatgpt" "google-chrome" "orbstack" "tailscale-app" ])
-  "forge01 must manage exactly the 1password, chatgpt, google-chrome, orbstack, and tailscale-app casks";
+assert lib.assertMsg (lib.sort builtins.lessThan (map (cask: cask.name) forge.homebrew.casks) == [ "1password" "chatgpt" "google-chrome" "ollama-app" "orbstack" "tailscale-app" ])
+  "forge01 must manage exactly the 1password, chatgpt, google-chrome, ollama-app, orbstack, and tailscale-app casks";
 assert lib.assertMsg (map (brew: brew.name) forge.homebrew.brews == [ "portless" ]
   && map (brew: brew.name) remilis.homebrew.brews == [ "portless" ]
   && forge.homebrew.masApps == { })
@@ -219,10 +219,11 @@ assert lib.assertMsg (forge.my.apps == {
   "1password".appId = "com.1password.1password";
   chatgpt.appId = "com.openai.chat";
   chrome.appId = "org.google.Chrome";
+  ollama.appId = "com.electron.ollama";
   orbstack.appId = "dev.kdrag0n.MacVirt";
   slack.appId = "com.tinyspeck.slackmacgap";
   tailscale.appId = "io.tailscale.ipn.macsys";
-}) "forge01 must register exactly 1Password, ChatGPT, Chrome, OrbStack, Slack, and Tailscale";
+}) "forge01 must register exactly 1Password, ChatGPT, Chrome, Ollama, OrbStack, Slack, and Tailscale";
 assert lib.assertMsg (
   lib.all (host:
     let casks = map (cask: cask.name) host.homebrew.casks;
