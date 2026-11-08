@@ -1,7 +1,7 @@
 # Nix-level tests for the tmux helper scripts. Auto-discovered by
 # `flake.nix` and exposed under `checks.<system>.tmux-<key>`.
 #
-# Each fake (`tmux`, `tcmux`, `fzf`) is its own `writeShellScriptBin` and
+# Each fake (`tmux`, `fzf`) is its own `writeShellScriptBin` and
 # is injected into the script-under-test via the script's Nix function
 # args. Every fake call is appended (prefixed with the tool name) to a
 # unified log at `$TMUX_FAKE_LOG`; tests assert the *exact* expected
@@ -16,6 +16,7 @@ let
     log=''${TMUX_FAKE_LOG:?TMUX_FAKE_LOG must be set}
     printf 'tmux %s\n' "$*" >> "$log"
     case "$1" in
+      list-windows) cat "''${TMUX_FAKE_OUTPUT:?TMUX_FAKE_OUTPUT must be set}" ;;
       display-message)
         case "''${3:-}" in
           "#I") printf '%s\n' "''${TMUX_FAKE_INDEX:-0}" ;;
@@ -23,13 +24,6 @@ let
         esac
         ;;
     esac
-  '';
-
-  # `tcmux` fake: dump the file at `$TCMUX_FAKE_OUTPUT` to stdout.
-  fakeTcmux = pkgs.writeShellScriptBin "tcmux" ''
-    log=''${TMUX_FAKE_LOG:?TMUX_FAKE_LOG must be set}
-    printf 'tcmux %s\n' "$*" >> "$log"
-    cat "''${TCMUX_FAKE_OUTPUT:?TCMUX_FAKE_OUTPUT must be set}"
   '';
 
   # `fzf` fake: read stdin (so upstream `printf | ...` doesn't blow up)
@@ -51,7 +45,6 @@ let
   windowPicker = import ./scripts/window-picker.nix {
     inherit pkgs;
     tmux = fakeTmux;
-    tcmux = fakeTcmux;
     fzf = fakeFzf;
   };
 
@@ -150,31 +143,31 @@ in
   '';
 
   window-picker-happy = mkCheck "window-picker-happy" windowPicker ''
-    cat > tcmux-out <<'EOF'
-    default:0: foo (1 panes) idle
-    default:1: bar (2 panes) running
-    default:2: baz (1 panes) idle
+    cat > tmux-out <<'EOF'
+    default:0: foo (1 panes)
+    default:1: bar (2 panes)
+    default:2: baz (1 panes)
     EOF
-    export TCMUX_FAKE_OUTPUT="$PWD/tcmux-out"
+    export TMUX_FAKE_OUTPUT="$PWD/tmux-out"
     export FZF_FAKE_PICK=2
     tmux-window-picker 'default:1:'
     diff -u <(printf '%s\n' \
-      "tcmux list-windows -a -A --color=always -F #{session_name}:#{window_index}: #{window_name} (#{window_panes} panes) #{agent_status}" \
+      "tmux list-windows -a -F #{session_name}:#{window_index}: #{window_name} (#{window_panes} panes)" \
       "fzf --sync --ansi --layout reverse --tmux 80%,50% --bind start:pos(2)" \
       "tmux switch-client -t default:1") "$TMUX_FAKE_LOG"
   '';
 
   # No prefix match → pos is empty → fzf gets pos(1).
   window-picker-no-current-match = mkCheck "window-picker-no-current-match" windowPicker ''
-    cat > tcmux-out <<'EOF'
-    default:0: foo (1 panes) idle
-    default:1: bar (1 panes) idle
+    cat > tmux-out <<'EOF'
+    default:0: foo (1 panes)
+    default:1: bar (1 panes)
     EOF
-    export TCMUX_FAKE_OUTPUT="$PWD/tcmux-out"
+    export TMUX_FAKE_OUTPUT="$PWD/tmux-out"
     export FZF_FAKE_PICK=1
     tmux-window-picker 'other:9:'
     diff -u <(printf '%s\n' \
-      "tcmux list-windows -a -A --color=always -F #{session_name}:#{window_index}: #{window_name} (#{window_panes} panes) #{agent_status}" \
+      "tmux list-windows -a -F #{session_name}:#{window_index}: #{window_name} (#{window_panes} panes)" \
       "fzf --sync --ansi --layout reverse --tmux 80%,50% --bind start:pos(1)" \
       "tmux switch-client -t default:0") "$TMUX_FAKE_LOG"
   '';

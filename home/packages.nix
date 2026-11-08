@@ -19,7 +19,6 @@
     # fonttools CLI (pyftsubset, ttx, fonttools, ...). brotli is an optional
     # dependency required for WOFF2 read/write.
     (python3.withPackages (ps: with ps; [ fonttools brotli ]))
-    (callPackage ../packages/tcmux.nix { })
     (callPackage ../packages/jrf.nix { })
     (callPackage ../packages/vite-plus.nix { })
     herdr.packages.${pkgs.stdenv.hostPlatform.system}.default

@@ -1,10 +1,8 @@
 { pkgs, ... }:
 
 let
-  tcmux = pkgs.callPackage ../../packages/tcmux.nix { };
-
   windowPicker = import ./scripts/window-picker.nix {
-    inherit pkgs tcmux;
+    inherit pkgs;
     tmux = pkgs.tmux;
     fzf = pkgs.fzf;
   };
