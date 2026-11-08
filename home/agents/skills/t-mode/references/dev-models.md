@@ -7,7 +7,7 @@ for every activity. Independence, waiting tolerance, and quota remain filters.
 
 | ID | Requirement and resource target | OpenAI | Anthropic | DeepSeek |
 |---|---|---|---|---|
-| R0 | Exact mechanical work; minimize consumption, deterministic tools first | Luna low (intake); Terra 6.1 non-reasoning | — | V4.1 Flash non-reasoning |
+| R0 | Exact mechanical work; minimize consumption, deterministic tools first | Luna low; Terra 6.1 non-reasoning | — | V4.1 Flash non-reasoning |
 | R1 | Bounded local reasoning and focused checks; low consumption | Terra 6.1 medium; Sol 6.1 low; Luna low with capable review (trial) | Haiku 5.5 high | V4.1 Flash high/max with capable review |
 | R2 | Own an outcome across interfaces or resolve source-based choices; scale effort to difficulty | Sol 6.1 medium/high/xhigh; Terra 6.1 high/max (code); Astra medium (interactive) | Opus 5.5 medium/high; Sonnet 5.5 high/xhigh | V4.1 Flash with capable review (candidate) |
 | R3 | Difficult hypotheses, subtle consequential judgment; accept more consumption and waiting | Sol 6.1 max; Astra high | Opus 5.5 xhigh/max; Sonnet 5.5 max (command-driven verification) | — |
@@ -33,6 +33,7 @@ preferences to validate, not measured optimal routes. Explicit task choices win.
 
 | Role requirement | Starting choice | Other eligible choices by context |
 |---|---|---|
+| Procedural top-level T3 intake | Terra 6.1 low | Luna low remains eligible; explicit thread model choices win |
 | Exact mechanical edit | Intake or deterministic tool | R0 when bulk execution actually needs a worker |
 | Established bounded implementation | Terra 6.1 medium | Sol 6.1 low; Haiku 5.5 high; DeepSeek Flash high/max with capable review when work can wait and shifting quota is useful |
 | Ordinary development or investigation across interfaces | Sol 6.1 medium | Sol high for harder reasoning; Terra high; Sonnet high; DeepSeek plus capable review when checking and repair are tractable |
@@ -43,6 +44,11 @@ preferences to validate, not measured optimal routes. Explicit task choices win.
 | High-consequence independent evaluation or difficult adjudication | Opus 5.5 xhigh after OpenAI; Sol 6.1 max/Astra high after Anthropic | Other R3 candidates preserving required independence; max only for the reasoning need |
 | Bounded technical classification assessment | Sol 6.1 medium, read-only | Raise effort only when the scope question itself is difficult |
 | Poteto coordinator | Opus 5.5 high | R2/R3 as explicitly selected; its workers use poteto's own preferences |
+
+Use Terra low by default when choosing a thread's starting model; do not
+spawn another router or switch a running thread to enforce it. Repeated local
+diagnostics favored Terra low for retaining named repair evaluators. This default
+does not establish a general capability or monetary cost ranking.
 
 Implementation difficulty selects the author; detection difficulty and the purpose
 of independence select the evaluator. A narrow complementary scan does not satisfy
