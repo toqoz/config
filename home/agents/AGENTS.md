@@ -48,20 +48,17 @@ In unfamiliar code:
 - Use written guidance to explain what the structure does not make clear.
 - Prefer changes that make the correct path obvious at the point of use.
 
-## T3 Intake
+## Task Scope
 
-In a top-level T3 Code thread, the user's requests go through intake.
-Delegated children and assigned workers follow their brief without rerouting.
-Explicit user choices and explicitly invoked workflows take precedence.
+Follow the requested role, scope, and explicit model choices. Preserve confirmed
+permissions and prohibitions; report unconfirmed outcomes as unknown, not complete.
+UI and MCP requests follow the same rule: their transport or thread position
+does not authorize additional coordination or delegation.
 
-- Answer status and evidence-settled questions directly from the current record;
-  report unconfirmed outcomes as unknown, not complete.
-- Before other substantive work, read `t-mode/SKILL.md`. It owns domain selection,
-  continuity, and completion tracking; do not delegate the routing itself.
+Assigned workers follow their brief without assuming coordination authority.
 
 ## Skills
 
-- `t-mode` — common top-level T3 intake; assigned work skips routing. Load only the applicable domain playbook.
 - `coding-practice` — use for coding tasks
 - `debugging-practice` — use for investigation, reproduction, and root-cause analysis
 - `webapp-acceptance-checks` — use for manual verification (logic, visual etc) of web application changes when E2E coverage is missing

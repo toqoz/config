@@ -166,19 +166,32 @@ reinspect context; reader completeness and source accuracy remain limitations.
 
 ## Common intake and domain playbooks
 
-The instruction hierarchy is now AGENTS entry -> common t-mode -> domain
+The instruction hierarchy is now explicit skill entry -> common t-mode -> domain
 playbook, not three levels of delegated agents. Common intake owns continuity,
 briefs, permissions, and state. Development retains its model pools and evidence
 rules; visual design initially assigns one Opus designer without a new review
 process. Playbooks avoid extra globally discoverable skill descriptions and
 duplicate router guards. Read only the applicable domain references.
 
-Automatic intake applies to top-level T3 requests. Assigned work follows its
-brief; other sessions retain their host/project workflows. Explicit workflows
+Intake now requires explicit t-mode invocation in the conversation, including
+midway through it or when an authorized caller invokes it through MCP. The skill
+description owns this entrypoint; shared instructions do not name the mode.
+Transport and top-level thread
+placement do not activate coordination. Assigned work follows its brief;
+other work retains its host/project workflows. Explicit workflows
 and task choices win, without treating a generic style request as permission to
 waive existing checks. Mixed deliverables can be ordered without a mandatory
 human checkpoint. Prior routing and state evals concern the previous layout,
 not this migration; compare development behavior against its frozen sources.
+
+This invocation boundary separates UI task coordination from externally
+coordinated development, a requested Opus review, and delegated Figma operations.
+The invoked mode handles both continuations and new work until stopped or
+superseded, while respecting an explicitly narrower invocation. New requests
+get separate work identities and routes. Terra low remains the starting
+preference within t-mode, not a
+reason to override a caller's model or assigned role. Earlier evaluations below
+used automatic intake and do not validate this explicit invocation boundary.
 Migration evaluation compared twelve development-plan cases in frozen old/new
 source trees, two batches per condition. A blind Opus grader's final comparison
 scored 47/48 assertions for each condition after a rubric correction applied

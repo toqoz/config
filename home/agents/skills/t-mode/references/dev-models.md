@@ -33,7 +33,7 @@ preferences to validate, not measured optimal routes. Explicit task choices win.
 
 | Role requirement | Starting choice | Other eligible choices by context |
 |---|---|---|
-| Procedural top-level T3 intake | Terra 6.1 low | Luna low remains eligible; explicit thread model choices win |
+| Explicitly requested t-mode intake | Terra 6.1 low | Luna low remains eligible; explicit thread model choices win |
 | Exact mechanical edit | Intake or deterministic tool | R0 when bulk execution actually needs a worker |
 | Established bounded implementation | Terra 6.1 medium | Sol 6.1 low; Haiku 5.5 high; DeepSeek Flash high/max with capable review when work can wait and shifting quota is useful |
 | Ordinary development or investigation across interfaces | Sol 6.1 medium | Sol high for harder reasoning; Terra high; Sonnet high; DeepSeek plus capable review when checking and repair are tractable |
@@ -45,7 +45,7 @@ preferences to validate, not measured optimal routes. Explicit task choices win.
 | Bounded technical classification assessment | Sol 6.1 medium, read-only | Raise effort only when the scope question itself is difficult |
 | Poteto coordinator | Opus 5.5 high | R2/R3 as explicitly selected; its workers use poteto's own preferences |
 
-Use Terra low by default when choosing a thread's starting model; do not
+Use Terra low by default when choosing a t-mode thread's starting model; do not
 spawn another router or switch a running thread to enforce it. Repeated local
 diagnostics favored Terra low for retaining named repair evaluators. This default
 does not establish a general capability or monetary cost ranking.

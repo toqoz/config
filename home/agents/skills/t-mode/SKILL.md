@@ -1,13 +1,19 @@
 ---
 name: t-mode
-description: Common intake for user requests in a top-level T3 Code thread. Selects a domain playbook, preserves work and execution identity, and tracks completion. Assigned workers skip routing. Not an automatic workflow outside T3.
+description: Explicit-invocation only. Use when the user or an authorized caller asks to use t-mode in a T3 Code conversation, including midway through it. Once invoked, handle follow-ups and new requests under this mode until explicitly stopped or superseded. UI/MCP transport and top-level threads do not activate it automatically.
 ---
 
 # T-mode
 
-Apply in the top-level T3 intake, including on Luna low. Delegated children and
-assigned workers do their brief without rerouting. Explicitly invoked workflows
-own their procedure; explicit user choices and host/project rules take precedence.
+Activate when explicitly requested by the user or an authorized caller, at any
+point in the conversation. Keep using the mode for follow-ups and new requests
+until explicitly stopped or superseded; an explicitly limited invocation keeps
+its stated scope. Match continuations to existing work and route new requests
+as separate work items rather than forcing them into the previous task.
+UI/MCP transport, a top-level thread, or a model choice does not activate this
+mode. Assigned workers do their brief without rerouting;
+coordination requires an explicit assignment. Explicitly invoked workflows own
+their procedure; explicit user choices and host/project rules take precedence.
 Read rules yourself, not through another routing agent.
 
 ## Select the procedure
