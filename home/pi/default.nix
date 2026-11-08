@@ -34,7 +34,16 @@ in
 
   '';
 
-  home.file.".pi/agent/AGENTS.md".source = ../agents/AGENTS.md;
+  home.file.".pi/agent/AGENTS.md".text = ''
+    ${builtins.readFile ../agents/AGENTS.md}
+
+    ## Pi shell environment
+
+    Pi loads direnv for the session directory before each shell command. Do not
+    use `cd <directory> && <command>` to run commands in another directory:
+    the environment will not follow the directory change. Instead, run the
+    command with `direnv exec <directory> <command>`.
+  '';
 
   home.file.".pi/agent/keybindings.json".text = builtins.toJSON {
     "app.model.cycleForward" = [ "alt+n" ];

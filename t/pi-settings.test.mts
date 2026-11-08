@@ -19,6 +19,7 @@ test('new Pi settings retain the configured provider and built-in MCP behavior',
     defaultProvider: 'ollama',
     defaultModel: 'deepseek-v4.1-flash:cloud',
     defaultThinkingLevel: 'low',
+    shellCommandPrefix: 'eval "$(direnv export bash)"',
     extensions: [],
     packages: [],
   });
