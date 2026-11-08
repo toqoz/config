@@ -66,7 +66,9 @@ in
 
       env = {
         CLAUDE_CODE_NO_FLICKER = "1";
-        CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
+        # Allow T3 to fetch Claude usage. Restore "1" once T3 can disable
+        # this setting only for its own Claude processes.
+        CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "0";
       };
 
       permissions = agentPolicy.claudePermissions // {
