@@ -2,11 +2,11 @@
 
 stdenvNoCC.mkDerivation rec {
   pname = "kanary";
-  version = "4.0.9";
+  version = "4.2.1";
 
   src = fetchurl {
     url = "https://distro.kanary.to/releases/Kanary-${version}.zip";
-    hash = "sha256-BwuuhfG2JOiw7r0vkLAQiAZ9FNrHgQ5gHzh0nbIjsxE=";
+    hash = "sha256-Kj/YVLqoYB4eQkHnsJ8X2QvRsQIx0yZkgOk6gj1oAEw=";
   };
 
   nativeBuildInputs = [ unzip ];
