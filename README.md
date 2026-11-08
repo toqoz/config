@@ -105,7 +105,6 @@ Updating `flake.lock` does not update local package pins.
 | T3 pstack | [toqoz/t3-pstack](https://github.com/toqoz/t3-pstack) | `flake.lock`: `t3-pstack` |
 | Anthropic | [anthropics/skills](https://github.com/anthropics/skills) | `flake.lock`: `anthropic-skills` |
 | agent-browser | [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser) | `flake.lock`: `vercel-agent-browser` |
-| Notion CLI | [Local skill](home/agents/skills/notion-cli/SKILL.md) | This checkout |
 | ketch | [1broseidon/ketch](https://github.com/1broseidon/ketch) | [packages/ketch.nix](packages/ketch.nix) |
 | modern-web-guidance | [GoogleChrome/modern-web-guidance](https://github.com/GoogleChrome/modern-web-guidance), distributed through npm | [packages/modern-web-guidance.nix](packages/modern-web-guidance.nix) |
 
