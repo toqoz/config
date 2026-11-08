@@ -1,4 +1,4 @@
-{ lib, pkgs, vercel-agent-browser, makenotion-skills, t3-pstack, ... }:
+{ lib, pkgs, vercel-agent-browser, t3-pstack, ... }:
 let
   ketch = pkgs.callPackage ../../../packages/ketch.nix { };
   modern-web-guidance = pkgs.callPackage ../../../packages/modern-web-guidance.nix { };
@@ -75,10 +75,6 @@ in
         path = vercel-agent-browser;
         subdir = "skills";
       };
-      makenotion = {
-        path = makenotion-skills;
-        subdir = "skills";
-      };
       ketch = {
         path = "${ketch}/share/ketch";
         subdir = "skills";
@@ -93,7 +89,6 @@ in
         "t3-pstack"
         "local"
         "vercel"
-        "makenotion"
         "ketch"
       ];
       explicit.modern-web-guidance = {

@@ -31,10 +31,6 @@
       url = "github:vercel-labs/agent-browser";
       flake = false;
     };
-    makenotion-skills = {
-      url = "github:makenotion/skills";
-      flake = false;
-    };
     gws = {
       url = "github:googleworkspace/cli";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -56,7 +52,6 @@
       anthropic-skills,
       t3-pstack,
       vercel-agent-browser,
-      makenotion-skills,
       gws,
       android-nixpkgs,
       ...
@@ -178,7 +173,6 @@
               inherit anthropic-skills;
               inherit t3-pstack;
               inherit vercel-agent-browser;
-              inherit makenotion-skills;
               inherit gws;
             };
             home-manager.users.${username} = homeModule;
