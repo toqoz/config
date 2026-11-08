@@ -12,6 +12,7 @@
     ./apps/grok-bot.nix
     ./apps/kanary.nix
     ./apps/karabiner.nix
+    ./apps/keepresso.nix
     ./apps/lark.nix
     ./apps/linear.nix
     ./apps/macskk.nix

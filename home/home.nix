@@ -12,6 +12,7 @@
     ./packages.nix
     ./ssh.nix
     ./t3code.nix
+    ./t3-sleep-watcher
     ./vscode-family
     ./wezterm
     ./zed
@@ -22,6 +23,7 @@
   my.t3code.enable = true;
   my.t3code.desktop.enable = true;
   my.t3code.server.servePort = 3373;
+  my.t3code.sleepWatcher.enable = true;
 
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
