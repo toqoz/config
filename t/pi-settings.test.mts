@@ -14,21 +14,22 @@ function configure(settings: unknown) {
   return JSON.parse(result.stdout);
 }
 
-test('new Pi settings retain the configured provider and MCP adapter behavior', () => {
+test('new Pi settings retain the configured provider and built-in MCP behavior', () => {
   assert.deepEqual(configure(null), {
     defaultProvider: 'ollama',
     defaultModel: 'deepseek-v4.1-flash:cloud',
     defaultThinkingLevel: 'low',
-    extensions: ['-builtin:mcp'],
+    extensions: [],
     packages: [],
   });
 });
 
 test('preserves existing packages and settings', () => {
   const packages = ['npm:another-package@1.0.0', { source: 'npm:custom@1.0.0', extensions: ['custom.ts'] }];
-  const result = configure({ packages, extensions: ['local.ts'], theme: 'dark' });
+  const removed = ['npm:pi-mcp-adapter@6.0.0', { source: 'npm:pi-mcp-adapter@5.0.0' }];
+  const result = configure({ packages: [...packages, ...removed], extensions: ['local.ts', '-builtin:mcp'], theme: 'dark' });
   assert.deepEqual(result.packages, packages);
-  assert.deepEqual(result.extensions, ['local.ts', '-builtin:mcp']);
+  assert.deepEqual(result.extensions, ['local.ts']);
   assert.equal(result.theme, 'dark');
 });
 

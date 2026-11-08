@@ -80,7 +80,6 @@ Use an IP address or SSH alias if `forge01` does not resolve.
 | Nix packages and modules | `flake.lock` | Run `nix flake update`, or `nix flake update <input>` for one upstream. |
 | External skills | `flake.lock` | Update the skill inputs selected in [flake.nix](flake.nix). Switch deploys the selected revisions. |
 | Locally packaged releases | Definitions below | Update versions or revisions and fetch hashes together. |
-| Pi extensions | [home/pi/default.nix](home/pi/default.nix) | Bump the npm pins. Switch installs the selected versions. |
 | asdf runtimes | [home/asdf/.tool-versions](home/asdf/.tool-versions) | Change the pins here, then run `asdf install` on each host. |
 | Homebrew formulae and casks | Homebrew metadata | Switch upgrades Brew-managed packages. App-managed updates are listed below. |
 
@@ -140,15 +139,6 @@ Unless noted below, these packages have no configured app self-update path.
 
 - Kanary: automatic checks and installation are disabled in [app settings](darwin/apps/kanary.nix). Restart the app after switching.
 - vite-plus: `VP_NO_UPDATE_CHECK=1` disables update checks and notices. The wrapper installs the pinned backend on first use and restores it if the active version changes. Manual `vp upgrade` can still change the version until the next wrapper invocation.
-
-### Pi extensions
-
-Versions are pinned in [home/pi/default.nix](home/pi/default.nix).
-Switch installs the selected versions on both hosts.
-
-| Extension | Upstream |
-| --------- | -------- |
-| `pi-mcp-adapter` | [npm](https://www.npmjs.com/package/pi-mcp-adapter) |
 
 ### Homebrew
 

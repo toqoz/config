@@ -319,7 +319,7 @@ assert lib.assertMsg (
   && forgeHome.home.activation.installAsdfPlugins.before == remilisHome.home.activation.installAsdfPlugins.before
 ) "forge01 must share asdf, XDG paths, checkout links, and shell support configuration with remilis";
 assert lib.assertMsg (
-  forgeHome.home.activation.installPiPackages == remilisHome.home.activation.installPiPackages
+  forgeHome.home.activation.configurePi == remilisHome.home.activation.configurePi
   && forgeHome.home.file.".pi/agent/AGENTS.md".source == remilisHome.home.file.".pi/agent/AGENTS.md".source
   && lib.all (home:
     !(home.home.file ? ".pi/agent/pstack-models.md")
