@@ -26,6 +26,13 @@ an independent polling loop or hardcode a reviewer CLI or model. When the host
 has no PR watch, use a blocking forge wait only if host rules allow it; otherwise
 report the pending state. Apply this waiting rule to queued merges too.
 
+Treat every CI check reported for the candidate head as a merge gate, even if
+branch protection does not require it or the change appears unrelated. Wait
+for pending checks; do not rerun a check just because it is still running. If a
+check fails, investigate and rerun it once. If the rerun does not pass, or a
+rerun cannot be completed, stop without merging and report the result. Apply
+this rule to poteto-mode as well.
+
 If poteto-mode is active, follow its Babysit then Shipping procedures instead
 of the steps below. Read their prerequisites through that mode. Apply explicit
 user and repository choices, and do not claim an upstream gate passed when it
@@ -64,10 +71,9 @@ A pending CI/merge-queue wait is resumable work, not completion or cancellation.
    actual state, base and head. Report ambiguity, missing/closed PRs, or drafts
    and stop. If already merged, confirm and report it. Do not create
    a PR or mark a draft ready without authorization.
-2. Inspect required checks, mergeability, approvals, and unresolved review
-   threads. Pending checks use the host's PR-watch mechanism. Classify failures
-   before acting: transient infrastructure trouble gets at most one fresh run;
-   an identical failure needs diagnosis. Check suspected base drift against
+2. Inspect all checks, mergeability, approvals, and unresolved review
+   threads. Pending checks use the host's PR-watch mechanism. Diagnose failures
+   before rerunning them. Check suspected base drift against
    actual history rather than assuming any failure outside the diff is stale.
 3. Fix only demonstrated issues belonging to this PR. If its head is a default,
    shared, or release branch, stop and report needed fixes instead of changing
@@ -96,7 +102,7 @@ A pending CI/merge-queue wait is resumable work, not completion or cancellation.
 5. Immediately before merging, re-read the head, base, checks, approvals,
    unresolved threads, and mergeability. Proceed only on the reviewed head
    (or the head covered by an explicit review waiver),
-   with required checks satisfied (or confirmed absent), required approvals
+   with all reported checks passing (or confirmed absent), required approvals
    present, and no unresolved blocking findings or conflicts. If the candidate
    changed, repeat the affected checks/review. Bind the merge to the checked
    head using the forge's expected-head option, such as GitHub CLI's
