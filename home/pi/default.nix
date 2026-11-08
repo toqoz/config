@@ -11,14 +11,6 @@ let
       name = "pi-mcp-adapter";
       version = "6.0.0";
     }
-    {
-      name = "pi-subagents";
-      version = "0.82.1";
-    }
-    {
-      name = "pi-intercom";
-      version = "0.18.1";
-    }
   ];
 in
 {

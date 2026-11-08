@@ -5,7 +5,7 @@
   extensions: (($settings.extensions // []) | if index("-builtin:mcp") then . else . + ["-builtin:mcp"] end),
   packages: (($settings.packages // []) | map(select(
     (if type == "string" then . else (.source // "") end)
-    | test("^git:(https://)?github[.]com/michael-denyer/pstack-claude([.]git)?([@#]|$)")
+    | test("^(git:(https://)?github[.]com/michael-denyer/pstack-claude([.]git)?([@#]|$)|npm:pi-(intercom|subagents)(@|$))")
     | not
   )))
 }

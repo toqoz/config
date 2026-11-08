@@ -149,8 +149,6 @@ Switch installs the selected versions on both hosts.
 | Extension | Upstream |
 | --------- | -------- |
 | `pi-mcp-adapter` | [npm](https://www.npmjs.com/package/pi-mcp-adapter) |
-| `pi-subagents` | [npm](https://www.npmjs.com/package/pi-subagents) |
-| `pi-intercom` | [npm](https://www.npmjs.com/package/pi-intercom) |
 
 ### Homebrew
 
