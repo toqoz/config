@@ -58,9 +58,15 @@ on it.
 4. Capture decisive before/after states. Prefer viewport-fit screenshots; use
    full-page capture only when it serves the scenario. Read back saved images
    before publishing so blank margins, missing states, or bad crops are caught.
-5. For genuinely human-only login/consent, use the supported visible browser
-   handoff, report the exact blocker, and resume from confirmed state. Do not
-   fabricate credentials or claim an unobserved authenticated journey passed.
+5. When authentication or consent prevents progress and the agent cannot
+   complete it, keep the browser and application available and ask the user to
+   complete the exact step in the supported visible browser. Wait for their
+   confirmation, verify the authenticated state, and resume the scenario. Do
+   not end the task with the authenticated journey merely reported as untested
+   when a user handoff can unblock it. Do not request credentials in chat,
+   fabricate them, or claim an unobserved journey passed. If handoff is
+   unavailable or the user cannot complete it, report the specific blocker and
+   remaining gap without claiming completion.
 
 ## Evidence and completion
 
