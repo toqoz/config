@@ -40,16 +40,15 @@ let
     == normalize remilisHome remilisHome.home.sessionVariables.${name};
   shellFiles = [ ".zshenv" ".config/zsh/.zshenv" ".config/zsh/.zprofile" ".config/zsh/.zshrc" ];
   # Home Manager embeds the host's session-vars store path. remilis alone
-  # adds WezTerm integration and Neovim's vimdiff alias to the shared rc.
+  # adds Neovim's vimdiff alias to the shared rc.
   normalizeShell = home: text: normalize home (lib.replaceStrings
     [ home.home.sessionVariablesPackage.outPath ] [ "$SESSION_VARS" ] text);
   remilisShellExtras = [
-    "source \"${remilisHome.programs.wezterm.package}/etc/profile.d/wezterm.sh\"\n\n"
     "alias -- vimdiff='nvim -d'\n"
   ];
   sameShell = path:
     normalizeShell forgeHome forgeHome.home.file.${path}.text
-    == normalizeShell remilisHome (lib.replaceStrings remilisShellExtras [ "" "" ] remilisHome.home.file.${path}.text);
+    == normalizeShell remilisHome (lib.replaceStrings remilisShellExtras [ "" ] remilisHome.home.file.${path}.text);
   zshrc = forgeHome.home.file.".config/zsh/.zshrc".text;
   zprofile = forgeHome.home.file.".config/zsh/.zprofile".text;
   repoLink = home: source: target:

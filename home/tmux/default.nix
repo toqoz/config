@@ -10,16 +10,11 @@ let
     inherit pkgs;
     tmux = pkgs.tmux;
   };
-  tagWindow = import ./scripts/window-tag.nix {
-    inherit pkgs;
-    tmux = pkgs.tmux;
-  };
 in
 {
   home.packages = [
     windowPicker
     swapWindow
-    tagWindow
   ];
 
   programs.tmux = {
@@ -81,14 +76,7 @@ in
           'set-option -g mouse off' \; \
         refresh-client -S
 
-      unbind P
-      bind-key P command-prompt -p 'Capture pane and save it as file:' -I '~/.tmux.capture' 'capture-pane -S -32768 ; save-buffer %1 ; delete-buffer'
-
       # Window keybindings {{{
-      # New
-      unbind c
-      bind c new-window
-
       # Split
       unbind |
       bind | split-window -h -c "#{pane_current_path}"
@@ -118,18 +106,10 @@ in
 
       bind w run-shell "${windowPicker}/bin/tmux-window-picker '#{session_name}:#{window_index}:'"
 
-      # <prefix> g — pick a ghq repo via fzf in a popup and switch the
-      # client to its session. Works while vim/claude/etc. are running
-      # in the foreground pane (zle widgets cannot).
-      bind g display-popup -E -w 80% -h 60% tmux-ghq-popup
-
-      # Chord prefix: <prefix> s -> status table (mark windows)
-      unbind s
-      bind s switch-client -T status
-      # <prefix> s d -> prefix window name with [done]
-      bind -T status d run-shell "${tagWindow}/bin/tmux-window-tag done"
-      # <prefix> s b -> prefix window name with [back later]
-      bind -T status b run-shell "${tagWindow}/bin/tmux-window-tag 'back later'"
+      unbind g
+      bind s choose-tree -Zs
+      unbind -T status d
+      unbind -T status b
 
       # Pane keybindings {{{
       # Move pane like Vim

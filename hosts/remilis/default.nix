@@ -23,7 +23,6 @@
       ../../darwin/apps/safari.nix
       ../../darwin/apps/system-preferences.nix
       ../../darwin/apps/t3code.nix
-      ../../darwin/apps/wezterm.nix
       ../../darwin/apps/zed.nix
       ../../darwin/fonts.nix
       ../../darwin/system.nix
@@ -50,7 +49,6 @@
       ../../home/t3code.nix
       ../../home/t3-sleep-watcher
       ../../home/vscode-family
-      ../../home/wezterm
       ../../home/zed
     ];
 

@@ -95,15 +95,15 @@
       zle -N bracketed-paste bracketed-paste-magic
 
       # Site-functions dir already added to fpath in .zshenv.
-      autoload -Uz enter-workspace tmux ghq git-wt-now
-      zle -N enter-workspace
+      autoload -Uz cd-repository ghq git-wt-now
+      zle -N cd-repository
 
       # C-Space: Start completion
       bindkey '^@' fzf-tab-complete
       # C-g: Use editor to edit command line
       bindkey "^g" edit-command-line
-      # C-x g: pick a repo and switch to its tmux session
-      bindkey "^xg" enter-workspace
+      # C-x g: pick a repository and change directory
+      bindkey "^xg" cd-repository
       # Unbind C-t (fzf file widget) so tmux prefix passes through
       bindkey -r '^t'
       # Cmd-r: Redo
@@ -120,15 +120,6 @@
       }
       zle -N _fzf-history-widget-fresh
       bindkey '^R' _fzf-history-widget-fresh
-
-      # Auto-launch tmux for shells spawned directly by wezterm.
-      # Unset first so tmux panes' shells (and any coding agent subshells)
-      # don't re-trigger. Only exit on tmux's normal termination (detach);
-      # fzf cancel or abnormal exits drop into the prompt.
-      if [[ -n "$WEZTERM_AUTORUN" ]]; then
-        unset WEZTERM_AUTORUN
-        tmux && exit
-      fi
 
       # Starship: HM's auto integration is disabled in
       # home/starship/default.nix so this branch is the sole source.

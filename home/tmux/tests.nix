@@ -10,8 +10,8 @@
 { pkgs }:
 
 let
-  # `tmux` fake. `display-message -p '#I'` and `... '#W'` echo the values
-  # configured via env vars; everything else is recorded only.
+  # `tmux` fake. `display-message -p '#I'` echoes the configured index;
+  # everything else is recorded only.
   fakeTmux = pkgs.writeShellScriptBin "tmux" ''
     log=''${TMUX_FAKE_LOG:?TMUX_FAKE_LOG must be set}
     printf 'tmux %s\n' "$*" >> "$log"
@@ -20,7 +20,6 @@ let
       display-message)
         case "''${3:-}" in
           "#I") printf '%s\n' "''${TMUX_FAKE_INDEX:-0}" ;;
-          "#W") printf '%s\n' "''${TMUX_FAKE_NAME-}" ;;
         esac
         ;;
     esac
@@ -35,10 +34,6 @@ let
   '';
 
   swapWindow = import ./scripts/swap-window.nix {
-    inherit pkgs;
-    tmux = fakeTmux;
-  };
-  tagWindow = import ./scripts/window-tag.nix {
     inherit pkgs;
     tmux = fakeTmux;
   };
@@ -99,38 +94,6 @@ in
     diff -u <(printf '%s\n' \
       "tmux display-message -p #I" \
       "tmux swap-window -s 3 -t 4") "$TMUX_FAKE_LOG"
-  '';
-
-  window-tag-fresh = mkCheck "window-tag-fresh" tagWindow ''
-    export TMUX_FAKE_NAME=foo
-    tmux-window-tag done
-    diff -u <(printf '%s\n' \
-      "tmux display-message -p #W" \
-      "tmux rename-window [done] foo") "$TMUX_FAKE_LOG"
-  '';
-
-  window-tag-replace-done = mkCheck "window-tag-replace-done" tagWindow ''
-    export TMUX_FAKE_NAME='[done] foo'
-    tmux-window-tag done
-    diff -u <(printf '%s\n' \
-      "tmux display-message -p #W" \
-      "tmux rename-window [done] foo") "$TMUX_FAKE_LOG"
-  '';
-
-  window-tag-replace-back-later = mkCheck "window-tag-replace-back-later" tagWindow ''
-    export TMUX_FAKE_NAME='[back later] foo'
-    tmux-window-tag done
-    diff -u <(printf '%s\n' \
-      "tmux display-message -p #W" \
-      "tmux rename-window [done] foo") "$TMUX_FAKE_LOG"
-  '';
-
-  window-tag-back-later = mkCheck "window-tag-back-later" tagWindow ''
-    export TMUX_FAKE_NAME=foo
-    tmux-window-tag 'back later'
-    diff -u <(printf '%s\n' \
-      "tmux display-message -p #W" \
-      "tmux rename-window [back later] foo") "$TMUX_FAKE_LOG"
   '';
 
   window-picker-usage = mkCheck "window-picker-usage" windowPicker ''

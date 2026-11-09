@@ -1,0 +1,7 @@
+emulate -L zsh
+
+local repo
+repo=$(command ghq list -p | fzf --prompt='repo> ') || return 0
+[[ -n "$repo" ]] || return 0
+cd -- "$repo" || return
+zle reset-prompt
