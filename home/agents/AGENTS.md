@@ -98,6 +98,19 @@ When a task depends on Figma and the agent cannot access the intended design rel
 
 ## Repository Rules
 
+### GitHub References
+
+- In GitHub issue and PR bodies, comments, commit messages, and other text
+  published to GitHub, use ordinary references when the source and target
+  repositories share the same owner (organization or user). Otherwise, avoid
+  backlinks: use a full URL with `redirect.github.com` instead
+  of `github.com`; do not use shorthand references or bare commit SHAs for
+  those targets. Keep the URL path, query, and fragment intact.
+- Example: `https://redirect.github.com/other-org/repo/issues/123`.
+- See [GitHub's backlink avoidance documentation](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/autolinked-references-and-urls#avoiding-backlinks-to-linked-references).
+  Redirect links do not show hover previews. This mechanism is unavailable on
+  GitHub Enterprise Cloud with Data Residency (`ghe.com`).
+
 ### Git Branching
 
 - When creating a topic branch, always branch off from the repository's default branch unless the user explicitly specifies a different base.
