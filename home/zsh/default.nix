@@ -63,6 +63,8 @@
       # Autoload wrapper functions here (not in .zshrc) so git aliases
       # and other non-interactive zsh subshells can resolve them.
       autoload -Uz op
+
+      source ${./agent-direnv.zsh}
     '';
     # .zprofile
     profileExtra = ''
