@@ -11,6 +11,7 @@ let
   # remilis below. The T3 Code desktop bundle on remilis comes from the same
   # pinned llm-agents revision as the CLI.
   byPname = pname: builtins.filter (package: (package.pname or "") == pname);
+  forgePnpm = byPname "pnpm" forgeHome.home.packages;
   forgeDeepseek = byPname "deepseek-harness" forgeHome.home.packages;
   remilisDeepseek = byPname "deepseek-harness" remilisHome.home.packages;
   deepseekAgent = forgeHome.launchd.agents.deepseek-harness;
@@ -26,7 +27,7 @@ let
   t3codePrepare = forgeHome.home.activation.prepareT3CodeLogs;
   t3codeState = "${forgeHome.xdg.stateHome}/t3code";
   extraHome = lib.subtractLists
-    (toolPaths remilisHome ++ paths forgeDeepseek ++ paths forgeT3Code)
+    (toolPaths remilisHome ++ paths forgeDeepseek ++ paths forgePnpm ++ paths forgeT3Code)
     (toolPaths forgeHome);
   extraSystem = lib.subtractLists
     (paths remilis.environment.systemPackages)
@@ -101,10 +102,8 @@ assert lib.assertMsg (
   && lib.hasInfix "run touch" deepseekInstall.data
   && lib.hasInfix "run chmod 600" deepseekInstall.data
   && lib.hasInfix "umask 077" deepseekInstall.data
-  && lib.hasInfix
-    (builtins.unsafeDiscardStringContext "run env DEEPSEEK_HARNESS_HOME=${lib.escapeShellArg deepseekData} ${(builtins.head forgeDeepseek).outPath}/bin/deepseek-harness-install")
-    deepseekInstall.data
-) "forge01 must install deepseek-harness privately after user configuration and before launchd setup";
+  && !(lib.hasInfix "deepseek-harness-install" deepseekInstall.data)
+) "forge01 must prepare deepseek-harness directories privately after user configuration and before launchd setup";
 assert lib.assertMsg (
   deepseekAgent.enable
   && deepseekAgent.domain == "gui"
@@ -113,6 +112,7 @@ assert lib.assertMsg (
   && deepseekAgent.config.WorkingDirectory == forgeHome.home.homeDirectory
   && lib.all (path: lib.elem path (lib.splitString ":" deepseekAgent.config.EnvironmentVariables.PATH))
     (forgeHome.home.sessionPath ++ [ "${forgeHome.home.profileDirectory}/bin" "/run/current-system/sw/bin" "/usr/bin" "/bin" ])
+  && deepseekAgent.config.EnvironmentVariables.DSH_NODE == forgeHome.home.sessionVariables.DSH_NODE
   && deepseekAgent.config.RunAtLoad
   && deepseekAgent.config.KeepAlive == true
   && deepseekAgent.config.ThrottleInterval == 10

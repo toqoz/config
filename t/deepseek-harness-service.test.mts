@@ -221,7 +221,7 @@ test('exec propagates a backend crash so launchd can restart it', (t) => {
   assert.equal(w.run({ DSH_EXIT: '23' }).status, 23);
 });
 
-test('evaluated activation is dry-run safe and installs private data before launchd setup', (t) => {
+test('evaluated activation is dry-run safe and prepares private data before launchd setup', (t) => {
   const w = makeService(t);
   const evaluated = spawnSync('nix', ['eval', '--impure', '--json', '--expr', `
     let
@@ -235,7 +235,7 @@ test('evaluated activation is dry-run safe and installs private data before laun
       helper = flake.inputs.home-manager.outPath + "/lib/bash/home-manager.sh";
       bash = flake.inputs.nixpkgs.legacyPackages.aarch64-darwin.bash.outPath + "/bin/bash";
       dataDir = home.xdg.dataHome + "/deepseek-harness";
-      installer = package.outPath + "/bin/deepseek-harness-install";
+      node = home.home.sessionVariables.DSH_NODE;
       service = package.outPath + "/bin/deepseek-harness-service";
       remilisAbsent = !(remilis.home.activation ? installDeepseekHarness) && !(remilis.launchd.agents ? deepseek-harness);
     }
@@ -264,32 +264,19 @@ test('evaluated activation is dry-run safe and installs private data before laun
   assert.equal(contract.agent.config.StandardErrorPath, `${contract.dataDir}/log/stderr.log`);
 
   const data = join(w.root, 'activation-data');
-  const installer = join(w.root, 'installer');
-  const marker = join(w.root, 'installed');
-  writeFileSync(installer, `#!/bin/bash
-set -euo pipefail
-[ "$DEEPSEEK_HARNESS_HOME" = "${data}" ]
-[ -d "$DEEPSEEK_HARNESS_HOME/state" ]
-[ -d "$DEEPSEEK_HARNESS_HOME/log" ]
-[ -f "$DEEPSEEK_HARNESS_HOME/log/stdout.log" ]
-[ -f "$DEEPSEEK_HARNESS_HOME/log/stderr.log" ]
-printf '%s' "$(umask)" > "${marker}"
-`);
-  chmodSync(installer, 0o755);
-  const body = contract.activation.data.replaceAll(contract.dataDir, data).replaceAll(contract.installer, installer);
+  assert.equal(contract.agent.config.EnvironmentVariables.DSH_NODE, contract.node);
+  const body = contract.activation.data.replaceAll(contract.dataDir, data);
   const activation = `set -euo pipefail\nsource '${contract.helper}'\n${body}`;
   const dry = spawnSync(contract.bash, ['-c', activation], {
     encoding: 'utf8', env: { ...process.env, DRY_RUN: '1' },
   });
   assert.equal(dry.status, 0, dry.stderr);
   assert.ok(!existsSync(data), 'dry-run must not create data directories');
-  assert.ok(!existsSync(marker), 'dry-run must not run the installer');
   assert.match(dry.stdout, /deepseek|activation-data/);
   const env = { ...process.env };
   delete env.DRY_RUN;
   const live = spawnSync(contract.bash, ['-c', activation], { encoding: 'utf8', env });
   assert.equal(live.status, 0, live.stderr);
-  assert.equal(readFileSync(marker, 'utf8'), '0077');
   for (const path of [data, join(data, 'state'), join(data, 'log')]) {
     assert.equal(statSync(path).mode & 0o777, 0o700);
   }

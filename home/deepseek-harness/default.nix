@@ -4,19 +4,6 @@ let
     port = 3080;
     dataDir = "${config.xdg.dataHome}/deepseek-harness";
   };
-  # Single source of truth for the toqoz fork pin and its toolchain.
-  # The fork is a personal fork of shiguredo/deepseek-harness that squashes
-  # per-feature commits onto `toqoz/main` (currently mobile Enter inserts a
-  # newline, and an unauthenticated load offers the launch URL while retrying
-  # a withheld-cookie PWA launch once).
-  # It has no releases, so the installer clones this revision into a
-  # dedicated XDG data checkout at runtime instead of fetching a tarball.
-  source = {
-    url = "https://github.com/toqoz/deepseek-harness.git";
-    rev = "aa1711953fe700a6e599612d284b7412686ab9a8";
-    version = "0.2.2-rc.1"; # root package.json version at rev
-  };
-
   # The runtime's native loader inspects Node machine code and rejects the
   # Nix-built binary. Keep the official binary intact for this application.
   node = pkgs.stdenvNoCC.mkDerivation {
@@ -59,26 +46,16 @@ let
     meta.mainProgram = "pnpm";
   };
 
-  vars = {
-    inherit (source) url rev version;
-    inherit (service) dataDir;
-    git = lib.getExe pkgs.git;
-    node = lib.getExe node;
-    pnpm = lib.getExe pnpm;
-    ccPath = lib.makeBinPath [ pkgs.stdenv.cc ];
-  };
-
   package = pkgs.stdenv.mkDerivation {
     pname = "deepseek-harness";
-    inherit (source) version;
+    version = "1";
     dontUnpack = true;
     dontConfigure = true;
     dontBuild = true;
     installPhase = ''
       runHook preInstall
       mkdir -p "$out/bin"
-      install -m 755 ${pkgs.replaceVars ./install.sh vars} "$out/bin/deepseek-harness-install"
-      install -m 755 ${pkgs.replaceVars ./dsh.sh { inherit (vars) node rev dataDir; }} "$out/bin/dsh"
+      install -m 755 ${pkgs.replaceVars ./dsh.sh { node = lib.getExe node; inherit (service) dataDir; }} "$out/bin/dsh"
       install -m 755 ${pkgs.replaceVars ./service.sh {
         inherit (service) dataDir;
         port = toString service.port;
@@ -87,13 +64,14 @@ let
       runHook postInstall
     '';
     meta = {
-      description = "Pinned toqoz/deepseek-harness Web CLI installer and dsh launcher";
+      description = "DeepSeek Harness launcher and service";
       mainProgram = "dsh";
     };
   };
 in
 {
-  home.packages = [ package ];
+  home.packages = [ package (lib.hiPrio pnpm) ];
+  home.sessionVariables.DSH_NODE = lib.getExe node;
 
   home.activation.installDeepseekHarness = lib.hm.dag.entryBetween
     [ "setupLaunchAgents" ] [ "writeBoundary" "linkGeneration" ] ''
@@ -103,7 +81,6 @@ in
         run chmod 700 ${lib.escapeShellArgs [ service.dataDir "${service.dataDir}/state" "${service.dataDir}/log" ]}
         run touch ${lib.escapeShellArgs [ "${service.dataDir}/log/stdout.log" "${service.dataDir}/log/stderr.log" ]}
         run chmod 600 ${lib.escapeShellArgs [ "${service.dataDir}/log/stdout.log" "${service.dataDir}/log/stderr.log" ]}
-        run env DEEPSEEK_HARNESS_HOME=${lib.escapeShellArg service.dataDir} ${package}/bin/deepseek-harness-install
       )
     '';
 
@@ -118,6 +95,7 @@ in
     config = {
       ProgramArguments = [ "${package}/bin/deepseek-harness-service" ];
       WorkingDirectory = config.home.homeDirectory;
+      EnvironmentVariables.DSH_NODE = lib.getExe node;
       EnvironmentVariables.PATH = lib.concatStringsSep ":" (config.home.sessionPath ++ [
         "${config.home.profileDirectory}/bin"
         "/run/current-system/sw/bin"

@@ -116,7 +116,7 @@ with `switch-<host>` on each Mac.
 
 Some updates require work outside this repository:
 
-- Personal upstreams: update and publish `toqoz/t3-pstack` or merge changes into the `toqoz/deepseek-harness` fork first, then advance the corresponding lock or revision here.
+- Personal upstreams: update and publish `toqoz/t3-pstack`, then advance its lock here. Update the DeepSeek Harness application using the fork ops `sync.sh --install`; Nix manages its toolchain and service.
 - Self-updating apps and App Store apps: update on each Mac through the app or store. A Nix lock update does not select their versions.
 - macOS and Xcode Command Line Tools: update through Apple's system tools on each Mac.
 - Project dependencies and project-specific runtimes: update their owning repositories and lockfiles.
