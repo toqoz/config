@@ -18,12 +18,6 @@
 
     extraPackages = with pkgs; [
       skkDictionaries.l
-      lua-language-server
-      typescript-language-server
-      nixd # Nix Language Server
-      bash-language-server
-      vim-language-server
-      emmet-language-server
       stylua # Lua formatter
       nixfmt
       vimPlugins.telescope-fzy-native-nvim # To avoid build steps

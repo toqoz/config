@@ -15,7 +15,7 @@ return {
 			},
 		},
 		sources = {
-			default = { "lsp", "path", "buffer" },
+			default = { "path", "buffer" },
 		},
 		fuzzy = {
 			implementation = "prefer_rust_with_warning",
