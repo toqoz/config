@@ -91,7 +91,8 @@ repair, and confirmation should be managed autonomously by the agents.
 The runtime rules now distinguish completion requirements from work steps:
 intake sets and tracks the former; workers choose the latter. Intake's authority
 comes from prescribed rules and independence, not superior technical intelligence.
-Luna low is the intended intake model. Bounded specialist assessment handles
+The t-mode thread's own model is the intended intake model, with its starting
+choice recorded in dev-models.md. Bounded specialist assessment handles
 technical classification or adjudication only when rules and evidence do not
 settle it. Worker feedback can add a requirement, not silently remove one.
 
@@ -188,8 +189,8 @@ This invocation boundary separates UI task coordination from externally
 coordinated development, a requested Opus review, and delegated Figma operations.
 The invoked mode handles both continuations and new work until stopped or
 superseded, while respecting an explicitly narrower invocation. New requests
-get separate work identities and routes. Terra low remains the starting
-preference within t-mode, not a
+get separate work identities and routes. The dev-models starting choice for a
+t-mode thread remains a preference, not a
 reason to override a caller's model or assigned role. Earlier evaluations below
 used automatic intake and do not validate this explicit invocation boundary.
 Migration evaluation compared twelve development-plan cases in frozen old/new
@@ -210,3 +211,29 @@ reporting were clarified afterward and checked separately. These are synthetic
 plans, not executed development or statistical proof of non-inferiority. Prior
 state evals do not validate this new hierarchy. Host precedence for small review
 fixes and product-design routing were preserved during source review.
+
+## Model-start correction after one day of use
+
+On 2026-11-09 the user reported that a day of use made Terra 6.1 low unsuitable
+as the starting model for t-mode intake and for ordinary development: it still
+served isolated mechanical repair, but was weak at reading the rule files,
+writing briefs, and routine multi-interface work. The same report rated DeepSeek
+V4.1 Flash low on the cloud route as close to Sol for ordinary development.
+
+dev-models.md therefore starts a t-mode thread on Sol 6.1 low with DeepSeek V4.1
+Flash low on the ollama cloud route (build 1017) as the alternative, keeps Terra
+low inside R0, states that ordinary non-t-mode threads still start from Sol
+medium, and records the DeepSeek provider-instance/level mapping so `low` is no
+longer treated as an ambiguous label. The intake model reference here no longer
+names Luna low, which had contradicted the Terra-low default.
+
+This evidence is one user's day of unmeasured use, not a benchmark. Re-evaluate
+it before treating either starting choice as settled, and do not convert it into
+a capability ban on Terra low or a universal DeepSeek assignment.
+
+The same day produced a scope expectation: the user expects Terra and Luna mainly
+for narrowly delegated local tasks rather than for coordination or whole-outcome
+ownership. dev-models.md now states that scope and removed Terra from the R2,
+ordinary-development, and substantial-design rows. Keep them eligible for R0, R1,
+bounded implementation, narrow review, and bounded sub-tasks inside a larger
+outcome; restoring them as owners needs new evidence, not a table edit.
