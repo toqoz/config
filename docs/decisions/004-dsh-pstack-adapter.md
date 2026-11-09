@@ -160,7 +160,7 @@ DSH のスキルは description 一致でモデルが自分で読む。`unslop`�
 
 Claude / Codex の導入、認証、課金区分はこの adapter の関心ではない。adapter は「pstack の別名を DSH のどのツールに振るか」だけを定義し、そのバックエンドが実際に使えるかは前提条件として扱う。
 
-- 2026-11-05 時点で Codex は forge01 で利用可（`codex 0.164.0`、`~/.codex/auth.json`）。Claude は未導入・未認証で、`home/agents/claude-code` は [home/home.nix](../../home/home.nix)（remilis）のみ。
+- 2026-11-05 時点で Codex は forge01 で利用可（`codex 0.164.0`、`~/.codex/auth.json`）。Claude は未導入・未認証で、`home/agents/claude-code` は [hosts/remilis/default.nix](../../hosts/remilis/default.nix)（remilis）のみ。
 - 別名表の `subagent_claude_code` の行は、Claude が使えるようになるまで実質未使用。表からは消さない（切り替えは設定ではなく環境側の作業なので）。
 
 ## 実装

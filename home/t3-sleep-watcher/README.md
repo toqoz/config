@@ -25,7 +25,7 @@ KEEPRESSO_CLI=/Applications/Keepresso.app/Contents/Helpers/keepresso \
 ```
 
 Once live behavior has been verified, set
-`my.t3code.sleepWatcher.keepAwake = true` in `home/home.nix` to use leases from
+`my.t3code.sleepWatcher.keepAwake = true` in `hosts/remilis/default.nix` to use leases from
 launchd. The module is imported only by remilis.
 
 ## Policy

@@ -103,6 +103,7 @@
           home-manager.darwinModules.home-manager
           {
             users.users.${username}.home = "/Users/${username}";
+            system.primaryUser = username;
             # android-nixpkgs' hmModule references `pkgs.androidSdk`, which is
             # supplied by its overlay. Because `home-manager.useGlobalPkgs` is
             # true, the overlay must live at the nix-darwin `nixpkgs` level.
@@ -183,7 +184,11 @@
               inherit vercel-agent-browser;
               inherit gws;
             };
-            home-manager.users.${username} = homeModule;
+            home-manager.users.${username} = {
+              imports = [ homeModule ];
+              home.username = username;
+              home.homeDirectory = "/Users/${username}";
+            };
           }
         ];
       };
@@ -242,16 +247,8 @@
           };
 
       darwinConfigurations = nixpkgs.lib.mapAttrs (_: mkDarwinHost) {
-        remilis = {
-          username = "toqoz";
-          darwinModule = ./darwin/configuration.nix;
-          homeModule = ./home/home.nix;
-        };
-        forge01 = {
-          username = "agent";
-          darwinModule = ./darwin/forge01.nix;
-          homeModule = ./home/forge01.nix;
-        };
+        remilis = import ./hosts/remilis;
+        forge01 = import ./hosts/forge01;
       };
     };
 }

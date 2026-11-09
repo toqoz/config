@@ -7,10 +7,8 @@ This repo manages the machine environment with Nix, nix-darwin, and Home Manager
 Each tool's module owns its packages and settings. Host entry points select modules:
 
 - `home/base.nix` — shared development profile for both hosts
-- `home/home.nix` — remilis account and additional tools/desktop modules
-- `home/forge01.nix` — forge01 account using the shared profile
-- `darwin/configuration.nix` — remilis system and app selection
-- `darwin/forge01.nix` — forge01 system and app selection
+- `hosts/<host>/default.nix` — host username, system, and Home Manager settings
+- `darwin/base.nix` — shared Darwin module list for both hosts
 - `darwin/apps/<app>.nix` — GUI app installation, settings, and app registration
 - `packages/` — custom Nix packages
 

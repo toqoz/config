@@ -1,6 +1,6 @@
 # forge01 app-server
 
-Only `home/forge01.nix` imports `app-server.nix`. The user launch agent runs the shared llm-agents Codex package as `agent`, with `/Users/agent` as HOME and working directory. Codex keeps its existing state and account in `~/.codex`.
+Only `hosts/forge01/default.nix` imports `app-server.nix`. The user launch agent runs the shared llm-agents Codex package as `agent`, with `/Users/agent` as HOME and working directory. Codex keeps its existing state and account in `~/.codex`.
 
 The backend listens on `ws://127.0.0.1:4500`. Tailscale Serve terminates TLS on HTTPS port 4500 and proxies WebSocket upgrades to that loopback address. The endpoint is `wss://<Self.DNSName>:4500/`. It has no LAN listener or Funnel exposure. Tailnet access policy still controls who can reach it.
 

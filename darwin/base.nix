@@ -1,0 +1,13 @@
+[
+  ./app-registry.nix
+  ./apps/1password.nix
+  ./apps/chatgpt.nix
+  ./apps/chrome.nix
+  ./apps/ollama.nix
+  ./apps/orbstack.nix
+  ./apps/slack.nix
+  ./apps/tailscale.nix
+  ./homebrew.nix
+  ./nix.nix
+  ./unfree.nix
+]
