@@ -46,6 +46,12 @@ let
     meta.mainProgram = "pnpm";
   };
 
+  # The harness runs every shell command as a fresh, non-login `bash -c`, so
+  # the only startup file bash reads is BASH_ENV. Export it from the launcher
+  # (not from a discovered `.env`, which the harness refuses) so the bash tool,
+  # background jobs, and subagent CLIs all inherit the same direnv loading.
+  bashEnv = pkgs.writeText "dsh-bash-env.sh" (builtins.readFile ./bash-env.sh);
+
   package = pkgs.stdenvNoCC.mkDerivation {
     pname = "deepseek-harness";
     version = "1";
@@ -55,7 +61,7 @@ let
     installPhase = ''
       runHook preInstall
       mkdir -p "$out/bin"
-      install -m 755 ${pkgs.replaceVars ./dsh.sh { node = lib.getExe node; inherit (service) dataDir; }} "$out/bin/dsh"
+      install -m 755 ${pkgs.replaceVars ./dsh.sh { node = lib.getExe node; inherit (service) dataDir; inherit bashEnv; }} "$out/bin/dsh"
       install -m 755 ${pkgs.replaceVars ./service.sh {
         inherit (service) dataDir;
         port = toString service.port;
