@@ -69,6 +69,20 @@ assert lib.assertMsg (
   && forgeHome.home.username == "agent"
   && forgeHome.home.homeDirectory == "/Users/agent"
 ) "forge01 must manage the agent account at /Users/agent";
+assert lib.assertMsg (
+  lib.all (host:
+    let
+      user = host.system.primaryUser;
+      home = host.users.users.${user}.home;
+    in
+    host.sops.age.keyFile == "${home}/.config/sops/age/keys.txt"
+    && host.sops.secrets."git-identity-0-org".owner == user
+    && host.sops.secrets."git-identity-0-org".path == "${home}/.config/nix-contexts/0/org"
+    && host.sops.secrets."ssh-dev-hostname".owner == user
+    && host.sops.templates.ssh-config.path == "${home}/.config/nix-contexts/ssh/config"
+    && lib.hasInfix "Include ~/.config/nix-contexts/ssh/config" host.home-manager.users.${user}.home.file.".ssh/config".text
+  ) [ forge remilis ]
+) "Git and SSH secrets must use each host's primary user and home";
 assert lib.assertMsg (extraHome == [ ])
   "forge01 home.packages contains packages absent from remilis: ${lib.concatStringsSep ", " extraHome}";
 assert lib.assertMsg (builtins.length forgeDeepseek == 1)

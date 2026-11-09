@@ -81,10 +81,7 @@
     ];
 
     settings = {
-      user = {
-        name = "Takatoshi Matsumoto";
-        email = "toqoz403@gmail.com";
-      };
+      user.useConfigOnly = true;
       alias = {
         s = "!git stash list && git status -sb";
         dw = "diff --color-words";

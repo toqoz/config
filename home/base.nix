@@ -9,10 +9,12 @@
     ./fzf.nix
     ./gh.nix
     ./git.nix
+    ./git-identities.nix
     ./pi
     ./repo.nix
     ./scripts.nix
     ./starship
+    ./ssh.nix
     ./tmux
     ./unfree.nix
     ./xdg-misc.nix
@@ -47,6 +49,8 @@
   '';
 
   home.packages = with pkgs; [
+    age
+    sops
     ghq
     pnpm
     mariadb.client

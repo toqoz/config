@@ -10,7 +10,6 @@
     ./nix.nix
     ./obsidian.nix
     ./packages.nix
-    ./ssh.nix
     ./t3code.nix
     ./t3-sleep-watcher
     ./vscode-family
@@ -29,4 +28,5 @@
   # manage.
   home.username = "toqoz";
   home.homeDirectory = "/Users/toqoz";
+
 }

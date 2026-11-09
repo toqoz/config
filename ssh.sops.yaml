@@ -1,0 +1,20 @@
+hosts:
+    dev:
+        hostname: ENC[AES256_GCM,data:AVyT6s2C6BI+5BJMG36b,iv:/IaOClhlr0osfGle5qancoVkLvh5xGEeF0cyxHNuWak=,tag:oTOKoC9qpdMTR4+0dL3cOQ==,type:str]
+        user: ENC[AES256_GCM,data:Cw38XA==,iv:xb9dCe+16sRt3Gl3X/TH0RRGjihWxWPSzDmgcT/bdGM=,tag:i5I0xhx5J9iCGZruPe0w3g==,type:str]
+        identity_file: ENC[AES256_GCM,data:uBbxVrfkgOfN3uRYghF37Q0d+3k+AK5LI4d8MT42Pg==,iv:CVh0UvkbpoW+w8kM/8WQbHgfmtYXankmhtHnSuqRN7o=,tag:rZCvPeuTY0SVBGij0vp0Rw==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBOcm84amtGN2tGV3VBYUlN
+            cGQwUTNTSTNjMUV4aGhVZUxYT2h0VzJlUkYwClk2L0JWQzcvT2FRV3hQVG1PVlpO
+            d1RmOEdUajBtU2RMZGVidS9Tbk1tVEUKLS0tIGdIb3oweTJaakUrWGlBemN0OUlY
+            QnVJWCtRVytBOHZ5T3lTUE43UlRMSHcKqkdu3G9Ge52sM2NwdRSbvtTln/vLgeZV
+            /PV4VUmo7CZL2rlCDFNzpDM8JzQfEx2tOzuTWh71TH1bPdtssTWHaQ==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1kk9zyxawwusuc9nf7gf723pvyn426wgqeftanms8g4a2plupqp8qszgdfr
+    lastmodified: "2026-11-08T23:14:20Z"
+    mac: ENC[AES256_GCM,data:LnFKtsow2+0yGuLCRWgJ17SdgY7pEImbzFJYuYl9DkStN/OAvvXCANHCqb6SxtIIN6lhbGTCvx7g1YdmyLC8cVsNy94Dqhnd2M4XtQF6S+WGlO7+bmYOHKG1dTZH66v8zR6Ypl1aVYzbMSECzhumW9bW0PvQxvNUy7EhGGR4UCg=,iv:OJ1nafNGxk8cDA+ttuVFg7F1Nsjly2l8Gx+JENjGhsU=,tag:HynQRnFs5Ik1wHNn3MlFkQ==,type:str]
+    unencrypted_suffix: _unencrypted
+    version: 3.13.3

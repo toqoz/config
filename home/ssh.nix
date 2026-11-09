@@ -10,7 +10,7 @@
     # This won't be added again if you remove it.
     Include ~/.orbstack/ssh/config
 
-    Include ~/src/github.com/toqoz/private/ssh/config
+    Include ~/.config/nix-contexts/ssh/config
 
     Host *
       # OpenSSH 10.3 ignores deprecated aliases like "lowdelay throughput".

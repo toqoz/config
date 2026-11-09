@@ -11,6 +11,10 @@
       url = "github:nix-darwin/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     llm-agents = {
       url = "github:numtide/llm-agents.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -47,6 +51,7 @@
       nixpkgs,
       home-manager,
       nix-darwin,
+      sops-nix,
       llm-agents,
       agent-skills,
       anthropic-skills,
@@ -92,6 +97,9 @@
       mkDarwinHost = { username, darwinModule, homeModule }: nix-darwin.lib.darwinSystem {
         modules = [
           darwinModule
+          sops-nix.darwinModules.sops
+          ./darwin/git-identities.nix
+          ./darwin/ssh-secrets.nix
           home-manager.darwinModules.home-manager
           {
             users.users.${username}.home = "/Users/${username}";
