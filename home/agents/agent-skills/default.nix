@@ -60,6 +60,8 @@ in
 {
   imports = [ ./anthropic.nix ];
 
+  home.file.".agents/AGENTS.md".source = ../AGENTS.md;
+
   programs.agent-skills = {
     enable = true;
     sources = {
