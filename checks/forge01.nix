@@ -15,7 +15,7 @@ let
   forgeDeepseek = byPname "deepseek-harness" forgeHome.home.packages;
   remilisDeepseek = byPname "deepseek-harness" remilisHome.home.packages;
   deepseekAgent = forgeHome.launchd.agents.deepseek-harness;
-  deepseekInstall = forgeHome.home.activation.installDeepseekHarness;
+  deepseekPrepare = forgeHome.home.activation.deepseekHarnessDataDir;
   deepseekData = "${forgeHome.xdg.dataHome}/deepseek-harness";
   codexAgent = forgeHome.launchd.agents.codex-app-server;
   codexPrepare = forgeHome.home.activation.prepareCodexAppServer;
@@ -89,20 +89,20 @@ assert lib.assertMsg (builtins.length forgeDeepseek == 1)
   "forge01 must install exactly one deepseek-harness package";
 assert lib.assertMsg (
   remilisDeepseek == [ ]
-  && !(remilisHome.home.activation ? installDeepseekHarness)
+  && !(remilisHome.home.activation ? deepseekHarnessDataDir)
   && !(remilisHome.launchd.agents ? deepseek-harness)
 ) "remilis must not install or run deepseek-harness";
 assert lib.assertMsg (
-  lib.elem "writeBoundary" deepseekInstall.after
-  && lib.elem "linkGeneration" deepseekInstall.after
-  && lib.elem "setupLaunchAgents" deepseekInstall.before
+  lib.elem "writeBoundary" deepseekPrepare.after
+  && lib.elem "linkGeneration" deepseekPrepare.after
+  && lib.elem "setupLaunchAgents" deepseekPrepare.before
   && forgeHome.home.activation ? setupLaunchAgents
-  && lib.hasInfix "run mkdir -p" deepseekInstall.data
-  && lib.hasInfix "run chmod 700" deepseekInstall.data
-  && lib.hasInfix "run touch" deepseekInstall.data
-  && lib.hasInfix "run chmod 600" deepseekInstall.data
-  && lib.hasInfix "umask 077" deepseekInstall.data
-  && !(lib.hasInfix "deepseek-harness-install" deepseekInstall.data)
+  && lib.hasInfix "run mkdir -p" deepseekPrepare.data
+  && lib.hasInfix "run chmod 700" deepseekPrepare.data
+  && lib.hasInfix "run touch" deepseekPrepare.data
+  && lib.hasInfix "run chmod 600" deepseekPrepare.data
+  && lib.hasInfix "umask 077" deepseekPrepare.data
+  && !(lib.hasInfix "deepseek-harness-install" deepseekPrepare.data)
 ) "forge01 must prepare deepseek-harness directories privately after user configuration and before launchd setup";
 assert lib.assertMsg (
   deepseekAgent.enable

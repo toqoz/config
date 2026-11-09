@@ -230,14 +230,14 @@ test('evaluated activation is dry-run safe and prepares private data before laun
       remilis = flake.darwinConfigurations.remilis.config.home-manager.users.toqoz;
       package = builtins.head (builtins.filter (p: (p.pname or "") == "deepseek-harness") home.home.packages);
     in {
-      activation = home.home.activation.installDeepseekHarness;
+      activation = home.home.activation.deepseekHarnessDataDir;
       agent = home.launchd.agents.deepseek-harness;
       helper = flake.inputs.home-manager.outPath + "/lib/bash/home-manager.sh";
       bash = flake.inputs.nixpkgs.legacyPackages.aarch64-darwin.bash.outPath + "/bin/bash";
       dataDir = home.xdg.dataHome + "/deepseek-harness";
       node = home.home.sessionVariables.DSH_NODE;
       service = package.outPath + "/bin/deepseek-harness-service";
-      remilisAbsent = !(remilis.home.activation ? installDeepseekHarness) && !(remilis.launchd.agents ? deepseek-harness);
+      remilisAbsent = !(remilis.home.activation ? deepseekHarnessDataDir) && !(remilis.launchd.agents ? deepseek-harness);
     }
   `], { cwd: REPO, encoding: 'utf8', timeout: 90_000 });
   assert.equal(evaluated.status, 0, evaluated.stderr);
@@ -263,6 +263,9 @@ test('evaluated activation is dry-run safe and prepares private data before laun
   assert.equal(contract.agent.config.StandardOutPath, `${contract.dataDir}/log/stdout.log`);
   assert.equal(contract.agent.config.StandardErrorPath, `${contract.dataDir}/log/stderr.log`);
 
+  // Activation prepares the service directories; installing the app belongs
+  // to the fork ops (`sync.sh --install`), which builds the checkout.
+  assert.ok(!contract.activation.data.includes('deepseek-harness-install'), 'activation must not install the app');
   const data = join(w.root, 'activation-data');
   assert.equal(contract.agent.config.EnvironmentVariables.DSH_NODE, contract.node);
   const body = contract.activation.data.replaceAll(contract.dataDir, data);

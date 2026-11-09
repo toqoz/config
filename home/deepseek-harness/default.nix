@@ -26,7 +26,7 @@ let
 
   # The fork declares packageManager: pnpm@11.28.5; pin the exact npm
   # tarball directly instead of using pkgs.pnpm.
-  pnpm = pkgs.stdenv.mkDerivation {
+  pnpm = pkgs.stdenvNoCC.mkDerivation {
     pname = "pnpm";
     version = "11.28.5";
     src = pkgs.fetchurl {
@@ -46,7 +46,7 @@ let
     meta.mainProgram = "pnpm";
   };
 
-  package = pkgs.stdenv.mkDerivation {
+  package = pkgs.stdenvNoCC.mkDerivation {
     pname = "deepseek-harness";
     version = "1";
     dontUnpack = true;
@@ -73,7 +73,10 @@ in
   home.packages = [ package (lib.hiPrio pnpm) ];
   home.sessionVariables.DSH_NODE = lib.getExe node;
 
-  home.activation.installDeepseekHarness = lib.hm.dag.entryBetween
+  # The service needs its data, state, and log directories before launchd
+  # starts it. Installing the app is a separate step owned by the fork ops
+  # (`sync.sh --install`), which builds the checkout into a ready generation.
+  home.activation.deepseekHarnessDataDir = lib.hm.dag.entryBetween
     [ "setupLaunchAgents" ] [ "writeBoundary" "linkGeneration" ] ''
       (
         umask 077
