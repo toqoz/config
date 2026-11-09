@@ -13,7 +13,7 @@ let
   # dedicated XDG data checkout at runtime instead of fetching a tarball.
   source = {
     url = "https://github.com/toqoz/deepseek-harness.git";
-    rev = "701f13ec19413c811aa2742c1becfa94251de280";
+    rev = "aa1711953fe700a6e599612d284b7412686ab9a8";
     version = "0.2.2-rc.1"; # root package.json version at rev
   };
 
