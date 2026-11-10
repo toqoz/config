@@ -30,12 +30,24 @@
   };
   services.openssh.enable = false;
 
-  # 1 GB of RAM: keep swap in compressed memory so build and transfer spikes do
-  # not become SD-card writes.
+  # 1 GB of RAM is not enough to evaluate this configuration: nixpkgs
+  # evaluation alone peaks around 790 MB and the board has no EEPROM-style
+  # recovery, so an OOM-killed `nix` just leaves the switch unfinished.
+  #
+  # Compressed memory carries the common case; the SD-backed file is a lower
+  # priority backstop that only sees pressure during evaluation and builds.
   zramSwap = {
     enable = true;
-    memoryPercent = 50;
+    memoryPercent = 100;
+    priority = 100;
   };
+  swapDevices = [
+    {
+      device = "/var/swap";
+      size = 2048;
+      priority = 10;
+    }
+  ];
 
   # SD-card write budget. The journal stays in RAM and /tmp is a tmpfs, so
   # routine operation does not touch the card.
