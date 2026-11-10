@@ -30,6 +30,24 @@
   };
   services.openssh.enable = false;
 
+  # Local console recovery. The board is headless and has no out-of-band access,
+  # so a locked account would mean reflashing the SD card. The generic SD image
+  # ships these same credentials through its installation-device profile; this
+  # module has to restate them, because switching to it regenerates /etc/group
+  # and /etc/sudoers from this configuration alone.
+  #
+  # The empty passwords only work at an attached console. Remote access stays
+  # tailnet-only, and tightening this is a decision for when Tailscale SSH is
+  # known to work on this host.
+  users.users.nixos = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" ];
+    initialHashedPassword = "";
+  };
+  users.users.root.hashedPassword = "";
+  security.sudo.wheelNeedsPassword = false;
+  services.getty.autologinUser = "nixos";
+
   # 1 GB of RAM is not enough to evaluate this configuration: nixpkgs
   # evaluation alone peaks around 790 MB and the board has no EEPROM-style
   # recovery, so an OOM-killed `nix` just leaves the switch unfinished.
