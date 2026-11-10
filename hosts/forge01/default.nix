@@ -3,7 +3,10 @@
 
   darwinModule = { ... }:
   {
-    imports = import ../../darwin/base.nix;
+    # Preserve Homebrew declaration order when combining shared and host apps.
+    imports = builtins.sort (a: b: toString a < toString b) ((import ../../darwin/base.nix) ++ [
+      ../../darwin/apps/rpi-imager.nix
+    ]);
 
     nixpkgs.hostPlatform = "aarch64-darwin";
     system.stateVersion = 6;
