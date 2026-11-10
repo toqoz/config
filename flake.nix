@@ -250,5 +250,14 @@
         remilis = import ./hosts/remilis;
         forge01 = import ./hosts/forge01;
       };
+
+      # Linux hosts are built on the host itself (or on another aarch64-linux
+      # machine); forge01 cannot build aarch64-linux derivations, because Nix is
+      # owned by nix-installer there and no Linux builder is configured.
+      nixosConfigurations = {
+        ras01 = nixpkgs.lib.nixosSystem {
+          modules = [ ./hosts/ras01 ];
+        };
+      };
     };
 }
