@@ -76,8 +76,11 @@ function makeWorkspace(t: TestContext) {
     FAKE_RECURSE: '1',
     ...extra,
   });
+  // On macOS, a socket on stdin makes bash skip BASH_ENV as a remote shell.
   const run = (cwd: string, command: string, extra: NodeJS.ProcessEnv = {}) =>
-    spawnSync('/bin/bash', ['-c', command], { cwd, encoding: 'utf8', timeout: 20_000, env: env(extra) });
+    spawnSync('/bin/bash', ['-c', command], {
+      cwd, encoding: 'utf8', timeout: 20_000, env: env(extra), stdio: ['ignore', 'pipe', 'pipe'],
+    });
   const recorded = (): { args: string[]; cwd: string; logFormat: string | null }[] =>
     existsSync(calls)
       ? readFileSync(calls, 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line))
