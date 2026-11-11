@@ -35,7 +35,7 @@
     system.startup.chime = false;
   };
 
-  homeModule = { ... }:
+  homeModule = { config, lib, ... }:
   {
     imports = [
       ../../home/base.nix
@@ -52,6 +52,13 @@
       ../../home/vscode-family
       ../../home/zed
     ];
+
+    home.file = let
+      instructions = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/nix-contexts/agent-instructions/AGENTS.md";
+    in {
+      ".codex/AGENTS.md".source = lib.mkForce instructions;
+      "${config.programs.claude-code.configDir}/CLAUDE.md".source = lib.mkForce instructions;
+    };
 
     # Both hosts run the server the same way; this one also runs the desktop
     # app, which attaches to the local server instead of starting its own.

@@ -23,6 +23,7 @@
     imports = [
       ../../home/base.nix
       ../../home/agents/claude-code
+      ../../home/agents/mcp.nix
       ../../home/agents/codex/app-server.nix
       ../../home/deepseek-harness
       ../../home/t3code.nix
