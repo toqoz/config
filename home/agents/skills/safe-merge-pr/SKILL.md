@@ -26,10 +26,14 @@ an independent polling loop or hardcode a reviewer CLI or model. When the host
 has no PR watch, use a blocking forge wait only if host rules allow it; otherwise
 report the pending state. Apply this waiting rule to queued merges too.
 
-Treat every CI check reported for the candidate head as a merge gate, even if
-branch protection does not require it or the change appears unrelated. Wait
-for pending checks; do not rerun a check just because it is still running. If a
-check fails, investigate and rerun it once. If the rerun does not pass, or a
+Treat every actual check run and commit status reported for the candidate head
+as a merge gate, even if branch protection does not require it or the change
+appears unrelated. An empty, non-required check suite with zero runs is not a
+pending check, even when the suite is queued. Separately verify required checks:
+a missing required check still blocks merging, regardless of empty suites. If
+check or requirement state cannot be obtained, treat it as unknown and do not
+merge. Wait for pending checks; do not rerun a check just because it is still
+running. If a check fails, investigate and rerun it once. If the rerun does not pass, or a
 rerun cannot be completed, stop without merging and report the result. Apply
 this rule to poteto-mode as well.
 
@@ -102,7 +106,8 @@ A pending CI/merge-queue wait is resumable work, not completion or cancellation.
 5. Immediately before merging, re-read the head, base, checks, approvals,
    unresolved threads, and mergeability. Proceed only on the reviewed head
    (or the head covered by an explicit review waiver),
-   with all reported checks passing (or confirmed absent), required approvals
+   with all actual check runs and commit statuses passing (or confirmed absent),
+   all required checks satisfied, required approvals
    present, and no unresolved blocking findings or conflicts. If the candidate
    changed, repeat the affected checks/review. Bind the merge to the checked
    head using the forge's expected-head option, such as GitHub CLI's
