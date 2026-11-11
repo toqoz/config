@@ -118,4 +118,32 @@ in
       StandardErrorPath = "${service.dataDir}/log/stderr.log";
     };
   };
+
+  # The morning import verifies the DS Bot fork inside a Bot sandbox, which cannot
+  # write the profile it runs from: that profile sits under the DSH data root and
+  # DS Bot refuses to grant a Bot access there. The Bot leaves a marker in its own
+  # checkout and this helper applies the fork from outside the sandbox. A release
+  # change restarts the service to load it; a failed apply keeps the marker so the
+  # next interval retries and the log shows what the Bot could not do itself.
+  launchd.agents.ds-bot-apply = {
+    enable = true;
+    domain = "gui";
+    config = {
+      ProgramArguments = [ "${pkgs.bash}/bin/bash" "${./ds-bot-apply.sh}" ];
+      WorkingDirectory = config.home.homeDirectory;
+      StartInterval = 300;
+      ProcessType = "Background";
+      # The apply helper runs the checkout's Node scripts and pnpm wrappers, and
+      # this Node is not in the home profile: the launcher reaches it through
+      # DSH_NODE instead. Put it on the helper's PATH as well.
+      EnvironmentVariables.DSH_NODE = lib.getExe node;
+      EnvironmentVariables.PATH = lib.concatStringsSep ":" ([ "${node}/bin" ] ++ config.home.sessionPath ++ [
+        "${config.home.profileDirectory}/bin"
+        "/run/current-system/sw/bin"
+        "/usr/bin" "/bin" "/usr/sbin" "/sbin"
+      ]);
+      StandardOutPath = "${service.dataDir}/log/ds-bot-apply.log";
+      StandardErrorPath = "${service.dataDir}/log/ds-bot-apply.log";
+    };
+  };
 }
