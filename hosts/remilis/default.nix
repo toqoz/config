@@ -24,6 +24,7 @@
       ../../darwin/apps/system-preferences.nix
       ../../darwin/apps/t3code.nix
       ../../darwin/apps/zed.nix
+      ../../darwin/agent-instructions.nix
       ../../darwin/fonts.nix
       ../../darwin/system.nix
     ]);
