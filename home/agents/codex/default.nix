@@ -7,6 +7,9 @@ let
     {
       model = "gpt-6.1-sol";
 
+      # Avoid Keychain prompts when T3 Code invokes Codex MCP servers.
+      mcp_oauth_credentials_store = "file";
+
       features.multi_agent = true;
 
       notice.model_migrations."gpt-5.1-codex-mini" = "gpt-6.1-sol";
