@@ -244,6 +244,10 @@
               forge = self.darwinConfigurations.forge01.config;
               remilis = self.darwinConfigurations.remilis.config;
             };
+            ras01-object-storage = import ./checks/ras01-object-storage.nix {
+              inherit pkgs lib;
+              ras01 = self.nixosConfigurations.ras01.config;
+            };
           };
 
       darwinConfigurations = nixpkgs.lib.mapAttrs (_: mkDarwinHost) {

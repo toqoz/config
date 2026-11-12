@@ -10,6 +10,7 @@ Each tool's module owns its packages and settings. Host entry points select modu
 - `hosts/<host>/default.nix` — host username, system, and Home Manager settings
 - `darwin/base.nix` — shared Darwin module list for both hosts
 - `darwin/apps/<app>.nix` — GUI app installation, settings, and app registration
+- `nixos/<module>/` — NixOS service modules, imported by Linux hosts such as ras01
 - `packages/` — custom Nix packages
 
 Add shared tools through `home/base.nix`; keep host-specific additions in the host's import list or package module. Reuse tool modules rather than copying their settings between hosts.
@@ -25,6 +26,7 @@ Add shared tools through `home/base.nix`; keep host-specific additions in the ho
 | Codex settings, instructions, rules | `home/agents/codex/` |
 | Shared agent instructions | `home/agents/AGENTS.md` |
 | Agent skills | `home/agents/skills/<skill-name>/SKILL.md` |
+| ras01 object storage buckets, IAM users, policies | `hosts/ras01/object-storage.nix` (module: `nixos/object-storage/`) |
 
 ## Workspace Context
 
