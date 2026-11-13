@@ -1,6 +1,9 @@
-{ lib, pkgs, llm-agents, ... }:
+{ config, lib, pkgs, llm-agents, ... }:
 let
-  agentPolicy = import ../policy { inherit lib; };
+  agentPolicy = import ../policy {
+    inherit lib;
+    inherit (config.home) homeDirectory;
+  };
 in
 {
   my.unfreePackages = [ "claude-code" ];

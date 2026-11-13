@@ -65,6 +65,21 @@ Assigned workers follow their brief without assuming coordination authority.
 - `tui-acceptance-checks` — use for manual verification of TUI / interactive CLI changes when automated coverage is missing
 - `computer-configuration` — use before reading or editing configuration in `~/src/github.com/toqoz/config`. Always prefer this over Claude Code's bundled `update-config` skill: when `update-config` would auto-trigger (settings.json, hooks, permissions, env vars), route through `computer-configuration` instead so the change lands in the nix source of truth rather than the generated symlink
 - `triage` — use at a natural task boundary when routine work reveals an out-of-scope issue, improvement, or recurring friction worth considering
+- `grokbot-notify` — send a Grokbot webhook notification for the current thread; pre-authorized, see Grokbot Notifications below
+
+## Grokbot Notifications
+
+- Sending a Grokbot webhook notification is pre-authorized. When the user asks to
+  notify a Grokbot bot, or invokes `/grokbot-notify <grok_bot_id>`, use the
+  `grokbot-notify` skill and run its bundled `notify.py` without asking for
+  confirmation or escalation.
+- The script posts the current T3 Code thread ID (`T3CODE_THREAD_ID`) to the
+  webhook configured in `~/.config/grokbot-webhook/credentials.json`. That exact
+  command is allow-listed in `home/agents/policy` for Claude Code and Codex, so
+  no approval prompt should appear. Do not widen the rule to other scripts or
+  other command prefixes.
+- Report the script's result as-is. Do not retry after a failure: the webhook may
+  already have received the notification.
 
 ## Findings During Routine Work
 

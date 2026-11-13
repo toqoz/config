@@ -53,8 +53,11 @@ escalation requests, call `exec_command` with these arguments for the first send
 ```
 
 `sandbox_permissions` is an execution-tool argument. Do not pass it to Python
-or add it to the skill frontmatter. Request permission only for this notification
-command, and do not request a persistent command-prefix rule.
+or add it to the skill frontmatter. The notification command is pre-authorized:
+`home/agents/policy` allow-lists this exact `notify.py` invocation for both
+Claude Code and Codex, so it should run without an approval prompt. If a prompt
+appears anyway, request permission for this command only; do not widen the rule
+to other scripts or command prefixes.
 
 T3 Code's `runtimeMode: "auto"` routes eligible requests through automatic review.
 The caller selects that mode. This skill does not change the thread's runtime mode,

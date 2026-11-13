@@ -1,7 +1,10 @@
 { config, lib, pkgs, ... }:
 let
   tomlFormat = pkgs.formats.toml { };
-  agentPolicy = import ../policy { inherit lib; };
+  agentPolicy = import ../policy {
+    inherit lib;
+    inherit (config.home) homeDirectory;
+  };
 
   managedSettings =
     {

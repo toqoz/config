@@ -1,4 +1,4 @@
-{ lib }:
+{ lib, homeDirectory }:
 let
   # Keep the source policy structured in Nix instead of parsing Claude-style
   # strings back into data. Claude and Codex are rendered from the same entries.
@@ -11,11 +11,25 @@ let
     inherit pattern;
   };
 
+  claudeBashPrefix = pattern: {
+    kind = "bash-prefix";
+    targets = [ "claude" ];
+    inherit pattern;
+  };
+
   codexBashPrefix = pattern: {
     kind = "bash-prefix";
     targets = [ "codex" ];
     inherit pattern;
   };
+
+  # Skills are installed per target, so each agent resolves notify.py under its
+  # own skills directory: ~/.claude/skills for Claude Code, ~/.agents/skills for
+  # Codex and the shared agent skills.
+  grokbotNotify = entry: skillsDir: entry [
+    "python3"
+    "${homeDirectory}/${skillsDir}/skills/grokbot-notify/scripts/notify.py"
+  ];
 
   claudePathPermission =
     action: path:
@@ -69,6 +83,12 @@ let
     ];
 
     allow = [
+      # Sending the current thread ID to the Grokbot webhook is pre-authorized
+      # (see the Grokbot Notifications section of home/agents/AGENTS.md). Only
+      # the skill's own script is allow-listed, not arbitrary python3.
+      (grokbotNotify claudeBashPrefix ".claude")
+      (grokbotNotify bashPrefix ".agents")
+
       (claudePathPermission "Read" "~/agents/**")
       (claudePathPermission "Write" "~/agents/**")
       (claudePathPermission "Edit" "~/agents/**")
