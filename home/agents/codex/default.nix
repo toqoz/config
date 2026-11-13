@@ -12,6 +12,8 @@ let
 
       features.multi_agent = true;
 
+      sandbox_workspace_write.network_access = true;
+
       notice.model_migrations."gpt-5.1-codex-mini" = "gpt-6.1-sol";
       notice.model_migrations."gpt-5.4" = "gpt-6.1-sol";
     }
