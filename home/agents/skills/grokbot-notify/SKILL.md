@@ -1,7 +1,7 @@
 ---
 name: grokbot-notify
 description: Send a Grokbot webhook notification for the current T3 Code thread. Use when the user invokes /grokbot-notify <grok_bot_id> or explicitly asks to notify a Grokbot bot.
-disable-model-invocation: true
+disable-model-invocation: false
 argument-hint: <grok_bot_id>
 ---
 
