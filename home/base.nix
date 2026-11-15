@@ -3,6 +3,7 @@
   imports = [
     ./agents/agent-skills
     ./agents/codex
+    ./agents/grokbot-notify
     ./android.nix
     ./asdf
     ./direnv.nix

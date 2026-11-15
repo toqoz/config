@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   llm-agents,
@@ -12,6 +13,11 @@ in
   home.packages = [
     piPackage
   ];
+
+  home.file.".pi/agent/extensions/grokbot-notify.ts".text = builtins.replaceStrings
+    [ ''"@GROKBOT_NOTIFY@"'' ]
+    [ (builtins.toJSON config.my.grokbotNotify.command) ]
+    (builtins.readFile ./grokbot-notify.ts);
 
   home.activation.configurePi = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     export PATH="${lib.makeBinPath [

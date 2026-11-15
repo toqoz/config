@@ -17,6 +17,22 @@ let
 
       sandbox_workspace_write.network_access = true;
 
+      hooks = lib.genAttrs [ "UserPromptSubmit" "PostModelRequest" "Stop" "PreToolUse" ] (
+        event: [
+          (lib.optionalAttrs (event == "PreToolUse") {
+            matcher = "^(request_user_input|request_user_input_async)$";
+          } // {
+            hooks = [
+              {
+                type = "command";
+                command = "${lib.escapeShellArg config.my.grokbotNotify.command} hook codex";
+                timeout = 10;
+              }
+            ];
+          })
+        ]
+      );
+
       notice.model_migrations."gpt-5.1-codex-mini" = "gpt-6.1-sol";
       notice.model_migrations."gpt-5.4" = "gpt-6.1-sol";
     }
@@ -75,7 +91,7 @@ in
 
     managed_path, live_path, output_path = sys.argv[1:4]
 
-    def load_projects(path: str) -> dict:
+    def load_live_config(path: str) -> dict:
         if not os.path.exists(path):
             return {}
         try:
@@ -83,8 +99,7 @@ in
                 data = tomllib.load(f)
         except Exception:
             return {}
-        projects = data.get("projects", {})
-        return projects if isinstance(projects, dict) else {}
+        return data
 
     _BARE_KEY_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 
@@ -128,9 +143,15 @@ in
         managed_text = f.read().rstrip()
 
     lines = [managed_text] if managed_text else []
-    projects = load_projects(live_path)
-    if projects:
+    live = load_live_config(live_path)
+    projects = live.get("projects", {})
+    if isinstance(projects, dict) and projects:
         emit_table(lines, ["projects"], projects)
+
+    hooks = live.get("hooks", {})
+    hook_state = hooks.get("state", {}) if isinstance(hooks, dict) else {}
+    if isinstance(hook_state, dict) and hook_state:
+        emit_table(lines, ["hooks", "state"], hook_state)
 
     rendered = "\n".join(lines).rstrip() + "\n"
     with open(output_path, "w", encoding="utf-8") as f:

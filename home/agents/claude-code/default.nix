@@ -67,6 +67,22 @@ in
       language = "japanese";
       plansDirectory = "./.agents/share/plans";
 
+      hooks = lib.genAttrs [ "UserPromptSubmit" "Stop" "StopFailure" "PreToolUse" ] (
+        event: [
+          (lib.optionalAttrs (event == "PreToolUse") {
+            matcher = "^AskUserQuestion$";
+          } // {
+            hooks = [
+              {
+                type = "command";
+                command = "${lib.escapeShellArg config.my.grokbotNotify.command} hook claude";
+                timeout = 10;
+              }
+            ];
+          })
+        ]
+      );
+
       env = {
         CLAUDE_CODE_NO_FLICKER = "1";
         # Allow T3 to fetch Claude usage. Restore "1" once T3 can disable
