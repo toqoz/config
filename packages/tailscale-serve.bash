@@ -8,13 +8,18 @@ fail() {
   exit 1
 }
 
-[ "$#" -eq 1 ] || fail "expected one HTTPS port"
+[ "$#" -eq 1 ] || [ "$#" -eq 2 ] || fail "expected an HTTPS port and an optional backend port"
 PORT=$1
+BACKEND_PORT=${2:-$1}
 case "$PORT" in
   ''|*[!0-9]*|0*) fail "invalid HTTPS port" ;;
 esac
 [ "${#PORT}" -le 5 ] && [ "$PORT" -le 65535 ] || fail "invalid HTTPS port"
-BACKEND="http://127.0.0.1:$PORT"
+case "$BACKEND_PORT" in
+  ''|*[!0-9]*|0*) fail "invalid backend port" ;;
+esac
+[ "${#BACKEND_PORT}" -le 5 ] && [ "$BACKEND_PORT" -le 65535 ] || fail "invalid backend port"
+BACKEND="http://127.0.0.1:$BACKEND_PORT"
 
 # launchd retries startup after Tailscale login or connectivity recovers.
 status=$("$TAILSCALE" status --json) || fail "Tailscale status unavailable"
