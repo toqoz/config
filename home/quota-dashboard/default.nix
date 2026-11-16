@@ -35,13 +35,25 @@ let
   stackUp = pkgs.writeShellScript "quota-dashboard-stack-up" ''
     set -euo pipefail
     export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+
+    # OrbStack only creates the /usr/local/bin symlinks after its first-run
+    # setup, so fall back to the bundle while that has not happened yet.
+    docker_bin=/usr/local/bin/docker
+    if [ ! -x "$docker_bin" ]; then
+      docker_bin=/Applications/OrbStack.app/Contents/MacOS/xbin/docker
+    fi
+    if [ ! -x "$docker_bin" ]; then
+      echo "quota-dashboard: OrbStack is not installed; run 'nix run .#switch-<host>'" >&2
+      exit 1
+    fi
+
     for _ in $(seq 1 150); do
-      if docker info >/dev/null 2>&1; then
+      if "$docker_bin" info >/dev/null 2>&1; then
         break
       fi
       sleep 2
     done
-    docker compose --project-name quota-dashboard --file ${compose} up --detach --remove-orphans
+    "$docker_bin" compose --project-name quota-dashboard --file ${compose} up --detach --remove-orphans
   '';
 in
 {
