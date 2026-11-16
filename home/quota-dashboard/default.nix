@@ -67,7 +67,7 @@ ${lib.optionalString (cfg.stack.rootUrl != "") "          - GF_SERVER_ROOT_URL=$
   # tailnet, so no certificate needs to be managed here.
   serveScript = pkgs.writeShellScript "quota-grafana-serve" ''
     set -euo pipefail
-    exec ${tailscaleServe} ${toString cfg.stack.httpsPort} ${toString cfg.stack.grafanaPort}
+    exec ${tailscaleServe} ${toString cfg.stack.grafanaPort}
   '';
 in
 {
@@ -118,13 +118,7 @@ in
       tailscaleServe = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Publish Grafana over HTTPS on the tailnet with Tailscale Serve.";
-      };
-
-      httpsPort = lib.mkOption {
-        type = lib.types.port;
-        default = 443;
-        description = "Tailnet HTTPS port served by `tailscale serve`.";
+        description = "Publish Grafana over HTTPS on the tailnet with Tailscale Serve, keeping its own port in the URL.";
       };
 
       rootUrl = lib.mkOption {

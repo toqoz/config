@@ -348,6 +348,7 @@ assert lib.assertMsg (
   && !(remilisHome.launchd.agents ? quota-grafana-serve)
   && lib.hasInfix "127.0.0.1:3370:3000" forgeHome.my.quotaDashboard.stack.composeText
   && lib.hasInfix "0.0.0.0:43180:4318" forgeHome.my.quotaDashboard.stack.composeText
+  && lib.hasInfix "GF_SERVER_ROOT_URL=https://forge01.tail99f21.ts.net:3370/" forgeHome.my.quotaDashboard.stack.composeText
 ) "both hosts must collect quotas as a persistent gui-domain service, and only forge01 may host the aggregation stack and publish Grafana over tailnet HTTPS";
 pkgs.runCommand "forge01-contract" { } ''
   touch "$out"

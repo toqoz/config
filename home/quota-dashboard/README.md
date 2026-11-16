@@ -9,10 +9,12 @@ receives Claude Code and Codex telemetry.
 | forge01 | yes (posts to `127.0.0.1:4318`) | yes |
 | remilis | yes (posts to `forge01:4318`) | no |
 
-Grafana: `https://forge01.<tailnet>.ts.net/` from the tailnet, or
+Grafana: `https://forge01.<tailnet>.ts.net:3370/` from the tailnet, or
 `http://localhost:3370` on forge01 itself. Grafana binds loopback only and the
-`quota-grafana-serve` agent publishes it with `tailscale serve --https=443`,
-which uses the tailnet certificate (the tailnet must have HTTPS enabled).
+`quota-grafana-serve` agent publishes it with
+`tailscale serve --https=3370`, which uses the tailnet certificate (the tailnet
+must have HTTPS enabled). Keep the port in the URL: the tailnet root is shared
+with other services instead of being claimed for this one.
 `stack.rootUrl` is set to the same URL so Grafana-generated links stay on
 HTTPS.
 OTLP is on 43180 (HTTP) and 43170 (gRPC); the non-standard host ports keep the

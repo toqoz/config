@@ -40,7 +40,7 @@
       stack.enable = true;
       # Tailscale Serve terminates HTTPS for the loopback Grafana; root_url
       # keeps Grafana-generated links on the tailnet URL.
-      stack.rootUrl = "https://forge01.tail99f21.ts.net/";
+      stack.rootUrl = "https://forge01.tail99f21.ts.net:3370/";
     };
   };
 }
