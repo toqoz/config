@@ -222,7 +222,6 @@ class Collector:
 
     def collect_ollama(self) -> None:
         try:
-            usage = http_json(f"{OLLAMA_BASE_URL}/api/usage?range=24h")
             balance = http_json(f"{OLLAMA_BASE_URL}/api/balance")
         except (OSError, urllib.error.URLError, json.JSONDecodeError) as error:
             self.fail("ollama_cloud", error)
@@ -247,13 +246,6 @@ class Collector:
         if purchased is not None:
             self.emit("credit_balance_usd", purchased, {"service": "ollama_cloud"})
 
-        totals = usage.get("totals") or {}
-        if totals.get("usage_usd") is not None:
-            self.emit(
-                "usage_window_usd",
-                totals["usage_usd"],
-                {"service": "ollama_cloud", "window": "24h"},
-            )
 
     def collect_opencode(self) -> None:
         try:

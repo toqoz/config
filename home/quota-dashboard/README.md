@@ -35,7 +35,7 @@ All sources are read-only. Nothing refreshes a token.
 | --- | --- | --- |
 | `claude_code` | `GET https://api.anthropic.com/api/oauth/usage` with the OAuth token in the login Keychain (`Claude Code-credentials`) | Account level, includes five-hour, weekly, model-scoped weekly, and spend. Polled every 5 minutes because the endpoint rate-limits tighter loops. An expired token is skipped; Claude Code refreshes it on its next run. |
 | `codex` | Newest `~/.codex/sessions/**/*.jsonl`, last `token_count` event's `rate_limits` | Scans sessions newest-first until one has `rate_limits`. Observation time is the event's own `timestamp` (file mtime as fallback). |
-| `ollama_cloud` | Local Ollama server: `/api/usage?range=24h` and `/api/balance` | The server holds the cloud login, so no API key is needed. |
+| `ollama_cloud` | Local Ollama server: `/api/balance` | The server holds the cloud login, so no API key is needed. |
 | `opencode_go` | `GET https://opencode.ai/inference/go/v1/usage` with the `opencode-go` key from `~/.pi/agent/auth.json` | `rolling` / `weekly` / `monthly` percentages and reset times. |
 
 Grok Build is intentionally not collected yet.
@@ -52,7 +52,6 @@ Gauges, all carrying `host_name` (OTel resource `host.name`) and
 | `quota_observed_at_seconds` | `service`, `window`, optional `scope` | When the source was last read |
 | `quota_used_usd`, `quota_limit_usd` | `service`, `window` | Money-based windows |
 | `credit_balance_usd` | `service` | Purchased credit balance |
-| `usage_window_usd` | `service`, `window` | Ollama `usage_usd` for the rolling 24h window |
 | `collector_errors_total` | `source` | Cumulative read failures per source; persisted in `~/.local/state/quota-dashboard/collector-state.json` so a restart does not reset the counter |
 
 `window` is one of `5h`, `weekly`, `monthly`, `spend`.
@@ -64,9 +63,8 @@ can be summed, which is why `host_name` is always attached.
 ## Dashboard panels
 
 1. One table per service/window: usage as a bar, then `リセットまで` (relative), the absolute reset time, and how long ago the data was observed. Rows are sorted by service, window, and scope, never by value, so the order does not jump between refreshes.
-2. Ollama's 24h `usage_usd`.
-3. Trends: weekly, five-hour, money windows and credit balance.
-4. Health: collection errors per source.
+2. Trends: weekly, five-hour, money windows and credit balance.
+3. Health: collection errors per source.
 
 ## Operating
 
