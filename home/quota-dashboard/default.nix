@@ -12,8 +12,8 @@ let
         restart: unless-stopped
         ports:
           - "0.0.0.0:${toString cfg.stack.grafanaPort}:3000"
-          - "0.0.0.0:4317:4317"
-          - "0.0.0.0:4318:4318"
+          - "0.0.0.0:${toString cfg.stack.otlpGrpcPort}:4317"
+          - "0.0.0.0:${toString cfg.stack.otlpHttpPort}:4318"
         environment:
           - PROMETHEUS_EXTRA_ARGS=--storage.tsdb.retention.time=${cfg.stack.retention}
           # Read-only browsing for anything that can reach the host. Password
@@ -55,7 +55,16 @@ in
 
     endpoint = lib.mkOption {
       type = lib.types.str;
-      default = "http://forge01:4318/v1/metrics";
+      default = if cfg.stack.enable then
+        "http://127.0.0.1:${toString cfg.stack.otlpHttpPort}/v1/metrics"
+      else
+        "http://forge01:${toString cfg.stack.otlpHttpPort}/v1/metrics";
+      defaultText = lib.literalExpression ''
+        if stack.enable then
+          "http://127.0.0.1:<stack.otlpHttpPort>/v1/metrics"
+        else
+          "http://forge01:<stack.otlpHttpPort>/v1/metrics"
+      '';
       description = "OTLP/HTTP metrics endpoint the collector posts to.";
     };
 
@@ -76,8 +85,20 @@ in
 
       grafanaPort = lib.mkOption {
         type = lib.types.port;
-        default = 3000;
+        default = 3370;
         description = "Host port for the Grafana UI (also reachable over the tailnet).";
+      };
+
+      otlpGrpcPort = lib.mkOption {
+        type = lib.types.port;
+        default = 43170;
+        description = "Host port for OTLP/gRPC (forwarded to the container's 4317).";
+      };
+
+      otlpHttpPort = lib.mkOption {
+        type = lib.types.port;
+        default = 43180;
+        description = "Host port for OTLP/HTTP (forwarded to the container's 4318).";
       };
 
       retention = lib.mkOption {

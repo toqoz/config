@@ -327,13 +327,16 @@ assert lib.assertMsg (
   in
   forgeHome.my.quotaDashboard.enable
   && forgeHome.my.quotaDashboard.host == "forge01"
-  && forgeHome.my.quotaDashboard.endpoint == "http://127.0.0.1:4318/v1/metrics"
+  && forgeHome.my.quotaDashboard.endpoint == "http://127.0.0.1:43180/v1/metrics"
   && forgeHome.my.quotaDashboard.stack.enable
+  && forgeHome.my.quotaDashboard.stack.grafanaPort == 3370
+  && forgeHome.my.quotaDashboard.stack.otlpHttpPort == 43180
+  && forgeHome.my.quotaDashboard.stack.otlpGrpcPort == 43170
   && forgeHome.my.quotaDashboard.stack.image != "latest"
   && !(lib.hasSuffix ":latest" forgeHome.my.quotaDashboard.stack.image)
   && remilisHome.my.quotaDashboard.enable
   && remilisHome.my.quotaDashboard.host == "remilis"
-  && remilisHome.my.quotaDashboard.endpoint == "http://forge01:4318/v1/metrics"
+  && remilisHome.my.quotaDashboard.endpoint == "http://forge01:43180/v1/metrics"
   && !remilisHome.my.quotaDashboard.stack.enable
   && !(remilisHome.launchd.agents ? quota-otel-lgtm)
   && lib.all (home: (collector home).enable && (collector home).domain == "gui" && (collector home).config.KeepAlive)

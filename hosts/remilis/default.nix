@@ -72,7 +72,6 @@
     my.quotaDashboard = {
       enable = true;
       host = "remilis";
-      endpoint = "http://forge01:4318/v1/metrics";
     };
   };
 }

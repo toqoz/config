@@ -37,7 +37,6 @@
     my.quotaDashboard = {
       enable = true;
       host = "forge01";
-      endpoint = "http://127.0.0.1:4318/v1/metrics";
       stack.enable = true;
     };
   };

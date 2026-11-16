@@ -9,14 +9,15 @@ receives Claude Code and Codex telemetry.
 | forge01 | yes (posts to `127.0.0.1:4318`) | yes |
 | remilis | yes (posts to `forge01:4318`) | no |
 
-Grafana: `http://forge01:3000` from the tailnet, or `http://localhost:3000`
-on forge01 itself. Dashboard login is disabled on purpose: the image default
+Grafana: `http://forge01:3370` from the tailnet, or `http://localhost:3370`
+on forge01 itself. OTLP is on 43180 (HTTP) and 43170 (gRPC); the non-standard
+host ports keep the stack clear of other local OTel collectors. Dashboard login is disabled on purpose: the image default
 is `admin`/`admin`, which would allow dashboard edits from the local network.
 Anonymous access is Viewer only, and dashboards come from this repository via
 provisioning. Reachable hosts are whatever can route to forge01, so keep 3000 off the public
 internet. Anonymous Viewer is bigger than it sounds: it can run arbitrary read
 queries against every datasource behind Grafana (Prometheus, Loki, Tempo,
-Pyroscope), and the OTLP ports 4317/4318 accept writes from the same network.
+Pyroscope), and the OTLP ports 43170/43180 accept writes from the same network.
 Treat the whole host as tailnet-only.
 
 ## Data sources
@@ -71,11 +72,11 @@ can be summed, which is why `host_name` is always attached.
 
 ```sh
 # Collect once and print nothing on success (non-zero if the POST fails)
-QUOTA_ENDPOINT=http://forge01:4318/v1/metrics QUOTA_HOST=remilis \
+QUOTA_ENDPOINT=http://forge01:43180/v1/metrics QUOTA_HOST=remilis \
   python3 home/quota-dashboard/collector.py --once
 
 # Inspect what arrived (run on forge01)
-curl -s --get http://localhost:3000/api/datasources/uid/prometheus/resources/api/v1/query \
+curl -s --get http://localhost:3370/api/datasources/uid/prometheus/resources/api/v1/query \
   --data-urlencode 'query=max by (service, window) (quota_used_percent)'
 ```
 
