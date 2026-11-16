@@ -355,11 +355,11 @@
     "t3-pstack": {
       "flake": false,
       "locked": {
-        "lastModified": 1794013041,
-        "narHash": "sha256-UDiUT1PdPtLFgoh/IE8mXRgq6G1fHXWWBlU/3oQ/ruo=",
+        "lastModified": 1794399327,
+        "narHash": "sha256-iFLtThFl8SdaewGTWRU/gOwYI8x8r2ooEAF1gqxpYkE=",
         "owner": "toqoz",
         "repo": "t3-pstack",
-        "rev": "982767a2edca9bfd43ede6c53940f76ba3384921",
+        "rev": "fb5ef639b221eddb29e7d350caddbd5c211fc8ba",
         "type": "github"
       },
       "original": {
