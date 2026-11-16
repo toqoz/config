@@ -63,12 +63,10 @@ can be summed, which is why `host_name` is always attached.
 
 ## Dashboard panels
 
-1. Usage bars for every service/window, taking the per-window maximum across hosts.
-2. `リセットまで` (relative) next to `リセット時刻` (absolute), row-aligned so the pair reads together.
-3. Freshness table: per service and host, how long ago the last observation was.
-4. Ollama's 24h `usage_usd`.
-5. Trends: weekly, five-hour, money windows and credit balance.
-6. Health: collection errors per source.
+1. One table per service/window: usage as a bar, then `リセットまで` (relative), the absolute reset time, and how long ago the data was observed. Rows are sorted by service, window, and scope, never by value, so the order does not jump between refreshes.
+2. Ollama's 24h `usage_usd`.
+3. Trends: weekly, five-hour, money windows and credit balance.
+4. Health: collection errors per source.
 
 ## Operating
 
