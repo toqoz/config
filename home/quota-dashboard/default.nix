@@ -4,14 +4,16 @@ let
   stateDir = "${config.xdg.stateHome}/quota-dashboard";
   dataDir = "${config.xdg.dataHome}/quota-dashboard";
 
-  compose = pkgs.writeText "quota-dashboard-compose.yaml" ''
+  composeText = ''
     services:
       otel-lgtm:
         image: ${cfg.stack.image}
         container_name: quota-otel-lgtm
         restart: unless-stopped
         ports:
-          - "0.0.0.0:${toString cfg.stack.grafanaPort}:3000"
+          # Loopback only; the tailnet reaches it through Tailscale Serve,
+          # which terminates HTTPS with the tailnet certificate.
+          - "127.0.0.1:${toString cfg.stack.grafanaPort}:3000"
           - "0.0.0.0:${toString cfg.stack.otlpGrpcPort}:4317"
           - "0.0.0.0:${toString cfg.stack.otlpHttpPort}:4318"
         environment:
@@ -24,11 +26,14 @@ let
           - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
           - GF_AUTH_BASIC_ENABLED=false
           - GF_AUTH_DISABLE_LOGIN_FORM=true
+${lib.optionalString (cfg.stack.rootUrl != "") "          - GF_SERVER_ROOT_URL=${cfg.stack.rootUrl}\n"}
         volumes:
           - ${dataDir}/data:/data
           - ${./dashboards}:/otel-lgtm/grafana/dashboards/quota:ro
           - ${./provider.yaml}:/otel-lgtm/grafana/conf/provisioning/dashboards/quota-provider.yaml:ro
   '';
+
+  compose = pkgs.writeText "quota-dashboard-compose.yaml" composeText;
 
   # OrbStack starts at login, but the Docker socket may not be ready yet when
   # this agent runs, so wait for it before asking compose to converge.
@@ -54,6 +59,15 @@ let
       sleep 2
     done
     "$docker_bin" compose --project-name quota-dashboard --file ${compose} up --detach --remove-orphans
+  '';
+
+  tailscaleServe = pkgs.callPackage ../../packages/tailscale-serve.nix { };
+
+  # `tailscale serve` publishes the loopback-only Grafana over HTTPS on the
+  # tailnet, so no certificate needs to be managed here.
+  serveScript = pkgs.writeShellScript "quota-grafana-serve" ''
+    set -euo pipefail
+    exec ${tailscaleServe} ${toString cfg.stack.httpsPort} ${toString cfg.stack.grafanaPort}
   '';
 in
 {
@@ -98,7 +112,32 @@ in
       grafanaPort = lib.mkOption {
         type = lib.types.port;
         default = 3370;
-        description = "Host port for the Grafana UI (also reachable over the tailnet).";
+        description = "Loopback port for the Grafana UI; the tailnet reaches it through Tailscale Serve.";
+      };
+
+      tailscaleServe = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Publish Grafana over HTTPS on the tailnet with Tailscale Serve.";
+      };
+
+      httpsPort = lib.mkOption {
+        type = lib.types.port;
+        default = 443;
+        description = "Tailnet HTTPS port served by `tailscale serve`.";
+      };
+
+      rootUrl = lib.mkOption {
+        type = lib.types.str;
+        default = "";
+        description = "Grafana `root_url`; set it to the tailnet HTTPS URL so generated links use HTTPS.";
+      };
+
+      composeText = lib.mkOption {
+        type = lib.types.str;
+        readOnly = true;
+        default = composeText;
+        description = "Generated compose definition, exposed for checks.";
       };
 
       otlpGrpcPort = lib.mkOption {
@@ -156,6 +195,23 @@ in
         ProcessType = "Background";
         Umask = 63;
         StandardErrorPath = "${stateDir}/collector.log";
+      };
+    };
+
+    launchd.agents.quota-grafana-serve = lib.mkIf (cfg.stack.enable && cfg.stack.tailscaleServe) {
+      enable = true;
+      domain = "user";
+      config = {
+        ProgramArguments = [ "${serveScript}" ];
+        RunAtLoad = true;
+        KeepAlive = false;
+        # Re-assert the proxy after a Tailscale login or tunnel restart.
+        StartInterval = 600;
+        ThrottleInterval = 60;
+        ProcessType = "Background";
+        Umask = 63;
+        StandardOutPath = "${stateDir}/grafana-serve.log";
+        StandardErrorPath = "${stateDir}/grafana-serve.log";
       };
     };
 

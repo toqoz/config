@@ -9,15 +9,20 @@ receives Claude Code and Codex telemetry.
 | forge01 | yes (posts to `127.0.0.1:4318`) | yes |
 | remilis | yes (posts to `forge01:4318`) | no |
 
-Grafana: `http://forge01:3370` from the tailnet, or `http://localhost:3370`
-on forge01 itself. OTLP is on 43180 (HTTP) and 43170 (gRPC); the non-standard
-host ports keep the stack clear of other local OTel collectors. Dashboard login is disabled on purpose: the image default
+Grafana: `https://forge01.<tailnet>.ts.net/` from the tailnet, or
+`http://localhost:3370` on forge01 itself. Grafana binds loopback only and the
+`quota-grafana-serve` agent publishes it with `tailscale serve --https=443`,
+which uses the tailnet certificate (the tailnet must have HTTPS enabled).
+`stack.rootUrl` is set to the same URL so Grafana-generated links stay on
+HTTPS.
+OTLP is on 43180 (HTTP) and 43170 (gRPC); the non-standard host ports keep the
+stack clear of other local OTel collectors. Dashboard login is disabled on purpose: the image default
 is `admin`/`admin`, which would allow dashboard edits from the local network.
 Anonymous access is Viewer only, and dashboards come from this repository via
-provisioning. Reachable hosts are whatever can route to forge01, so keep 3000 off the public
-internet. Anonymous Viewer is bigger than it sounds: it can run arbitrary read
-queries against every datasource behind Grafana (Prometheus, Loki, Tempo,
-Pyroscope), and the OTLP ports 43170/43180 accept writes from the same network.
+provisioning. Grafana itself is loopback only, so the HTTPS endpoint is the only way in from
+another host. Anonymous Viewer is bigger than it sounds: it can run arbitrary
+read queries against every datasource behind Grafana (Prometheus, Loki, Tempo,
+Pyroscope), and the OTLP ports 43170/43180 accept writes from the local network.
 Treat the whole host as tailnet-only.
 
 ## Data sources
