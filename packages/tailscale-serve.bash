@@ -8,18 +8,17 @@ fail() {
   exit 1
 }
 
-[ "$#" -eq 1 ] || [ "$#" -eq 2 ] || fail "expected an HTTPS port and an optional backend port"
+# One port, deliberately. The tailnet root is shared, so every service claims
+# its own HTTPS port and proxies the same loopback port: an HTTPS port and a
+# backend port never diverge. Keep this single-argument contract instead of
+# growing it for one caller.
+[ "$#" -eq 1 ] || fail "expected one HTTPS port"
 PORT=$1
-BACKEND_PORT=${2:-$1}
 case "$PORT" in
   ''|*[!0-9]*|0*) fail "invalid HTTPS port" ;;
 esac
 [ "${#PORT}" -le 5 ] && [ "$PORT" -le 65535 ] || fail "invalid HTTPS port"
-case "$BACKEND_PORT" in
-  ''|*[!0-9]*|0*) fail "invalid backend port" ;;
-esac
-[ "${#BACKEND_PORT}" -le 5 ] && [ "$BACKEND_PORT" -le 65535 ] || fail "invalid backend port"
-BACKEND="http://127.0.0.1:$BACKEND_PORT"
+BACKEND="http://127.0.0.1:$PORT"
 
 # launchd retries startup after Tailscale login or connectivity recovers.
 status=$("$TAILSCALE" status --json) || fail "Tailscale status unavailable"
