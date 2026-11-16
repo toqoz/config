@@ -7,7 +7,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 5,
+  "version": 15,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -114,130 +114,6 @@
       ]
     },
     {
-      "id": 3,
-      "type": "stat",
-      "title": "リセットまで",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 12,
-        "x": 0,
-        "y": 9
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "dateTimeFromNow",
-          "decimals": 0,
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "horizontal",
-        "textMode": "value_and_name",
-        "colorMode": "none",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "wideLayout": true
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "max by (service, window, scope) (quota_resets_at_seconds) * 1000",
-          "legendFormat": "{{service}} {{window}} {{scope}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ]
-    },
-    {
-      "id": 4,
-      "type": "stat",
-      "title": "データ鮮度 (最終観測からの経過)",
-      "description": "値が古いままになっていないかを見る。15分で黄、6時間で赤。",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 12,
-        "x": 12,
-        "y": 9
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 900
-              },
-              {
-                "color": "red",
-                "value": 21600
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "horizontal",
-        "textMode": "value_and_name",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "wideLayout": true
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "time() - max by (service, window, host_name) (last_over_time(quota_observed_at_seconds[7d]))",
-          "legendFormat": "{{service}} {{window}} {{host_name}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ]
-    },
-    {
       "id": 5,
       "type": "row",
       "title": "推移",
@@ -246,7 +122,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 24
       },
       "panels": []
     },
@@ -262,7 +138,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 25
       },
       "fieldConfig": {
         "defaults": {
@@ -335,7 +211,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 23
+        "y": 33
       },
       "fieldConfig": {
         "defaults": {
@@ -390,7 +266,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 23
+        "y": 33
       },
       "fieldConfig": {
         "defaults": {
@@ -459,7 +335,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 40
       },
       "panels": []
     },
@@ -475,7 +351,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 41
       },
       "fieldConfig": {
         "defaults": {
@@ -526,9 +402,9 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 8,
-        "x": 16,
-        "y": 23
+        "w": 12,
+        "x": 12,
+        "y": 17
       },
       "fieldConfig": {
         "defaults": {
@@ -568,6 +444,315 @@
           "instant": true,
           "range": false,
           "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "リセットまで",
+      "description": "残り時間。同じ並びの右のパネルが実際のリセット時刻。",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeFromNow",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (service, window, scope) (quota_resets_at_seconds) * 1000",
+          "legendFormat": "{{service}} {{window}} {{scope}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "リセット時刻",
+      "description": "絶対時刻。左のパネルと同じ並び。",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeAsIso",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (service, window, scope) (quota_resets_at_seconds) * 1000",
+          "legendFormat": "{{service}} {{window}} {{scope}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "table",
+      "title": "データ鮮度 (最終観測)",
+      "description": "ホストごとに最後にデータを観測した時刻からの経過。15分で黄、6時間で赤。",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "経過"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 900
+                    },
+                    {
+                      "color": "red",
+                      "value": 21600
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "サービス"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 130
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ホスト"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "経過"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 900
+                    },
+                    {
+                      "color": "red",
+                      "value": 21600
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "service": 0,
+              "host_name": 1,
+              "Value": 2
+            },
+            "renameByName": {
+              "service": "サービス",
+              "host_name": "ホスト",
+              "Value": "経過"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "経過",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "time() - max by (service, host_name) (last_over_time(quota_observed_at_seconds[7d]))",
+          "instant": true,
+          "range": false,
+          "format": "table"
         }
       ]
     }

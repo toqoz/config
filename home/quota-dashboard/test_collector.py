@@ -93,6 +93,17 @@ class CodexLogTest(unittest.TestCase):
             )
 
 
+class ClaudeIntervalTest(unittest.TestCase):
+    def test_skips_until_the_next_window(self):
+        instance = collector.Collector("remilis")
+        instance.now = 1000.0
+        self.assertTrue(instance.claude_due())
+        instance.claude_next_at = 1000.0 + collector.CLAUDE_MIN_INTERVAL
+        self.assertFalse(instance.claude_due())
+        instance.now = instance.claude_next_at
+        self.assertTrue(instance.claude_due())
+
+
 class ErrorStateTest(unittest.TestCase):
     def test_counters_survive_a_restart(self):
         with tempfile.TemporaryDirectory() as directory:

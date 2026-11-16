@@ -33,7 +33,7 @@ All sources are read-only. Nothing refreshes a token.
 
 | Metric source | Where the data comes from | Notes |
 | --- | --- | --- |
-| `claude_code` | `GET https://api.anthropic.com/api/oauth/usage` with the OAuth token in the login Keychain (`Claude Code-credentials`) | Account level, includes five-hour, weekly, model-scoped weekly, and spend. An expired token is skipped; Claude Code refreshes it on its next run. |
+| `claude_code` | `GET https://api.anthropic.com/api/oauth/usage` with the OAuth token in the login Keychain (`Claude Code-credentials`) | Account level, includes five-hour, weekly, model-scoped weekly, and spend. Polled every 5 minutes because the endpoint rate-limits tighter loops. An expired token is skipped; Claude Code refreshes it on its next run. |
 | `codex` | Newest `~/.codex/sessions/**/*.jsonl`, last `token_count` event's `rate_limits` | Scans sessions newest-first until one has `rate_limits`. Observation time is the event's own `timestamp` (file mtime as fallback). |
 | `ollama_cloud` | Local Ollama server: `/api/usage?range=24h` and `/api/balance` | The server holds the cloud login, so no API key is needed. |
 | `opencode_go` | `GET https://opencode.ai/inference/go/v1/usage` with the `opencode-go` key from `~/.pi/agent/auth.json` | `rolling` / `weekly` / `monthly` percentages and reset times. |
@@ -60,6 +60,15 @@ Gauges, all carrying `host_name` (OTel resource `host.name`) and
 **Quotas are not summed across hosts.** They are account level, so the
 dashboard uses `max by (...)`. Token/cost counters from OTel are per host and
 can be summed, which is why `host_name` is always attached.
+
+## Dashboard panels
+
+1. Usage bars for every service/window, taking the per-window maximum across hosts.
+2. `リセットまで` (relative) next to `リセット時刻` (absolute), row-aligned so the pair reads together.
+3. Freshness table: per service and host, how long ago the last observation was.
+4. Ollama's 24h `usage_usd`.
+5. Trends: weekly, five-hour, money windows and credit balance.
+6. Health: collection errors per source.
 
 ## Operating
 

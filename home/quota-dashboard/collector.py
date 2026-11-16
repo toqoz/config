@@ -36,6 +36,10 @@ USER_AGENT = "quota-collector/1"
 # monthly so an unexpected window still lands somewhere sensible.
 CODEX_WINDOWS = [(60 * 6, "5h"), (60 * 24 * 14, "weekly"), (60 * 24 * 62, "monthly")]
 
+# The Claude usage endpoint rate-limits aggressive polling, so read it less
+# often than the other sources.
+CLAUDE_MIN_INTERVAL = 300
+
 # Sources that report errors, so a healthy one keeps sending a zero counter.
 SOURCES = ("claude_code", "ollama_cloud", "opencode_go", "codex")
 
@@ -90,6 +94,7 @@ class Collector:
         self.points: list[dict] = []
         self.errors: dict[str, int] = {}
         self.now = time.time()
+        self.claude_next_at = 0.0
         self._load_state()
 
     # -- counters ---------------------------------------------------------
@@ -149,7 +154,14 @@ class Collector:
         log(f"{source}: {error}")
 
     # -- sources ----------------------------------------------------------
+    def claude_due(self) -> bool:
+        return self.now >= self.claude_next_at
+
     def collect_claude(self) -> None:
+        if not self.claude_due():
+            return
+        # Retry after a rate limit, not on the next pass.
+        self.claude_next_at = self.now + CLAUDE_MIN_INTERVAL
         try:
             credentials = json.loads(
                 subprocess.run(
