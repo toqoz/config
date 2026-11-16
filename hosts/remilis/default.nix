@@ -47,6 +47,7 @@
       ../../home/nix.nix
       ../../home/obsidian.nix
       ../../home/packages.nix
+      ../../home/quota-dashboard
       ../../home/t3code.nix
       ../../home/t3-sleep-watcher
       ../../home/vscode-family
@@ -66,5 +67,12 @@
     my.t3code.desktop.enable = true;
     my.t3code.server.servePort = 3373;
     my.t3code.sleepWatcher.enable = true;
+
+    # Quota metrics are pushed to the otel-lgtm stack on forge01.
+    my.quotaDashboard = {
+      enable = true;
+      host = "remilis";
+      endpoint = "http://forge01:4318/v1/metrics";
+    };
   };
 }

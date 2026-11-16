@@ -26,9 +26,19 @@
       ../../home/agents/mcp.nix
       ../../home/agents/codex/app-server.nix
       ../../home/deepseek-harness
+      ../../home/quota-dashboard
       ../../home/t3code.nix
     ];
 
     my.t3code.enable = true;
+
+    # This host also runs the aggregation stack; the collector posts to it
+    # over loopback so collection keeps working without the tailnet.
+    my.quotaDashboard = {
+      enable = true;
+      host = "forge01";
+      endpoint = "http://127.0.0.1:4318/v1/metrics";
+      stack.enable = true;
+    };
   };
 }

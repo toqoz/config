@@ -321,6 +321,26 @@ assert lib.assertMsg (
     minimumReleaseAge: 4320
   ''
 ) "forge01 must use the shared npm and pnpm Takumi Guard registry with minimumReleaseAge 4320";
+assert lib.assertMsg (
+  let
+    collector = home: home.launchd.agents.quota-collector;
+  in
+  forgeHome.my.quotaDashboard.enable
+  && forgeHome.my.quotaDashboard.host == "forge01"
+  && forgeHome.my.quotaDashboard.endpoint == "http://127.0.0.1:4318/v1/metrics"
+  && forgeHome.my.quotaDashboard.stack.enable
+  && forgeHome.my.quotaDashboard.stack.image != "latest"
+  && !(lib.hasSuffix ":latest" forgeHome.my.quotaDashboard.stack.image)
+  && remilisHome.my.quotaDashboard.enable
+  && remilisHome.my.quotaDashboard.host == "remilis"
+  && remilisHome.my.quotaDashboard.endpoint == "http://forge01:4318/v1/metrics"
+  && !remilisHome.my.quotaDashboard.stack.enable
+  && !(remilisHome.launchd.agents ? quota-otel-lgtm)
+  && lib.all (home: (collector home).enable && (collector home).domain == "gui" && (collector home).config.KeepAlive)
+    [ forgeHome remilisHome ]
+  && forgeHome.launchd.agents.quota-otel-lgtm.enable
+  && forgeHome.launchd.agents.quota-otel-lgtm.domain == "gui"
+) "both hosts must collect quotas as a persistent gui-domain service, and only forge01 may host the aggregation stack";
 pkgs.runCommand "forge01-contract" { } ''
   touch "$out"
 ''
