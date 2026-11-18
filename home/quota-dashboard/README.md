@@ -50,6 +50,7 @@ Gauges, all carrying `host_name` (OTel resource `host.name`) and
 | `quota_used_percent` | `service`, `window`, optional `scope` | Used percentage (0–100) |
 | `quota_resets_at_seconds` | `service`, `window`, optional `scope` | Reset time (Unix seconds) |
 | `quota_observed_at_seconds` | `service`, `window`, optional `scope` | When the source was last read |
+| `quota_window_seconds` | `service`, `window`, optional `scope` | Nominal length of the window, so usage can be compared with elapsed time |
 | `quota_used_usd`, `quota_limit_usd` | `service`, `window` | Money-based windows |
 | `credit_balance_usd` | `service` | Purchased credit balance |
 | `collector_errors_total` | `source` | Cumulative read failures per source; persisted in `~/.local/state/quota-dashboard/collector-state.json` so a restart does not reset the counter |
@@ -62,7 +63,7 @@ can be summed, which is why `host_name` is always attached.
 
 ## Dashboard panels
 
-1. One table per service/window: usage as a bar, then `リセットまで` (relative), the absolute reset time, and how long ago the data was observed. Rows are sorted by service, window, and scope, never by value, so the order does not jump between refreshes.
+1. One table per service/window: usage as a bar, how much of the window has elapsed, the gap between the two (`ペース`; positive means burning faster than the clock), the countdown, the absolute reset time, and how long ago the data was observed. Rows are sorted by service, window, and scope, never by value, so the order does not jump between refreshes.
 2. Trends: weekly, five-hour, money windows and credit balance.
 3. Health: collection errors per source.
 
@@ -102,3 +103,5 @@ curl -s --get http://localhost:3370/api/datasources/uid/prometheus/resources/api
   a rising `collector_errors_total`.
 - OpenCode's endpoint sits behind a bot filter that rejects urllib's default
   User-Agent, so the collector sends its own.
+- Monthly window length is assumed to be 30 days except for Ollama, which
+  reports its billing period, so a monthly pace can be a day or two off.

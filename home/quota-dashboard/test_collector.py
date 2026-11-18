@@ -104,6 +104,22 @@ class ClaudeIntervalTest(unittest.TestCase):
         self.assertTrue(instance.claude_due())
 
 
+class WindowSecondsTest(unittest.TestCase):
+    def test_nominal_lengths_follow_the_window(self):
+        instance = collector.Collector("remilis")
+        instance.quota("claude_code", "5h", used_percent=10)
+        instance.quota("claude_code", "weekly", used_percent=20)
+        metrics = {m["name"]: m for m in instance.otlp_body()["resourceMetrics"][0]["scopeMetrics"][0]["metrics"]}
+        values = [p["asDouble"] for p in metrics["quota_window_seconds"]["gauge"]["dataPoints"]]
+        self.assertEqual(values, [18000.0, 604800.0])
+
+    def test_explicit_length_wins(self):
+        instance = collector.Collector("remilis")
+        instance.quota("codex", "weekly", used_percent=20, window_seconds=3600)
+        metrics = {m["name"]: m for m in instance.otlp_body()["resourceMetrics"][0]["scopeMetrics"][0]["metrics"]}
+        self.assertEqual(metrics["quota_window_seconds"]["gauge"]["dataPoints"][0]["asDouble"], 3600.0)
+
+
 class ErrorStateTest(unittest.TestCase):
     def test_counters_survive_a_restart(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -146,7 +162,8 @@ class OtlpBodyTest(unittest.TestCase):
         metrics = {m["name"]: m for m in body["resourceMetrics"][0]["scopeMetrics"][0]["metrics"]}
         self.assertEqual(
             set(metrics),
-            {"quota_used_percent", "quota_resets_at_seconds", "quota_observed_at_seconds", "collector_errors_total"},
+            {"quota_used_percent", "quota_resets_at_seconds", "quota_observed_at_seconds",
+             "quota_window_seconds", "collector_errors_total"},
         )
         point = metrics["quota_used_percent"]["gauge"]["dataPoints"][0]
         self.assertEqual(point["asDouble"], 58.0)

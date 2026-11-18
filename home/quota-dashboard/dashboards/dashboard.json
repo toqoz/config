@@ -7,7 +7,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 24,
+  "version": 28,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -39,7 +39,7 @@
       "id": 15,
       "type": "table",
       "title": "使用率とリセット",
-      "description": "サービス・枠ごとに使用率とリセットまで、実際のリセット時刻を1行で示す。6時間以上前の観測しかないホストは除外するので、止まったホストの古い高い値が残らない。並びはサービス→枠→スコープの固定順。",
+      "description": "サービス・枠ごとに使用率、枠の経過率、その差（ペース）、リセットまでと実際のリセット時刻を1行で示す。ペースが正なら時間より速く消費している。6時間以上前の観測しかないホストは除外する。",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -69,7 +69,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "label_join(max by (service, window, scope) (last_over_time(quota_resets_at_seconds[7d]) and on (host_name, service, window, scope) (time() - last_over_time(quota_observed_at_seconds[7d]) < 21600)) * 1000, \"key\", \"|\", \"service\", \"window\", \"scope\")",
+          "expr": "label_join(max by (service, window, scope) (last_over_time(quota_resets_at_seconds[7d]) and on (host_name, service, window, scope) (time() - last_over_time(quota_observed_at_seconds[7d]) < 21600)), \"key\", \"|\", \"service\", \"window\", \"scope\") * 1000",
           "legendFormat": "resets",
           "instant": true,
           "range": false,
@@ -81,7 +81,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "label_join(max by (service, window, scope) (last_over_time(quota_resets_at_seconds[7d]) and on (host_name, service, window, scope) (time() - last_over_time(quota_observed_at_seconds[7d]) < 21600)) * 1000, \"key\", \"|\", \"service\", \"window\", \"scope\")",
+          "expr": "label_join(max by (service, window, scope) (last_over_time(quota_resets_at_seconds[7d]) and on (host_name, service, window, scope) (time() - last_over_time(quota_observed_at_seconds[7d]) < 21600)), \"key\", \"|\", \"service\", \"window\", \"scope\") * 1000",
           "legendFormat": "resets_abs",
           "instant": true,
           "range": false,
@@ -95,6 +95,18 @@
           },
           "expr": "label_join(time() - max by (service, window, scope) (last_over_time(quota_observed_at_seconds[7d])), \"key\", \"|\", \"service\", \"window\", \"scope\")",
           "legendFormat": "age",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "E",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "label_join(max by (service, window, scope) (clamp_max(clamp_min((last_over_time(quota_window_seconds[7d]) - (last_over_time(quota_resets_at_seconds[7d]) - time())) / last_over_time(quota_window_seconds[7d]) * 100, 0), 100) and on (host_name, service, window, scope) (time() - last_over_time(quota_observed_at_seconds[7d]) < 21600)), \"key\", \"|\", \"service\", \"window\", \"scope\")",
+          "legendFormat": "elapsed",
           "instant": true,
           "range": false,
           "format": "table"
@@ -117,24 +129,58 @@
               "Time 2": true,
               "Time 3": true,
               "Time 4": true,
+              "Time 5": true,
               "service 2": true,
-              "service 3": true,
-              "service 4": true,
               "window 2": true,
-              "window 3": true,
-              "window 4": true,
               "scope 2": true,
+              "service 3": true,
+              "window 3": true,
               "scope 3": true,
-              "scope 4": true
+              "service 4": true,
+              "window 4": true,
+              "scope 4": true,
+              "service 5": true,
+              "window 5": true,
+              "scope 5": true
             },
             "indexByName": {
               "service 1": 0,
               "window 1": 1,
               "scope 1": 2,
               "Value #A": 3,
-              "Value #B": 4,
-              "Value #C": 5,
-              "Value #D": 6
+              "Value #E": 4,
+              "Value #B": 5,
+              "Value #C": 6,
+              "Value #D": 7
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "binary": {
+              "left": "Value #A",
+              "operator": "-",
+              "right": "Value #E"
+            },
+            "alias": "Value #PACE",
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "service 1": 0,
+              "window 1": 1,
+              "scope 1": 2,
+              "Value #A": 3,
+              "Value #E": 4,
+              "Value #PACE": 5,
+              "Value #B": 6,
+              "Value #C": 7,
+              "Value #D": 8
             }
           }
         },
@@ -146,6 +192,8 @@
               "window 1": "枠",
               "scope 1": "スコープ",
               "Value #A": "使用率",
+              "Value #E": "枠の経過",
+              "Value #PACE": "ペース",
               "Value #B": "リセットまで",
               "Value #C": "リセット時刻",
               "Value #D": "経過"
@@ -171,7 +219,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 120
+                "value": 100
               }
             ]
           },
@@ -183,7 +231,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 70
+                "value": 65
               }
             ]
           },
@@ -195,7 +243,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 80
+                "value": 60
               }
             ]
           },
@@ -207,7 +255,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 180
+                "value": 112
               },
               {
                 "id": "unit",
@@ -262,7 +310,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 110
+                "value": 105
               },
               {
                 "id": "unit",
@@ -282,11 +330,11 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 160
+                "value": 132
               },
               {
                 "id": "unit",
-                "value": "dateTimeAsIso"
+                "value": "time:YYYY-MM-DD HH:mm"
               },
               {
                 "id": "custom.align",
@@ -302,7 +350,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 90
+                "value": 70
               },
               {
                 "id": "unit",
@@ -332,6 +380,80 @@
                     {
                       "color": "red",
                       "value": 21600
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "枠の経過"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ペース"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 10
                     }
                   ]
                 }

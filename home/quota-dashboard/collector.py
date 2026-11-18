@@ -31,6 +31,16 @@ DEFAULT_INTERVAL = 60
 # Some providers sit behind a bot filter that rejects urllib's default agent.
 USER_AGENT = "quota-collector/1"
 
+# Nominal window lengths, used to compare usage against elapsed time. Monthly
+# has no single length in any API, so it is approximated as 30 days; Ollama
+# overrides it with the billing period it reports.
+WINDOW_SECONDS = {
+    "5h": 5 * 3600,
+    "weekly": 7 * 24 * 3600,
+    "monthly": 30 * 24 * 3600,
+    "spend": 30 * 24 * 3600,
+}
+
 # Codex reports rate-limit windows in minutes; map them onto the shared
 # service/window vocabulary. Anything longer than a month is treated as
 # monthly so an unexpected window still lands somewhere sensible.
@@ -139,6 +149,7 @@ class Collector:
         resets_at=None,
         observed_at=None,
         scope: str | None = None,
+        window_seconds: float | None = None,
     ) -> None:
         attrs = {"service": service, "window": window}
         if scope:
@@ -148,6 +159,9 @@ class Collector:
             self.emit("quota_resets_at_seconds", resets_at, attrs)
         if observed_at is not None:
             self.emit("quota_observed_at_seconds", observed_at, attrs)
+        length = window_seconds if window_seconds is not None else WINDOW_SECONDS.get(window)
+        if length:
+            self.emit("quota_window_seconds", length, attrs)
 
     def fail(self, source: str, error: Exception) -> None:
         self.errors[source] = self.errors.get(source, 0) + 1
@@ -231,8 +245,15 @@ class Collector:
         included = balance.get("included") or {}
         allowance = included.get("allowance_usd")
         remaining = included.get("balance_usd")
-        period_end = to_epoch((included.get("period") or {}).get("until"))
+        period = included.get("period") or {}
+        period_start = to_epoch(period.get("from"))
+        period_end = to_epoch(period.get("until"))
+        period_seconds = None
+        if period_start is not None and period_end is not None and period_end > period_start:
+            period_seconds = period_end - period_start
         attrs = {"service": "ollama_cloud", "window": "monthly"}
+        if period_seconds:
+            self.emit("quota_window_seconds", period_seconds, attrs)
         if allowance and remaining is not None:
             used = allowance - remaining
             self.emit("quota_used_usd", used, attrs)
@@ -302,12 +323,16 @@ class Collector:
             resets_at = to_epoch(entry.get("resets_at"))
             if resets_at is None and entry.get("resets_in_seconds") is not None:
                 resets_at = observed + float(entry["resets_in_seconds"])
+            length = None
+            if entry.get("window_minutes") is not None:
+                length = float(entry["window_minutes"]) * 60
             self.quota(
                 "codex",
                 window,
                 used_percent=entry.get("used_percent"),
                 resets_at=resets_at,
                 observed_at=observed,
+                window_seconds=length,
             )
 
     # -- transport --------------------------------------------------------
