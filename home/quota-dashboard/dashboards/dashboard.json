@@ -7,7 +7,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 28,
+  "version": 29,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -39,7 +39,7 @@
       "id": 15,
       "type": "table",
       "title": "使用率とリセット",
-      "description": "サービス・枠ごとに使用率、枠の経過率、その差（ペース）、リセットまでと実際のリセット時刻を1行で示す。ペースが正なら時間より速く消費している。6時間以上前の観測しかないホストは除外する。",
+      "description": "サービス・枠ごとに使用率、時間に対する消費の速さ（ペース = 使用率 − 枠の経過率）、リセットまでと実際のリセット時刻を1行で示す。ペースが正なら時間より速く消費している。6時間以上前の観測しかないホストは除外する。",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -219,7 +219,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 100
+                "value": 110
               }
             ]
           },
@@ -231,7 +231,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 65
+                "value": 70
               }
             ]
           },
@@ -243,7 +243,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 60
+                "value": 70
               }
             ]
           },
@@ -255,7 +255,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 112
+                "value": 150
               },
               {
                 "id": "unit",
@@ -310,7 +310,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 105
+                "value": 110
               },
               {
                 "id": "unit",
@@ -330,7 +330,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 132
+                "value": 140
               },
               {
                 "id": "unit",
@@ -350,7 +350,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 70
+                "value": 80
               },
               {
                 "id": "unit",
@@ -413,6 +413,10 @@
               {
                 "id": "custom.align",
                 "value": "right"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
               }
             ]
           },
@@ -424,7 +428,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 70
+                "value": 80
               },
               {
                 "id": "unit",
