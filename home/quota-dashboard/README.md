@@ -63,7 +63,7 @@ can be summed, which is why `host_name` is always attached.
 
 ## Dashboard panels
 
-1. One table per service/window: usage as a bar, the gap between usage and elapsed window time (`ペース`; positive means burning faster than the clock), the countdown, the absolute reset time, and how long ago the data was observed. Rows are sorted by service, window, and scope, never by value, so the order does not jump between refreshes.
+1. One table per service/window: usage as a bar, the points by which usage is ahead of the elapsed window (`超過`; positive means burning faster than the clock), the countdown, the absolute reset time, and how long ago the data was observed. Rows are sorted by service, window, and scope, never by value, so the order does not jump between refreshes.
 2. Trends: weekly, five-hour, money windows and credit balance.
 3. Health: collection errors per source.
 

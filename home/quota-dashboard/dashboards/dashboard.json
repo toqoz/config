@@ -7,7 +7,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 29,
+  "version": 30,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -39,7 +39,7 @@
       "id": 15,
       "type": "table",
       "title": "使用率とリセット",
-      "description": "サービス・枠ごとに使用率、時間に対する消費の速さ（ペース = 使用率 − 枠の経過率）、リセットまでと実際のリセット時刻を1行で示す。ペースが正なら時間より速く消費している。6時間以上前の観測しかないホストは除外する。",
+      "description": "サービス・枠ごとに使用率、時間の進みに対する超過（使用率 − 枠の経過率、pt）、リセットまでと実際のリセット時刻を1行で示す。超過が正なら時間より速く消費している。6時間以上前の観測しかないホストは除外する。",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -193,7 +193,7 @@
               "scope 1": "スコープ",
               "Value #A": "使用率",
               "Value #E": "枠の経過",
-              "Value #PACE": "ペース",
+              "Value #PACE": "超過",
               "Value #B": "リセットまで",
               "Value #C": "リセット時刻",
               "Value #D": "経過"
@@ -423,7 +423,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "ペース"
+              "options": "超過"
             },
             "properties": [
               {
@@ -432,7 +432,7 @@
               },
               {
                 "id": "unit",
-                "value": "percent"
+                "value": "suffix: pt"
               },
               {
                 "id": "decimals",
