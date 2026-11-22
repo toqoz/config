@@ -37,6 +37,7 @@ All sources are read-only. Nothing refreshes a token.
 | `codex` | Newest `~/.codex/sessions/**/*.jsonl`, last `token_count` event's `rate_limits` | Scans sessions newest-first until one has `rate_limits`. Observation time is the event's own `timestamp` (file mtime as fallback). |
 | `ollama_cloud` | Local Ollama server: `/api/balance` | The server holds the cloud login, so no API key is needed. |
 | `opencode_go` | `GET https://opencode.ai/inference/go/v1/usage` with the `opencode-go` key from `~/.pi/agent/auth.json` | `rolling` / `weekly` / `monthly` percentages and reset times. |
+| `tokens` | Claude Code `~/.claude/projects/**/*.jsonl` and Codex `~/.codex/sessions/**/*.jsonl` | Tokens are counted from each log once, tracked by byte offset. Claude repeats every assistant message twice; the duplicate id is skipped. |
 
 Grok Build is intentionally not collected yet.
 
@@ -53,6 +54,8 @@ Gauges, all carrying `host_name` (OTel resource `host.name`) and
 | `quota_window_seconds` | `service`, `window`, optional `scope` | Nominal length of the window, so usage can be compared with elapsed time |
 | `quota_used_usd`, `quota_limit_usd` | `service`, `window` | Money-based windows |
 | `credit_balance_usd` | `service` | Purchased credit balance |
+| `tokens_window_total` | `service`, `window` | Tokens in the last 24h (`1d`) or 7d (`7d`), computed from hourly buckets on the stat panels |
+| `tokens_total` | `service`, `kind` | Monotonic counter since the collector started, used for the hourly chart |
 | `collector_errors_total` | `source` | Cumulative read failures per source; persisted in `~/.local/state/quota-dashboard/collector-state.json` so a restart does not reset the counter |
 
 `window` is one of `5h`, `weekly`, `monthly`, `spend`.
@@ -66,6 +69,20 @@ can be summed, which is why `host_name` is always attached.
 1. One table per service/window: usage as a bar, the points by which usage is ahead of the elapsed window (`超過`; positive means burning faster than the clock), the countdown, the absolute reset time, and how long ago the data was observed. Rows are sorted by service, window, and scope, never by value, so the order does not jump between refreshes.
 2. Trends: weekly, five-hour, money windows and credit balance.
 3. Health: collection errors per source.
+
+## Tokens
+
+Claude Code and Codex write per-request token counts to their own JSONL logs.
+The collector reads only the bytes it has not seen yet, keyed by file offset in
+the state file, and stores hourly buckets for the last eight days.
+
+On first sight of a file it counts up to a week of history, so the 24h/7d
+numbers are populated from the start. A brand-new file starts at its end.
+
+Window sums are computed in the collector rather than with `increase()`:
+PromQL extrapolates to the requested range, which inflates a 24h sum when only
+minutes of samples exist. The hourly chart does use the counter, so its first
+hour is sparse.
 
 ## Operating
 
@@ -95,8 +112,10 @@ curl -s --get http://localhost:3370/api/datasources/uid/prometheus/resources/api
 
 ## Known gaps
 
-- Claude Code and Codex token/cost telemetry is not wired up yet, so the usage
-  panels only cover Ollama's money-based usage. `CLAUDE_CODE_ENABLE_TELEMETRY`
+- Codex and Claude Code request logs may be pruned by the tools themselves;
+  token counts only cover what is still on disk (up to a week).
+- Token counts are tokens processed, so cached input is counted each turn and
+  totals are much larger than billable tokens. `CLAUDE_CODE_ENABLE_TELEMETRY`
   plus cumulative temporality and Codex's `[otel]` tables are the next step.
 - The Claude OAuth usage endpoint and the OpenCode Go usage endpoint are not
   documented public APIs; a change on their side shows up as a stale value and

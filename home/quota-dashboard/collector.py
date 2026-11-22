@@ -31,6 +31,13 @@ DEFAULT_INTERVAL = 60
 # Some providers sit behind a bot filter that rejects urllib's default agent.
 USER_AGENT = "quota-collector/1"
 
+# Token logs are only re-read for files touched this recently, and a file seen
+# for the first time contributes only the tail of that window.
+TOKEN_HISTORY_SECONDS = 7 * 24 * 3600
+CLAUDE_PROJECTS = "~/.claude/projects"
+CODEX_SESSIONS = "~/.codex/sessions"
+TOKEN_KINDS = ("input", "output", "cache_read", "cache_write")
+
 # Nominal window lengths, used to compare usage against elapsed time. Monthly
 # has no single length in any API, so it is approximated as 30 days; Ollama
 # overrides it with the billing period it reports.
@@ -103,6 +110,10 @@ class Collector:
         self.state_path = state_path
         self.points: list[dict] = []
         self.errors: dict[str, int] = {}
+        self.tokens: dict[str, dict[str, int]] = {}
+        self.live: dict[str, dict[str, int]] = {}
+        self.buckets: dict[int, dict[str, dict[str, int]]] = {}
+        self.offsets: dict[str, dict] = {}
         self.now = time.time()
         self.claude_next_at = 0.0
         self._load_state()
@@ -114,12 +125,36 @@ class Collector:
             return
         try:
             with open(self.state_path, encoding="utf-8") as handle:
-                stored = json.load(handle).get("errors") or {}
+                stored = json.load(handle)
         except (OSError, ValueError):
             return
-        for source, count in stored.items():
+        for source, count in (stored.get("errors") or {}).items():
             if isinstance(count, int) and count >= 0:
                 self.errors[source] = count
+        for service, kinds in (stored.get("tokens") or {}).items():
+            if isinstance(kinds, dict):
+                self.tokens[service] = {
+                    kind: int(value) for kind, value in kinds.items() if isinstance(value, int)
+                }
+        for service, kinds in (stored.get("live") or {}).items():
+            if isinstance(kinds, dict):
+                self.live[service] = {
+                    kind: int(value) for kind, value in kinds.items() if isinstance(value, int)
+                }
+        for hour, services in (stored.get("buckets") or {}).items():
+            try:
+                hour_key = int(hour)
+            except (TypeError, ValueError):
+                continue
+            if isinstance(services, dict):
+                self.buckets[hour_key] = {
+                    service: {kind: int(value) for kind, value in kinds.items()}
+                    for service, kinds in services.items()
+                    if isinstance(kinds, dict)
+                }
+        for path, entry in (stored.get("offsets") or {}).items():
+            if isinstance(entry, dict) and isinstance(entry.get("offset"), int):
+                self.offsets[path] = entry
 
     def _save_state(self) -> None:
         if not self.state_path:
@@ -130,7 +165,16 @@ class Collector:
                 os.makedirs(directory, mode=0o700, exist_ok=True)
             temporary = f"{self.state_path}.tmp"
             with open(temporary, "w", encoding="utf-8") as handle:
-                json.dump({"errors": self.errors}, handle)
+                json.dump(
+                    {
+                        "errors": self.errors,
+                        "tokens": self.tokens,
+                        "live": self.live,
+                        "buckets": {str(hour): value for hour, value in self.buckets.items()},
+                        "offsets": self.offsets,
+                    },
+                    handle,
+                )
             os.replace(temporary, self.state_path)
         except OSError as error:
             log(f"state {self.state_path}: {error}")
@@ -335,6 +379,155 @@ class Collector:
                 window_seconds=length,
             )
 
+    def collect_tokens(self) -> None:
+        """Accumulate token totals from the Claude Code and Codex logs."""
+        cutoff = self.now - TOKEN_HISTORY_SECONDS
+        sources = (
+            ("claude_code", os.path.expanduser(CLAUDE_PROJECTS), claude_token_deltas),
+            ("codex", os.path.expanduser(CODEX_SESSIONS), codex_token_deltas),
+        )
+        for service, root, deltas_of in sources:
+            try:
+                files = [
+                    os.path.join(directory, name)
+                    for directory, _, names in os.walk(root)
+                    for name in names
+                    if name.endswith(".jsonl")
+                ]
+            except OSError as error:
+                self.fail(f"tokens_{service}", error)
+                continue
+            for path in files:
+                try:
+                    os.stat(path)
+                except OSError:
+                    continue
+                try:
+                    mtime = os.path.getmtime(path)
+                except OSError:
+                    continue
+                entry = self.offsets.get(path)
+                if entry is None and mtime <= cutoff:
+                    continue
+                try:
+                    if entry is None:
+                        self._scan_first_time(service, path, deltas_of, cutoff)
+                    elif mtime > cutoff:
+                        self._scan_tail(service, path, deltas_of, entry)
+                except OSError as error:
+                    self.fail(f"tokens_{service}", error)
+                    continue
+                if entry is not None and mtime <= cutoff:
+                    self.offsets.pop(path, None)
+
+        cutoff_hour = int((self.now - TOKEN_HISTORY_SECONDS) // 3600) * 3600
+        for hour in [key for key in self.buckets if key < cutoff_hour]:
+            del self.buckets[hour]
+
+        # The counter starts at zero so its first hour does not look like a
+        # spike; window totals come from the buckets instead.
+        for service in self.tokens:
+            counter = self.live.get(service) or {}
+            for kind in TOKEN_KINDS:
+                self.emit(
+                    "tokens_total", counter.get(kind, 0), {"service": service, "kind": kind}
+                )
+
+        # Window sums are computed here, not in PromQL: `increase`/`delta`
+        # extrapolate to the requested range, which inflates the numbers until
+        # a full window of samples exists.
+        for window, span in (("1d", 24 * 3600), ("7d", 7 * 24 * 3600)):
+            since = self.now - span
+            totals: dict[str, dict[str, int]] = {}
+            for hour, services in self.buckets.items():
+                if hour + 3600 <= since:
+                    continue
+                for service, kinds in services.items():
+                    bucket = totals.setdefault(service, {})
+                    for kind, value in kinds.items():
+                        bucket[kind] = bucket.get(kind, 0) + value
+            for service in self.tokens:
+                kinds = totals.get(service) or {}
+                self.emit(
+                    "tokens_window_total",
+                    sum(kinds.values()),
+                    {"service": service, "window": window},
+                )
+
+    def _add_tokens(
+        self, service: str, deltas: dict[str, int], occurred: float | None, live: bool
+    ) -> None:
+        if live:
+            counter = self.live.setdefault(service, {})
+            for kind in TOKEN_KINDS:
+                counter[kind] = counter.get(kind, 0) + int(deltas.get(kind, 0))
+        bucket = self.tokens.setdefault(service, {})
+        for kind in TOKEN_KINDS:
+            bucket[kind] = bucket.get(kind, 0) + int(deltas.get(kind, 0))
+        hour = int((occurred if occurred is not None else self.now) // 3600) * 3600
+        hourly = self.buckets.setdefault(hour, {}).setdefault(service, {})
+        for kind in TOKEN_KINDS:
+            hourly[kind] = hourly.get(kind, 0) + int(deltas.get(kind, 0))
+
+    def _scan_first_time(self, service: str, path: str, deltas_of, cutoff: float) -> None:
+        """Count the last week of a file seen for the first time, then follow it."""
+        size = os.path.getsize(path)
+        offset = 0
+        last_id = None
+        while offset < size:
+            lines, offset = read_from_offset(path, offset)
+            if not lines:
+                break
+            for raw in lines:
+                try:
+                    record = json.loads(raw)
+                except json.JSONDecodeError:
+                    continue
+                occurred = to_epoch(record.get("timestamp"))
+                if occurred is not None and occurred < cutoff:
+                    continue
+                if service == "claude_code":
+                    message = record.get("message") or {}
+                    identifier = message.get("id") if isinstance(message, dict) else None
+                    if identifier and identifier == last_id:
+                        continue
+                    last_id = identifier or last_id
+                deltas = deltas_of(record)
+                if deltas:
+                    self._add_tokens(service, deltas, occurred, live=False)
+        self.offsets[path] = {"offset": size, "last_id": last_id}
+
+    def _scan_tail(self, service: str, path: str, deltas_of, entry: dict) -> None:
+        size = os.path.getsize(path)
+        offset = entry.get("offset", 0)
+        if size < offset:
+            offset = 0
+            entry["last_id"] = None
+        last_id = entry.get("last_id")
+        while offset < size:
+            lines, offset = read_from_offset(path, offset)
+            if not lines:
+                break
+            for raw in lines:
+                try:
+                    record = json.loads(raw)
+                except json.JSONDecodeError:
+                    continue
+                if service == "claude_code":
+                    message = record.get("message") or {}
+                    identifier = message.get("id") if isinstance(message, dict) else None
+                    if identifier and identifier == last_id:
+                        continue
+                    last_id = identifier or last_id
+                deltas = deltas_of(record)
+                if deltas:
+                    self._add_tokens(
+                        service, deltas, to_epoch(record.get("timestamp")), live=True
+                    )
+        entry["offset"] = offset
+        entry["last_id"] = last_id
+        self.offsets[path] = entry
+
     # -- transport --------------------------------------------------------
     def otlp_body(self) -> dict:
         metrics: dict[str, dict] = {}
@@ -418,6 +611,7 @@ class Collector:
             self.collect_ollama,
             self.collect_opencode,
             self.collect_codex,
+            self.collect_tokens,
         ):
             try:
                 collect()
@@ -472,6 +666,51 @@ def read_tail_lines(path: str, max_lines: int, max_bytes: int = 2_000_000) -> li
         if not preceded_by_newline:
             lines = lines[1:]
     return [line.decode("utf-8", "replace") for line in lines[-max_lines:]]
+
+
+def read_from_offset(path: str, offset: int, max_bytes: int = 8_000_000) -> tuple[list[bytes], int]:
+    """Read complete lines starting at a byte offset; return them and the new offset."""
+    with open(path, "rb") as handle:
+        handle.seek(offset)
+        data = handle.read(max_bytes)
+    if not data:
+        return [], offset
+    lines = data.split(b"\n")
+    partial = lines.pop() if not data.endswith(b"\n") else None
+    consumed = len(data) - (len(partial) if partial is not None else 0)
+    return lines, offset + consumed
+
+
+def claude_token_deltas(record: dict) -> dict[str, int] | None:
+    """Token usage of one assistant message, keyed by kind."""
+    message = record.get("message")
+    if not isinstance(message, dict):
+        return None
+    usage = message.get("usage")
+    if not isinstance(usage, dict):
+        return None
+    return {
+        "input": int(usage.get("input_tokens") or 0),
+        "output": int(usage.get("output_tokens") or 0),
+        "cache_read": int(usage.get("cache_read_input_tokens") or 0),
+        "cache_write": int(usage.get("cache_creation_input_tokens") or 0),
+    }
+
+
+def codex_token_deltas(record: dict) -> dict[str, int] | None:
+    """Token usage of one Codex turn, keyed by kind."""
+    payload = record.get("payload") or {}
+    if payload.get("type") != "token_count":
+        return None
+    usage = (payload.get("info") or {}).get("last_token_usage")
+    if not isinstance(usage, dict):
+        return None
+    cached = int(usage.get("cached_input_tokens") or 0)
+    return {
+        "input": max(int(usage.get("input_tokens") or 0) - cached, 0),
+        "output": int(usage.get("output_tokens") or 0),
+        "cache_read": cached,
+    }
 
 
 def last_codex_rate_limits(path: str, max_lines: int = 5000) -> dict | None:

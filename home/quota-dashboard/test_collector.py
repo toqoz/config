@@ -104,6 +104,52 @@ class ClaudeIntervalTest(unittest.TestCase):
         self.assertTrue(instance.claude_due())
 
 
+class TokenParsingTest(unittest.TestCase):
+    def test_claude_usage_is_split_into_kinds(self):
+        record = {"message": {"usage": {
+            "input_tokens": 2, "output_tokens": 227,
+            "cache_read_input_tokens": 13765, "cache_creation_input_tokens": 17263}}}
+        self.assertEqual(collector.claude_token_deltas(record),
+                         {"input": 2, "output": 227, "cache_read": 13765, "cache_write": 17263})
+
+    def test_codex_last_usage_excludes_cached_from_input(self):
+        record = {"payload": {"type": "token_count", "info": {"last_token_usage": {
+            "input_tokens": 240554, "cached_input_tokens": 239616, "output_tokens": 205}}}}
+        self.assertEqual(collector.codex_token_deltas(record),
+                         {"input": 938, "output": 205, "cache_read": 239616})
+
+    def test_unrelated_records_are_ignored(self):
+        self.assertIsNone(collector.claude_token_deltas({"type": "user"}))
+        self.assertIsNone(collector.codex_token_deltas({"payload": {"type": "turn"}}))
+
+    def test_duplicate_claude_messages_count_once(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "session.jsonl")
+            line = json.dumps({"timestamp": "2026-11-19T00:00:00Z", "message": {
+                "id": "msg_1", "usage": {"input_tokens": 10, "output_tokens": 1}}})
+            with open(path, "w") as handle:
+                handle.write(line + "\n" + line + "\n")
+            instance = collector.Collector("remilis")
+            instance.now = collector.to_epoch("2026-11-19T01:00:00Z")
+            instance._scan_first_time("claude_code", path, collector.claude_token_deltas, instance.now - 3600)
+            self.assertEqual(instance.tokens["claude_code"]["input"], 10)
+
+    def test_tail_read_starts_after_the_previous_offset(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "session.jsonl")
+            first = json.dumps({"timestamp": "2026-11-19T00:00:00Z", "message": {"id": "a", "usage": {"input_tokens": 5}}})
+            second = json.dumps({"timestamp": "2026-11-19T00:01:00Z", "message": {"id": "b", "usage": {"input_tokens": 7}}})
+            with open(path, "w") as handle:
+                handle.write(first + "\n")
+            instance = collector.Collector("remilis")
+            instance.now = collector.to_epoch("2026-11-19T01:00:00Z")
+            instance._scan_first_time("claude_code", path, collector.claude_token_deltas, instance.now - 7200)
+            with open(path, "a") as handle:
+                handle.write(second + "\n")
+            instance._scan_tail("claude_code", path, collector.claude_token_deltas, instance.offsets[path])
+            self.assertEqual(instance.tokens["claude_code"]["input"], 12)
+
+
 class WindowSecondsTest(unittest.TestCase):
     def test_nominal_lengths_follow_the_window(self):
         instance = collector.Collector("remilis")
