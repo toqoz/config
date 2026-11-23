@@ -133,19 +133,20 @@ class TokenParsingTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "session.jsonl")
             line = json.dumps({"timestamp": "2026-11-19T00:00:00Z", "message": {
-                "id": "msg_1", "usage": {"input_tokens": 10, "output_tokens": 1}}})
+                "id": "msg_1", "model": "claude-x",
+                "usage": {"input_tokens": 10, "output_tokens": 1}}})
             with open(path, "w") as handle:
                 handle.write(line + "\n" + line + "\n")
             instance = collector.Collector("remilis")
             instance.now = collector.to_epoch("2026-11-19T01:00:00Z")
             instance._scan_first_time("claude_code", path, collector.claude_token_deltas, instance.now - 3600)
-            self.assertEqual(instance.tokens["claude_code"]["input"], 10)
+            self.assertEqual(instance.tokens["claude_code"]["anthropic"]["claude-x"]["input"], 10)
 
     def test_tail_read_starts_after_the_previous_offset(self):
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "session.jsonl")
-            first = json.dumps({"timestamp": "2026-11-19T00:00:00Z", "message": {"id": "a", "usage": {"input_tokens": 5}}})
-            second = json.dumps({"timestamp": "2026-11-19T00:01:00Z", "message": {"id": "b", "usage": {"input_tokens": 7}}})
+            first = json.dumps({"timestamp": "2026-11-19T00:00:00Z", "message": {"id": "a", "model": "claude-x", "usage": {"input_tokens": 5}}})
+            second = json.dumps({"timestamp": "2026-11-19T00:01:00Z", "message": {"id": "b", "model": "claude-x", "usage": {"input_tokens": 7}}})
             with open(path, "w") as handle:
                 handle.write(first + "\n")
             instance = collector.Collector("remilis")
@@ -154,7 +155,7 @@ class TokenParsingTest(unittest.TestCase):
             with open(path, "a") as handle:
                 handle.write(second + "\n")
             instance._scan_tail("claude_code", path, collector.claude_token_deltas, instance.offsets[path])
-            self.assertEqual(instance.tokens["claude_code"]["input"], 12)
+            self.assertEqual(instance.tokens["claude_code"]["anthropic"]["claude-x"]["input"], 12)
 
 
 class WindowSecondsTest(unittest.TestCase):

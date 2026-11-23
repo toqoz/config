@@ -105,6 +105,21 @@ def to_epoch(value) -> float | None:
         return None
 
 
+def _int_leaves(value) -> dict:
+    """Rebuild nested dicts with integer leaves from JSON state."""
+    if not isinstance(value, dict):
+        return {}
+    result = {}
+    for key, item in value.items():
+        if isinstance(item, dict):
+            nested = _int_leaves(item)
+            if nested:
+                result[key] = nested
+        elif isinstance(item, int):
+            result[key] = item
+    return result
+
+
 class Collector:
     def __init__(self, host: str, state_path: str | None = None) -> None:
         self.host = host
@@ -132,27 +147,16 @@ class Collector:
         for source, count in (stored.get("errors") or {}).items():
             if isinstance(count, int) and count >= 0:
                 self.errors[source] = count
-        for service, kinds in (stored.get("tokens") or {}).items():
-            if isinstance(kinds, dict):
-                self.tokens[service] = {
-                    kind: int(value) for kind, value in kinds.items() if isinstance(value, int)
-                }
-        for service, kinds in (stored.get("live") or {}).items():
-            if isinstance(kinds, dict):
-                self.live[service] = {
-                    kind: int(value) for kind, value in kinds.items() if isinstance(value, int)
-                }
+        self.tokens = _int_leaves(stored.get("tokens"))
+        self.live = _int_leaves(stored.get("live"))
         for hour, services in (stored.get("buckets") or {}).items():
             try:
                 hour_key = int(hour)
             except (TypeError, ValueError):
                 continue
-            if isinstance(services, dict):
-                self.buckets[hour_key] = {
-                    service: {kind: int(value) for kind, value in kinds.items()}
-                    for service, kinds in services.items()
-                    if isinstance(kinds, dict)
-                }
+            converted = _int_leaves(services)
+            if converted:
+                self.buckets[hour_key] = converted
         for path, entry in (stored.get("offsets") or {}).items():
             if isinstance(entry, dict) and isinstance(entry.get("offset"), int):
                 self.offsets[path] = entry
@@ -428,54 +432,80 @@ class Collector:
 
         # The counter starts at zero so its first hour does not look like a
         # spike; window totals come from the buckets instead.
-        for service in self.tokens:
-            counter = self.live.get(service) or {}
-            for kind in TOKEN_KINDS:
-                self.emit(
-                    "tokens_total", counter.get(kind, 0), {"service": service, "kind": kind}
-                )
+        for service, providers in self.live.items():
+            for provider, models in providers.items():
+                for model, kinds in models.items():
+                    for kind in TOKEN_KINDS:
+                        self.emit(
+                            "tokens_total",
+                            kinds.get(kind, 0),
+                            {
+                                "service": service,
+                                "provider": provider,
+                                "model": model,
+                                "kind": kind,
+                            },
+                        )
 
         # Window sums are computed here, not in PromQL: `increase`/`delta`
         # extrapolate to the requested range, which inflates the numbers until
         # a full window of samples exists.
         for window, span in (("1d", 24 * 3600), ("7d", 7 * 24 * 3600)):
             since = self.now - span
-            totals: dict[str, dict[str, int]] = {}
+            totals: dict[tuple[str, str, str], int] = {}
             for hour, services in self.buckets.items():
                 if hour + 3600 <= since:
                     continue
-                for service, kinds in services.items():
-                    bucket = totals.setdefault(service, {})
-                    for kind, value in kinds.items():
-                        bucket[kind] = bucket.get(kind, 0) + value
+                for service, providers in services.items():
+                    for provider, models in providers.items():
+                        for model, kinds in models.items():
+                            key = (service, provider, model)
+                            totals[key] = totals.get(key, 0) + sum(kinds.values())
             for service in self.tokens:
-                kinds = totals.get(service) or {}
-                self.emit(
-                    "tokens_window_total",
-                    sum(kinds.values()),
-                    {"service": service, "window": window},
-                )
+                for provider, models in self.tokens[service].items():
+                    for model in models:
+                        self.emit(
+                            "tokens_window_total",
+                            totals.get((service, provider, model), 0),
+                            {
+                                "service": service,
+                                "provider": provider,
+                                "model": model,
+                                "window": window,
+                            },
+                        )
+
+    @staticmethod
+    def _accumulate(store: dict, service: str, provider: str, model: str, deltas) -> None:
+        kinds = (
+            store.setdefault(service, {})
+            .setdefault(provider, {})
+            .setdefault(model, {})
+        )
+        for kind in TOKEN_KINDS:
+            kinds[kind] = kinds.get(kind, 0) + int(deltas.get(kind, 0))
 
     def _add_tokens(
-        self, service: str, deltas: dict[str, int], occurred: float | None, live: bool
+        self,
+        service: str,
+        provider: str,
+        model: str,
+        deltas: dict[str, int],
+        occurred: float | None,
+        live: bool,
     ) -> None:
         if live:
-            counter = self.live.setdefault(service, {})
-            for kind in TOKEN_KINDS:
-                counter[kind] = counter.get(kind, 0) + int(deltas.get(kind, 0))
-        bucket = self.tokens.setdefault(service, {})
-        for kind in TOKEN_KINDS:
-            bucket[kind] = bucket.get(kind, 0) + int(deltas.get(kind, 0))
+            self._accumulate(self.live, service, provider, model, deltas)
+        self._accumulate(self.tokens, service, provider, model, deltas)
         hour = int((occurred if occurred is not None else self.now) // 3600) * 3600
-        hourly = self.buckets.setdefault(hour, {}).setdefault(service, {})
-        for kind in TOKEN_KINDS:
-            hourly[kind] = hourly.get(kind, 0) + int(deltas.get(kind, 0))
+        self._accumulate(self.buckets.setdefault(hour, {}), service, provider, model, deltas)
 
     def _scan_first_time(self, service: str, path: str, deltas_of, cutoff: float) -> None:
         """Count the last week of a file seen for the first time, then follow it."""
         size = os.path.getsize(path)
         offset = 0
         last_id = None
+        context: dict[str, str] = {}
         while offset < size:
             lines, offset = read_from_offset(path, offset)
             if not lines:
@@ -494,10 +524,11 @@ class Collector:
                     if identifier and identifier == last_id:
                         continue
                     last_id = identifier or last_id
+                provider, model = token_context(service, record, context)
                 deltas = deltas_of(record)
                 if deltas:
-                    self._add_tokens(service, deltas, occurred, live=False)
-        self.offsets[path] = {"offset": size, "last_id": last_id}
+                    self._add_tokens(service, provider, model, deltas, occurred, live=False)
+        self.offsets[path] = {"offset": size, "last_id": last_id, **context}
 
     def _scan_tail(self, service: str, path: str, deltas_of, entry: dict) -> None:
         size = os.path.getsize(path)
@@ -521,10 +552,12 @@ class Collector:
                     if identifier and identifier == last_id:
                         continue
                     last_id = identifier or last_id
+                provider, model = token_context(service, record, entry)
                 deltas = deltas_of(record)
                 if deltas:
                     self._add_tokens(
-                        service, deltas, to_epoch(record.get("timestamp")), live=True
+                        service, provider, model, deltas,
+                        to_epoch(record.get("timestamp")), live=True,
                     )
         entry["offset"] = offset
         entry["last_id"] = last_id
@@ -713,6 +746,27 @@ def codex_token_deltas(record: dict) -> dict[str, int] | None:
         "output": int(usage.get("output_tokens") or 0),
         "cache_read": cached,
     }
+
+
+def token_context(service: str, record: dict, state: dict) -> tuple[str, str]:
+    """Provider and model for a log record, updating the running context."""
+    if service == "codex":
+        payload = record.get("payload") or {}
+        if record.get("type") == "session_meta":
+            provider = payload.get("model_provider")
+            if isinstance(provider, str) and provider:
+                state["provider"] = provider
+        if record.get("type") == "turn_context":
+            model = payload.get("model")
+            if isinstance(model, str) and model:
+                state["model"] = model
+        return state.get("provider") or "openai", state.get("model") or "unknown"
+    message = record.get("message")
+    if not isinstance(message, dict):
+        return "unknown", "unknown"
+    if service == "claude_code":
+        return "anthropic", message.get("model") or "unknown"
+    return message.get("provider") or "unknown", message.get("model") or "unknown"
 
 
 def pi_token_deltas(record: dict) -> dict[str, int] | None:

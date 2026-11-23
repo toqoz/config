@@ -7,7 +7,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 35,
+  "version": 38,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -763,6 +763,200 @@
       ]
     },
     {
+      "id": 20,
+      "type": "table",
+      "title": "トークン内訳 (ツール × プロバイダ × モデル)",
+      "description": "24時間と7日間のトークン数。処理したトークンなのでキャッシュ読み込みも含む。",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "label_join(sum by (service, provider, model) (tokens_window_total{window=\"1d\"}), \"key\", \"|\", \"service\", \"provider\", \"model\")",
+          "legendFormat": "1d",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "label_join(sum by (service, provider, model) (tokens_window_total{window=\"7d\"}), \"key\", \"|\", \"service\", \"provider\", \"model\")",
+          "legendFormat": "7d",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "key",
+            "mode": "inner"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "key": true,
+              "Time 1": true,
+              "Time 2": true,
+              "service 2": true,
+              "provider 2": true,
+              "model 2": true,
+              "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
+              "host_name": true,
+              "host_name 1": true,
+              "service_name": true,
+              "service_name 1": true
+            },
+            "indexByName": {
+              "service 1": 0,
+              "provider 1": 1,
+              "model 1": 2,
+              "Value #A": 3,
+              "Value #B": 4
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "service 1": "サービス",
+              "provider 1": "プロバイダ",
+              "model 1": "モデル",
+              "Value #A": "24時間",
+              "Value #B": "7日間"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "サービス"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "プロバイダ"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "モデル"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 240
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "24時間"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 130
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "7日間"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 130
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "7日間",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
       "id": 19,
       "type": "timeseries",
       "title": "トークン数 (1時間あたり)",
@@ -774,7 +968,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 37
       },
       "fieldConfig": {
         "defaults": {
@@ -827,7 +1021,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 45
       },
       "panels": []
     },
@@ -843,7 +1037,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 37
+        "y": 46
       },
       "fieldConfig": {
         "defaults": {

@@ -54,8 +54,8 @@ Gauges, all carrying `host_name` (OTel resource `host.name`) and
 | `quota_window_seconds` | `service`, `window`, optional `scope` | Nominal length of the window, so usage can be compared with elapsed time |
 | `quota_used_usd`, `quota_limit_usd` | `service`, `window` | Money-based windows |
 | `credit_balance_usd` | `service` | Purchased credit balance |
-| `tokens_window_total` | `service`, `window` | Tokens in the last 24h (`1d`) or 7d (`7d`), computed from hourly buckets on the stat panels |
-| `tokens_total` | `service`, `kind` | Monotonic counter since the collector started, used for the hourly chart |
+| `tokens_window_total` | `service`, `provider`, `model`, `window` | Tokens in the last 24h (`1d`) or 7d (`7d`), computed from hourly buckets |
+| `tokens_total` | `service`, `provider`, `model`, `kind` | Monotonic counter since the collector started, used for the hourly chart |
 | `collector_errors_total` | `source` | Cumulative read failures per source; persisted in `~/.local/state/quota-dashboard/collector-state.json` so a restart does not reset the counter |
 
 `window` is one of `5h`, `weekly`, `monthly`, `spend`.
@@ -67,8 +67,9 @@ can be summed, which is why `host_name` is always attached.
 ## Dashboard panels
 
 1. One table per service/window: usage as a bar, the points by which usage is ahead of the elapsed window (`超過`; positive means burning faster than the clock), the countdown, the absolute reset time, and how long ago the data was observed. Rows are sorted by service, window, and scope, never by value, so the order does not jump between refreshes.
-2. Trends: weekly, five-hour, money windows and credit balance.
-3. Health: collection errors per source.
+2. Trends: weekly and five-hour usage.
+3. Token totals for the last 24h and 7d, a breakdown table by tool, provider and model, and an hourly chart.
+4. Health: collection errors per source.
 
 ## Tokens
 
@@ -79,6 +80,12 @@ the state file, and stores hourly buckets for the last eight days.
 
 On first sight of a file it counts up to a week of history, so the 24h/7d
 numbers are populated from the start. A brand-new file starts at its end.
+
+Each record is attributed to a provider and model: Claude messages carry it in
+`message.model` (provider `anthropic`), Codex takes the provider from
+`session_meta` and the model from the latest `turn_context`, and Pi messages
+carry both. The dashboard sums the per-host series by service/provider/model,
+so the breakdown covers both machines.
 
 Window sums are computed in the collector rather than with `increase()`:
 PromQL extrapolates to the requested range, which inflates a 24h sum when only
