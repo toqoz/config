@@ -36,6 +36,7 @@ USER_AGENT = "quota-collector/1"
 TOKEN_HISTORY_SECONDS = 7 * 24 * 3600
 CLAUDE_PROJECTS = "~/.claude/projects"
 CODEX_SESSIONS = "~/.codex/sessions"
+PI_SESSIONS = "~/.pi/agent/sessions"
 TOKEN_KINDS = ("input", "output", "cache_read", "cache_write")
 
 # Nominal window lengths, used to compare usage against elapsed time. Monthly
@@ -385,6 +386,7 @@ class Collector:
         sources = (
             ("claude_code", os.path.expanduser(CLAUDE_PROJECTS), claude_token_deltas),
             ("codex", os.path.expanduser(CODEX_SESSIONS), codex_token_deltas),
+            ("pi", os.path.expanduser(PI_SESSIONS), pi_token_deltas),
         )
         for service, root, deltas_of in sources:
             try:
@@ -710,6 +712,24 @@ def codex_token_deltas(record: dict) -> dict[str, int] | None:
         "input": max(int(usage.get("input_tokens") or 0) - cached, 0),
         "output": int(usage.get("output_tokens") or 0),
         "cache_read": cached,
+    }
+
+
+def pi_token_deltas(record: dict) -> dict[str, int] | None:
+    """Token usage of one Pi assistant message, keyed by kind."""
+    if record.get("type") != "message":
+        return None
+    message = record.get("message")
+    if not isinstance(message, dict) or message.get("role") != "assistant":
+        return None
+    usage = message.get("usage")
+    if not isinstance(usage, dict):
+        return None
+    return {
+        "input": int(usage.get("input") or 0),
+        "output": int(usage.get("output") or 0),
+        "cache_read": int(usage.get("cacheRead") or 0),
+        "cache_write": int(usage.get("cacheWrite") or 0),
     }
 
 

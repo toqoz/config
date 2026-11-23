@@ -118,9 +118,16 @@ class TokenParsingTest(unittest.TestCase):
         self.assertEqual(collector.codex_token_deltas(record),
                          {"input": 938, "output": 205, "cache_read": 239616})
 
+    def test_pi_usage_is_keyed_by_kind(self):
+        record = {"type": "message", "message": {"role": "assistant", "usage": {
+            "input": 25386, "output": 139, "cacheRead": 7, "cacheWrite": 0}}}
+        self.assertEqual(collector.pi_token_deltas(record),
+                         {"input": 25386, "output": 139, "cache_read": 7, "cache_write": 0})
+
     def test_unrelated_records_are_ignored(self):
         self.assertIsNone(collector.claude_token_deltas({"type": "user"}))
         self.assertIsNone(collector.codex_token_deltas({"payload": {"type": "turn"}}))
+        self.assertIsNone(collector.pi_token_deltas({"type": "message", "message": {"role": "user"}}))
 
     def test_duplicate_claude_messages_count_once(self):
         with tempfile.TemporaryDirectory() as directory:

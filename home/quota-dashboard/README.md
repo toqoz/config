@@ -37,7 +37,7 @@ All sources are read-only. Nothing refreshes a token.
 | `codex` | Newest `~/.codex/sessions/**/*.jsonl`, last `token_count` event's `rate_limits` | Scans sessions newest-first until one has `rate_limits`. Observation time is the event's own `timestamp` (file mtime as fallback). |
 | `ollama_cloud` | Local Ollama server: `/api/balance` | The server holds the cloud login, so no API key is needed. |
 | `opencode_go` | `GET https://opencode.ai/inference/go/v1/usage` with the `opencode-go` key from `~/.pi/agent/auth.json` | `rolling` / `weekly` / `monthly` percentages and reset times. |
-| `tokens` | Claude Code `~/.claude/projects/**/*.jsonl` and Codex `~/.codex/sessions/**/*.jsonl` | Tokens are counted from each log once, tracked by byte offset. Claude repeats every assistant message twice; the duplicate id is skipped. |
+| `tokens` | Claude Code `~/.claude/projects/**/*.jsonl`, Codex `~/.codex/sessions/**/*.jsonl`, Pi `~/.pi/agent/sessions/**/*.jsonl` | Tokens are counted from each log once, tracked by byte offset. Claude repeats every assistant message twice; the duplicate id is skipped. Pi is counted under `service="pi"` whatever provider it called. |
 
 Grok Build is intentionally not collected yet.
 
@@ -72,7 +72,8 @@ can be summed, which is why `host_name` is always attached.
 
 ## Tokens
 
-Claude Code and Codex write per-request token counts to their own JSONL logs.
+Claude Code, Codex, and Pi write per-request token counts to their own JSONL
+logs.
 The collector reads only the bytes it has not seen yet, keyed by file offset in
 the state file, and stores hourly buckets for the last eight days.
 
