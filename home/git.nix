@@ -1,14 +1,5 @@
 { pkgs, ... }:
 {
-  programs.delta = {
-    enable = true;
-    enableGitIntegration = true;
-    options = {
-      navigate = true;
-      line-numbers = true;
-    };
-  };
-
   programs.git = {
     enable = true;
     # `git -C <repo>` changes Git's working directory, but it does not reload
