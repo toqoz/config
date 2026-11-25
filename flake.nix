@@ -200,6 +200,7 @@
         nixpkgs.lib.nixosSystem {
           modules = [
             nixosModule
+            sops-nix.nixosModules.sops
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
@@ -265,6 +266,10 @@
               remilis = self.darwinConfigurations.remilis.config;
             };
             ras01-object-storage = import ./checks/ras01-object-storage.nix {
+              inherit pkgs lib;
+              ras01 = self.nixosConfigurations.ras01.config;
+            };
+            ras01-git-identities = import ./checks/ras01-git-identities.nix {
               inherit pkgs lib;
               ras01 = self.nixosConfigurations.ras01.config;
             };

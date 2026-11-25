@@ -9,6 +9,7 @@
   imports = [
     ./object-storage.nix
     ../../nixos/base.nix
+    ../../nixos/git-identities
   ];
 
   nixpkgs.hostPlatform = "aarch64-linux";
@@ -48,6 +49,15 @@
     initialHashedPassword = "";
   };
   users.users.root.hashedPassword = "";
+
+  # The identity contexts need this account's age key at
+  # ~/.config/sops/age/keys.txt; `sops updatekeys` has registered its public key
+  # as a recipient of git.sops.yaml.
+  my.gitIdentities = {
+    enable = true;
+    user = "nixos";
+  };
+
   security.sudo.wheelNeedsPassword = false;
   services.getty.autologinUser = "nixos";
 
