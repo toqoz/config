@@ -84,6 +84,15 @@
           '';
         };
 
+      buildRas01 = pkgs.writeShellApplication {
+        name = "build-ras01";
+        runtimeInputs = [ pkgs.git ];
+        text = ''
+          repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+          exec nix build "$repo_root#nixosConfigurations.ras01.config.system.build.toplevel" "$@"
+        '';
+      };
+
       gcCommand = pkgs.writeShellApplication {
         name = "nix-gc";
         text = ''
@@ -233,6 +242,10 @@
           program = "${package}/bin/darwin-${name}";
         })
         self.packages.${system} // {
+        build-ras01 = {
+          type = "app";
+          program = "${buildRas01}/bin/build-ras01";
+        };
         gc = {
           type = "app";
           program = "${gcCommand}/bin/nix-gc";

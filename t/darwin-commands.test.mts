@@ -21,7 +21,7 @@ test('Darwin apps require a host and forward the selected host and arguments', (
   assert.ok(apps && typeof apps === 'object');
   const names = ['build-forge01', 'build-remilis', 'switch-forge01', 'switch-remilis'];
   assert.deepEqual(Object.keys(scripts).sort(), names);
-  assert.deepEqual(Object.keys(apps).sort(), [...names, 'gc'].sort());
+  assert.deepEqual(Object.keys(apps).sort(), [...names, 'build-ras01', 'gc'].sort());
 
   for (const [name, script] of Object.entries(scripts)) {
     assert.equal(typeof script, 'string');
