@@ -5,7 +5,7 @@ let
   hosts = [ "remilis" "forge01" "ras01" "grokbot" ];
   readAll = {
     inherit buckets;
-    actions = [ "s3:ListBucket" "s3:GetObject" "s3:ListBucketMultipartUploads" ];
+    actions = [ "s3:ListAllMyBuckets" "s3:ListBucket" "s3:GetObject" "s3:ListBucketMultipartUploads" ];
   };
 in
 {

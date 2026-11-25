@@ -232,6 +232,11 @@ test('create writes a 0600 credentials file, prints only the key id, and refuses
 });
 
 test('hosts write their own prefix and all users read both buckets', () => {
+  for (const [file, profile] of [[hostAgent.file, 'remilis'], [hostPublisher.file, 'forge01'],
+    [agent.file, 'agent'], [publisher.file, 'publisher']]) {
+    const buckets = JSON.parse(must(userS3(file, profile, ['list-buckets']), 'list-buckets')).Buckets;
+    assert.deepEqual(buckets.map((bucket: { Name: string }) => bucket.Name).sort(), ['handoff', 'published']);
+  }
   writeFileSync(join(ctx.root, 'obj.txt'), 'hello');
   must(userS3(hostAgent.file, 'remilis', ['put-object', '--bucket', 'handoff', '--key', 'remilis/a.txt', '--body', join(ctx.root, 'obj.txt')]), 'host put');
   must(userS3(agent.file, 'agent', ['get-object', '--bucket', 'handoff', '--key', 'remilis/a.txt', join(ctx.root, 'got.txt')]), 'legacy read');
@@ -245,7 +250,6 @@ test('hosts write their own prefix and all users read both buckets', () => {
     [agent.file, 'agent', ['put-object', '--bucket', 'handoff', '--key', 'remilis/x', '--body', join(ctx.root, 'obj.txt')]],
     [publisher.file, 'publisher', ['delete-object', '--bucket', 'published', '--key', 'forge01/r.html']],
     [agent.file, 'agent', ['create-bucket', '--bucket', 'sneaky']],
-    [agent.file, 'agent', ['list-buckets']],
   ] as const) {
     const denied = userS3(file, profile, [...args]);
     assert.notEqual(denied.status, 0, `${profile} ${args[0]} should be denied`);

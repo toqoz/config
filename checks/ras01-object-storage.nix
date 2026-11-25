@@ -18,7 +18,7 @@ let
   statements = user: lib.concatMap (doc: doc.Statement)
     (lib.attrValues cfg.desiredState.users.${user}.policies);
   readOnly = statement: lib.all
-    (action: lib.elem action [ "s3:ListBucket" "s3:GetObject" "s3:ListBucketMultipartUploads" ])
+    (action: lib.elem action [ "s3:ListAllMyBuckets" "s3:ListBucket" "s3:GetObject" "s3:ListBucketMultipartUploads" ])
     statement.Action;
   shellchecked = map
     (name: pkgs.writeShellApplication {
@@ -70,6 +70,7 @@ assert lib.assertMsg (
         write = lib.head policies.${host + "-write"}.Statement;
       in
       readOnly read && read.Resource == readResources
+      && lib.elem { Effect = "Allow"; Action = [ "s3:ListAllMyBuckets" ]; Resource = [ "arn:aws:s3:::*" ]; } policies.read-all.Statement
       && write.Resource == [ "arn:aws:s3:::handoff/${host}/*" "arn:aws:s3:::published/${host}/*" ]
       && write.Action == [ "s3:PutObject" "s3:DeleteObject" "s3:AbortMultipartUpload" "s3:ListMultipartUploadParts" ])
     hosts

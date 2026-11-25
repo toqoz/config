@@ -110,6 +110,11 @@ those policies without replacing their access keys. Deleting the old declaration
 would retain their previous write grants. Extra undeclared policies are still
 kept and require inspection if present.
 
+Bucket discovery uses `s3:ListAllMyBuckets` on `arn:aws:s3:::*`. It exposes
+all bucket names, including undeclared buckets, without granting object access
+to those buckets. `s3:ListBucket` separately allows listing objects in the
+declared buckets.
+
 The reusable policy option `prefixes = [ "remilis/" ];` emits only object
 resources under those literal prefixes. With the default empty list, policies
 retain the previous whole-bucket resource behavior.

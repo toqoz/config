@@ -37,20 +37,28 @@ let
   };
   policyBytes = policies: lib.foldl' (n: doc: n + lib.stringLength (builtins.toJSON doc)) 0 (lib.attrValues policies);
 
-  policyDocument = policy: {
-    Version = "2012-10-17";
-    Statement = [{
-      Effect = "Allow";
-      Action = policy.actions;
-      Resource = lib.concatMap
-        (b:
-          if policy.prefixes == [ ] then
-            [ "arn:aws:s3:::${b}" "arn:aws:s3:::${b}/*" ]
-          else
-            map (prefix: "arn:aws:s3:::${b}/${prefix}*") policy.prefixes)
-        policy.buckets;
-    }];
-  };
+  policyDocument = policy:
+    let
+      bucketActions = lib.filter (action: action != "s3:ListAllMyBuckets") policy.actions;
+    in
+    {
+      Version = "2012-10-17";
+      Statement = lib.optional (bucketActions != [ ]) {
+        Effect = "Allow";
+        Action = bucketActions;
+        Resource = lib.concatMap
+          (b:
+            if policy.prefixes == [ ] then
+              [ "arn:aws:s3:::${b}" "arn:aws:s3:::${b}/*" ]
+            else
+              map (prefix: "arn:aws:s3:::${b}/${prefix}*") policy.prefixes)
+          policy.buckets;
+      } ++ lib.optional (lib.elem "s3:ListAllMyBuckets" policy.actions) {
+        Effect = "Allow";
+        Action = [ "s3:ListAllMyBuckets" ];
+        Resource = [ "arn:aws:s3:::*" ];
+      };
+    };
   inlinePolicies = identity: lib.genAttrs identity.policies (name: policyDocument cfg.policies.${name});
   identitiesOfType = type: lib.filterAttrs (_: identity: identity.type == type) cfg.identities;
 
