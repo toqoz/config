@@ -192,6 +192,26 @@
           }
         ];
       };
+
+      # Linux hosts use Home Manager the same way darwin hosts do, so their
+      # user-level tooling lives in `home/` instead of NixOS options.
+      mkNixosHost =
+        { username, nixosModule, homeModule }:
+        nixpkgs.lib.nixosSystem {
+          modules = [
+            nixosModule
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.users.${username} = {
+                imports = [ homeModule ];
+                home.username = username;
+                home.homeDirectory = "/home/${username}";
+              };
+            }
+          ];
+        };
     in
     {
       packages.${system} = builtins.listToAttrs (nixpkgs.lib.concatMap
@@ -258,10 +278,8 @@
       # Linux hosts are built on the host itself (or on another aarch64-linux
       # machine); forge01 cannot build aarch64-linux derivations, because Nix is
       # owned by nix-installer there and no Linux builder is configured.
-      nixosConfigurations = {
-        ras01 = nixpkgs.lib.nixosSystem {
-          modules = [ ./hosts/ras01 ];
-        };
+      nixosConfigurations = nixpkgs.lib.mapAttrs (_: mkNixosHost) {
+        ras01 = import ./hosts/ras01;
       };
     };
 }
