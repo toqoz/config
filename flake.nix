@@ -84,9 +84,9 @@
           '';
         };
 
-      buildRas01 = pkgs.writeShellApplication {
+      buildRas01 = commandPkgs: commandPkgs.writeShellApplication {
         name = "build-ras01";
-        runtimeInputs = [ pkgs.git ];
+        runtimeInputs = [ commandPkgs.git ];
         text = ''
           repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
           exec nix build "$repo_root#nixosConfigurations.ras01.config.system.build.toplevel" "$@"
@@ -244,12 +244,17 @@
         self.packages.${system} // {
         build-ras01 = {
           type = "app";
-          program = "${buildRas01}/bin/build-ras01";
+          program = "${buildRas01 pkgs}/bin/build-ras01";
         };
         gc = {
           type = "app";
           program = "${gcCommand}/bin/nix-gc";
         };
+      };
+
+      apps.aarch64-linux.build-ras01 = {
+        type = "app";
+        program = "${buildRas01 nixpkgs.legacyPackages.aarch64-linux}/bin/build-ras01";
       };
 
       # Auto-discover per-module tests at `home/<mod>/tests.nix`. Each such
