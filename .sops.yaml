@@ -1,4 +1,11 @@
 creation_rules:
+  # ras01 reads only the Git identities. Its SD card is unencrypted, so the
+  # other secrets stay readable by the darwin hosts alone.
+  - path_regex: git\.sops\.yaml$
+    age:
+      - age1kk9zyxawwusuc9nf7gf723pvyn426wgqeftanms8g4a2plupqp8qszgdfr
+      - age1xhrfh4hr2vstrqus0uxc02gvx0s33edg70qdc9rafp3jp8qm9vws6ptgx7
+      - age1cu7dxzdxg8q7jzx7pyfme0uwnl83ttv20ctmmz98hs4nzae2r3dqpurqe9
   - path_regex: .*\.sops\.yaml$
     age:
       - age1kk9zyxawwusuc9nf7gf723pvyn426wgqeftanms8g4a2plupqp8qszgdfr
