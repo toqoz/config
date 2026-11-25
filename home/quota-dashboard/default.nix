@@ -16,6 +16,8 @@ let
           - "127.0.0.1:${toString cfg.stack.grafanaPort}:3000"
           - "0.0.0.0:${toString cfg.stack.otlpGrpcPort}:4317"
           - "0.0.0.0:${toString cfg.stack.otlpHttpPort}:4318"
+          # Loopback only, for the quota API and local debugging.
+          - "127.0.0.1:9090:9090"
         environment:
           - PROMETHEUS_EXTRA_ARGS=--storage.tsdb.retention.time=${cfg.stack.retention}
           # Read-only browsing for anything that can reach the host. Password
@@ -65,9 +67,14 @@ ${lib.optionalString (cfg.stack.rootUrl != "") "          - GF_SERVER_ROOT_URL=$
 
   # `tailscale serve` publishes the loopback-only Grafana over HTTPS on the
   # tailnet, so no certificate needs to be managed here.
-  serveScript = pkgs.writeShellScript "quota-grafana-serve" ''
+  serveScript = pkgs.writeShellScript "quota-serve" ''
     set -euo pipefail
-    exec ${tailscaleServe} ${toString cfg.stack.grafanaPort}
+    ${tailscaleServe} ${toString cfg.stack.grafanaPort}
+    ${lib.optionalString cfg.api.enable "${tailscaleServe} ${toString cfg.api.port}"}
+  '';
+
+  apiScript = pkgs.writeShellScript "quota-api" ''
+    exec ${pkgs.python3}/bin/python3 -B ${./api.py}
   '';
 in
 {
@@ -98,6 +105,16 @@ in
       type = lib.types.ints.positive;
       default = 60;
       description = "Seconds between collection passes.";
+    };
+
+    api = {
+      enable = lib.mkEnableOption "the read-only quota JSON API";
+
+      port = lib.mkOption {
+        type = lib.types.port;
+        default = 3371;
+        description = "Loopback port for the quota API; the tailnet reaches it through Tailscale Serve on the same port.";
+      };
     };
 
     stack = {
@@ -192,7 +209,34 @@ in
       };
     };
 
-    launchd.agents.quota-grafana-serve = lib.mkIf (cfg.stack.enable && cfg.stack.tailscaleServe) {
+    assertions = [
+      {
+        assertion = !cfg.api.enable || cfg.stack.enable;
+        message = "The quota API reads the local Prometheus, so it requires the aggregation stack.";
+      }
+    ];
+
+    launchd.agents.quota-api = lib.mkIf cfg.api.enable {
+      enable = true;
+      domain = "user";
+      config = {
+        ProgramArguments = [ "${apiScript}" ];
+        EnvironmentVariables = {
+          QUOTA_API_PORT = toString cfg.api.port;
+          QUOTA_PROMETHEUS_URL = "http://127.0.0.1:9090";
+          PATH = "/usr/bin:/bin:/usr/sbin:/sbin:${config.home.profileDirectory}/bin";
+        };
+        RunAtLoad = true;
+        KeepAlive = true;
+        ThrottleInterval = 10;
+        ProcessType = "Background";
+        Umask = 63;
+        StandardOutPath = "${stateDir}/api.log";
+        StandardErrorPath = "${stateDir}/api.log";
+      };
+    };
+
+    launchd.agents.quota-serve = lib.mkIf (cfg.stack.enable && cfg.stack.tailscaleServe) {
       enable = true;
       domain = "user";
       config = {

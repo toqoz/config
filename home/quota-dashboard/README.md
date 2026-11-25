@@ -64,6 +64,34 @@ Gauges, all carrying `host_name` (OTel resource `host.name`) and
 dashboard uses `max by (...)`. Token/cost counters from OTel are per host and
 can be summed, which is why `host_name` is always attached.
 
+## API
+
+`quota-api` answers a single JSON snapshot for scripts and agents:
+
+```sh
+curl -s https://forge01.<tailnet>.ts.net:3371/quota | jq .
+```
+
+```json
+{
+  "generated_at": "2026-11-25T00:01:27Z",
+  "quotas": [
+    {"service": "claude_code", "window": "weekly", "scope": null,
+     "used_percent": 4.0, "resets_at": 1795820399,
+     "elapsed_percent": 57.8, "overage_points": -53.8, "age_seconds": 59}
+  ],
+  "tokens": {"windows": ["1d", "7d"],
+             "rows": [{"service": "pi", "provider": "opencode-go",
+                       "model": "deepseek-v4.1-flash", "tokens_1d": 5535507,
+                       "tokens_7d": 77587907}]}
+}
+```
+
+It reuses the dashboard's rules (account-level maximum across hosts, six-hour
+freshness cut-off, `elapsed_percent` from the window length). Prometheus is
+published on `127.0.0.1:9090` for it, and the API is loopback-only plus
+`tailscale serve --https=3371`.
+
 ## Dashboard panels
 
 1. One table per service/window: usage as a bar, the points by which usage is ahead of the elapsed window (`超過`; positive means burning faster than the clock), the countdown, the absolute reset time, and how long ago the data was observed. Rows are sorted by service, window, and scope, never by value, so the order does not jump between refreshes.

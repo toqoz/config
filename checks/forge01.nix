@@ -343,9 +343,13 @@ assert lib.assertMsg (
     [ forgeHome remilisHome ]
   && forgeHome.launchd.agents.quota-otel-lgtm.enable
   && forgeHome.launchd.agents.quota-otel-lgtm.domain == "gui"
-  && forgeHome.launchd.agents.quota-grafana-serve.enable
-  && forgeHome.launchd.agents.quota-grafana-serve.domain == "user"
-  && !(remilisHome.launchd.agents ? quota-grafana-serve)
+  && forgeHome.launchd.agents.quota-serve.enable
+  && forgeHome.launchd.agents.quota-serve.domain == "user"
+  && forgeHome.launchd.agents.quota-api.enable
+  && forgeHome.launchd.agents.quota-api.domain == "user"
+  && !(remilisHome.launchd.agents ? quota-serve)
+  && !(remilisHome.launchd.agents ? quota-api)
+  && lib.hasInfix "127.0.0.1:9090:9090" forgeHome.my.quotaDashboard.stack.composeText
   && lib.hasInfix "127.0.0.1:3370:3000" forgeHome.my.quotaDashboard.stack.composeText
   && lib.hasInfix "0.0.0.0:43180:4318" forgeHome.my.quotaDashboard.stack.composeText
   && lib.hasInfix "GF_SERVER_ROOT_URL=https://forge01.tail99f21.ts.net:3370/" forgeHome.my.quotaDashboard.stack.composeText

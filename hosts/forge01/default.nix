@@ -41,6 +41,9 @@
       # Tailscale Serve terminates HTTPS for the loopback Grafana; root_url
       # keeps Grafana-generated links on the tailnet URL.
       stack.rootUrl = "https://forge01.tail99f21.ts.net:3370/";
+      # Read-only JSON snapshot for scripts and agents:
+      # https://forge01.tail99f21.ts.net:3371/quota
+      api.enable = true;
     };
   };
 }
