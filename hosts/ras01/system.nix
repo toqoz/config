@@ -4,7 +4,7 @@
 # image's boot chain (Raspberry Pi firmware -> U-Boot -> extlinux) instead of
 # managing the firmware partition itself. The firmware partition is left alone;
 # `/` and the extlinux menu are the only pieces this system owns.
-{ ... }:
+{ pkgs, ... }:
 {
   imports = [
     ./object-storage.nix
@@ -33,6 +33,21 @@
     extraUpFlags = [ "--ssh" ];
   };
   services.openssh.enable = false;
+
+  systemd.services.tailscale-serve-published = {
+    description = "Serve published objects on the tailnet";
+    wantedBy = [ "multi-user.target" ];
+    wants = [ "tailscaled.service" "versitygw-reconcile.service" ];
+    after = [ "tailscaled.service" "versitygw-reconcile.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.tailscale}/bin/tailscale serve --bg --https=8888 /var/lib/versitygw/data/published";
+      ExecStop = "${pkgs.tailscale}/bin/tailscale serve --https=8888 off";
+      Restart = "on-failure";
+      RestartSec = "5s";
+    };
+  };
 
   # Local console recovery. The board is headless and has no out-of-band access,
   # so a locked account would mean reflashing the SD card. The generic SD image
