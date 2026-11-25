@@ -188,12 +188,13 @@ test('reconcile creates the declared users, policies, and buckets, and a second 
   assert.equal(first.status, 0, first.stderr);
   for (const line of ['create user agent', 'create user publisher', 'create user versitygw-reconcile',
     'add user agent policy handoff-rw', 'add user publisher policy published-rw', 'add user versitygw-reconcile policy buckets',
+    'create user remilis', 'create user forge01', 'create user ras01',
     'create bucket handoff', 'create bucket published']) {
     assert.match(first.stdout, new RegExp(`applied: ${line}\\n`));
   }
   const users = JSON.parse(must(iam(['list-users']), 'list-users')).Users;
   assert.deepEqual(users.map((u: { UserName: string; Path: string }) => `${u.UserName}${u.Path}`).sort(),
-    ['agent/nix-managed/', 'publisher/nix-managed/', 'versitygw-reconcile/nix-managed/']);
+    ['agent/nix-managed/', 'forge01/nix-managed/', 'publisher/nix-managed/', 'ras01/nix-managed/', 'remilis/nix-managed/', 'versitygw-reconcile/nix-managed/']);
   const second = script('reconcile', [ctx.desired]);
   assert.equal(second.status, 0, second.stderr);
   assert.equal(second.stdout, 'reconcile: 0 change(s) applied, 0 conflict(s)\n');
@@ -211,10 +212,14 @@ test('the bucket creator holds an access key only while reconcile runs', () => {
 
 let agent: { file: string; id: string };
 let publisher: { file: string; id: string };
+let hostAgent: { file: string; id: string };
+let hostPublisher: { file: string; id: string };
 
 test('create writes a 0600 credentials file, prints only the key id, and refuses a second key', () => {
   agent = issue('create', 'agent');
   publisher = issue('create', 'publisher');
+  hostAgent = issue('create', 'remilis');
+  hostPublisher = issue('create', 'forge01');
   assert.equal(statSync(agent.file).mode & 0o777, 0o600);
   const again = provision(['create', 'agent', '--out', join(ctx.root, 'unused.ini')]);
   assert.equal(again.status, 1);
@@ -226,16 +231,19 @@ test('create writes a 0600 credentials file, prints only the key id, and refuses
   assert.deepEqual(keyIds('agent'), [`${agent.id}:Active`]);
 });
 
-test('each user reaches only its own bucket', () => {
+test('hosts write their own prefix and all users read both buckets', () => {
   writeFileSync(join(ctx.root, 'obj.txt'), 'hello');
-  must(userS3(agent.file, 'agent', ['put-object', '--bucket', 'handoff', '--key', 'a.txt', '--body', join(ctx.root, 'obj.txt')]), 'agent put');
-  must(userS3(agent.file, 'agent', ['get-object', '--bucket', 'handoff', '--key', 'a.txt', join(ctx.root, 'got.txt')]), 'agent get');
+  must(userS3(hostAgent.file, 'remilis', ['put-object', '--bucket', 'handoff', '--key', 'remilis/a.txt', '--body', join(ctx.root, 'obj.txt')]), 'host put');
+  must(userS3(agent.file, 'agent', ['get-object', '--bucket', 'handoff', '--key', 'remilis/a.txt', join(ctx.root, 'got.txt')]), 'legacy read');
   assert.equal(readFileSync(join(ctx.root, 'got.txt'), 'utf8'), 'hello');
-  must(userS3(publisher.file, 'publisher', ['put-object', '--bucket', 'published', '--key', 'r.html', '--body', join(ctx.root, 'obj.txt')]), 'publisher put');
+  must(userS3(hostPublisher.file, 'forge01', ['put-object', '--bucket', 'published', '--key', 'forge01/r.html', '--body', join(ctx.root, 'obj.txt')]), 'other host put');
+  must(userS3(agent.file, 'agent', ['get-object', '--bucket', 'published', '--key', 'forge01/r.html', join(ctx.root, 'published.txt')]), 'cross-bucket read');
+  must(userS3(publisher.file, 'publisher', ['get-object', '--bucket', 'handoff', '--key', 'remilis/a.txt', join(ctx.root, 'handoff.txt')]), 'cross-bucket read');
   for (const [file, profile, args] of [
-    [agent.file, 'agent', ['list-objects-v2', '--bucket', 'published']],
-    [agent.file, 'agent', ['put-object', '--bucket', 'published', '--key', 'x', '--body', join(ctx.root, 'obj.txt')]],
-    [publisher.file, 'publisher', ['get-object', '--bucket', 'handoff', '--key', 'a.txt', join(ctx.root, 'x')]],
+    [hostAgent.file, 'remilis', ['put-object', '--bucket', 'handoff', '--key', 'forge01/x', '--body', join(ctx.root, 'obj.txt')]],
+    [hostAgent.file, 'remilis', ['put-object', '--bucket', 'published', '--key', 'forge01/x', '--body', join(ctx.root, 'obj.txt')]],
+    [agent.file, 'agent', ['put-object', '--bucket', 'handoff', '--key', 'remilis/x', '--body', join(ctx.root, 'obj.txt')]],
+    [publisher.file, 'publisher', ['delete-object', '--bucket', 'published', '--key', 'forge01/r.html']],
     [agent.file, 'agent', ['create-bucket', '--bucket', 'sneaky']],
     [agent.file, 'agent', ['list-buckets']],
   ] as const) {
@@ -248,11 +256,11 @@ test('each user reaches only its own bucket', () => {
 test('a multipart upload of large handoff data works under the declared policy', () => {
   const big = join(ctx.root, 'big.bin');
   writeFileSync(big, Buffer.alloc(12 * 1024 * 1024, 7));
-  const up = spawnSync('aws', ['s3', 'cp', '--endpoint-url', s3Endpoint(), big, 's3://handoff/big.bin'], {
-    encoding: 'utf8', env: env({ AWS_SHARED_CREDENTIALS_FILE: agent.file, AWS_PROFILE: 'agent' }),
+  const up = spawnSync('aws', ['s3', 'cp', '--endpoint-url', s3Endpoint(), big, 's3://handoff/remilis/big.bin'], {
+    encoding: 'utf8', env: env({ AWS_SHARED_CREDENTIALS_FILE: hostAgent.file, AWS_PROFILE: 'remilis' }),
   });
   assert.equal(up.status, 0, up.stderr);
-  const head = JSON.parse(must(userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'big.bin']), 'head'));
+  const head = JSON.parse(must(userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'remilis/big.bin']), 'head'));
   assert.equal(head.ContentLength, 12 * 1024 * 1024);
   assert.match(head.ETag, /-2"$/);
 });
@@ -271,7 +279,8 @@ test('reconcile repairs a drifted policy, keeps manual identities, and leaves ac
   assert.match(fix.stdout, /reconcile: 1 change\(s\) applied/);
   assert.equal(script('reconcile', [ctx.desired]).stdout.split('\n').filter((l) => l.startsWith('applied')).length, 0);
   const doc = JSON.parse(must(iam(['get-user-policy', '--user-name', 'agent', '--policy-name', 'handoff-rw']), 'get policy')).PolicyDocument;
-  assert.deepEqual(doc.Statement[0].Resource, ['arn:aws:s3:::handoff', 'arn:aws:s3:::handoff/*']);
+  assert.deepEqual(doc.Statement[0].Resource, ['arn:aws:s3:::handoff', 'arn:aws:s3:::handoff/*', 'arn:aws:s3:::published', 'arn:aws:s3:::published/*']);
+  assert.equal(doc.Statement[0].Action.includes('s3:PutObject'), false);
   assert.equal(must(iam(['get-user', '--user-name', 'manual']), 'manual kept').includes('"Path": "/"'), true);
   assert.deepEqual([keyIds('agent'), keyIds('publisher')], keysBefore);
   must(iam(['delete-user-policy', '--user-name', 'agent', '--policy-name', 'manual-extra']), 'cleanup extra policy');
@@ -309,18 +318,18 @@ test('dry-run reports planned changes without applying them', () => {
 test('rotate overlaps keys, and revoke waits until the new key has been used', () => {
   const rotated = issue('rotate', 'agent');
   assert.deepEqual(keyIds('agent'), [`${agent.id}:Active`, `${rotated.id}:Active`].sort());
-  must(userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'a.txt']), 'old key still works');
+  must(userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'remilis/a.txt']), 'old key still works');
   const third = provision(['rotate', 'agent', '--out', join(ctx.root, 'third.ini')]);
   assert.equal(third.status, 1);
   assert.match(third.stderr, /rotate needs exactly one existing key, agent has 2/);
   const early = provision(['revoke', 'agent', agent.id]);
   assert.equal(early.status, 1);
   assert.match(early.stderr, new RegExp(`replacement key ${rotated.id} has never been used`));
-  must(userS3(rotated.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'a.txt']), 'new key works');
+  must(userS3(rotated.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'remilis/a.txt']), 'new key works');
   const listed = must(provision(['list', 'agent']), 'list');
   assert.match(listed, new RegExp(`${rotated.id}\\tActive\\t\\S+\\t\\d{4}-`));
   assert.match(must(provision(['revoke', 'agent', agent.id]), 'revoke'), new RegExp(`revoked access key ${agent.id} of agent`));
-  const old = userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'a.txt']);
+  const old = userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'remilis/a.txt']);
   assert.notEqual(old.status, 0);
   assert.deepEqual(keyIds('agent'), [`${rotated.id}:Active`]);
   const last = provision(['revoke', 'agent', rotated.id]);
@@ -330,7 +339,7 @@ test('rotate overlaps keys, and revoke waits until the new key has been used', (
 });
 
 test('the stored root cannot sign S3 requests, so authenticated S3 requests depend on IAM', () => {
-  for (const args of [['list-buckets'], ['head-object', '--bucket', 'handoff', '--key', 'a.txt'], ['create-bucket', '--bucket', 'by-root']]) {
+  for (const args of [['list-buckets'], ['head-object', '--bucket', 'handoff', '--key', 'remilis/a.txt'], ['create-bucket', '--bucket', 'by-root']]) {
     const denied = rootAws(['s3api', '--endpoint-url', s3Endpoint(), ...args]);
     assert.notEqual(denied.status, 0, `root ${args[0]} must be refused`);
     // HEAD responses carry no error body, only the status.
@@ -340,7 +349,7 @@ test('the stored root cannot sign S3 requests, so authenticated S3 requests depe
 
 test('new authenticated S3 requests are denied while IAM is stopped or hung, and resume with IAM', async () => {
   const once = { AWS_MAX_ATTEMPTS: '1' };
-  const head = ['head-object', '--bucket', 'handoff', '--key', 'a.txt'];
+  const head = ['head-object', '--bucket', 'handoff', '--key', 'remilis/a.txt'];
   const rootHead = () => rootAws(['s3api', '--endpoint-url', s3Endpoint(), ...head]);
   await stop(ctx.iam);
   const down = userS3(agent.file, 'agent', head, once);
@@ -401,8 +410,8 @@ test('backup and restore bring back IAM state, keys, policies, and objects on a 
   const { path: systemctl, calls } = serviceStub();
   const pids = () => { writeFileSync(join(ctx.run, 'iam.pid'), String(ctx.iam!.pid)); writeFileSync(join(ctx.run, 'gateway.pid'), String(ctx.gateway!.pid)); };
   // Adjacent dots are an ordinary object name, not a path component.
-  must(userS3(agent.file, 'agent', ['put-object', '--bucket', 'handoff', '--key', 'release..json', '--body', join(ctx.root, 'obj.txt')]), 'dotted put');
-  const etag = JSON.parse(must(userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'a.txt']), 'head')).ETag;
+  must(userS3(hostAgent.file, 'remilis', ['put-object', '--bucket', 'handoff', '--key', 'remilis/release..json', '--body', join(ctx.root, 'obj.txt')]), 'dotted put');
+  const etag = JSON.parse(must(userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'remilis/a.txt']), 'head')).ETag;
   const policy = must(iam(['get-user-policy', '--user-name', 'agent', '--policy-name', 'handoff-rw']), 'policy');
   const oldRoot = readFileSync(rootCredentials(), 'utf8');
   const dest = join(ctx.root, 'backups');
@@ -429,7 +438,7 @@ test('backup and restore bring back IAM state, keys, policies, and objects on a 
   assert.notEqual(readFileSync(rootCredentials(), 'utf8'), oldRoot);
   await startAll();
   must(script('reconcile', [ctx.desired]), 'fresh reconcile');
-  assert.notEqual(userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'a.txt']).status, 0);
+  assert.notEqual(userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'remilis/a.txt']).status, 0);
 
   pids();
   // Restore only reports success once the restarted services answer with the restored root.
@@ -438,10 +447,10 @@ test('backup and restore bring back IAM state, keys, policies, and objects on a 
   assert.ok(readdirSync(join(ctx.root, 'var/lib')).some((n) => n.startsWith('versitygw.pre-restore-')));
   assert.equal(readFileSync(rootCredentials(), 'utf8'), oldRoot);
   assert.equal(statSync(stateDir()).mode & 0o7777, 0o755);
-  assert.equal(JSON.parse(must(userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'a.txt']), 'restored head')).ETag, etag);
+  assert.equal(JSON.parse(must(userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'remilis/a.txt']), 'restored head')).ETag, etag);
   assert.equal(must(iam(['get-user-policy', '--user-name', 'agent', '--policy-name', 'handoff-rw']), 'restored policy'), policy);
-  must(userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'release..json']), 'dotted object restored');
-  assert.match(userS3(agent.file, 'agent', ['list-objects-v2', '--bucket', 'published']).stderr, /AccessDenied/);
+  must(userS3(agent.file, 'agent', ['head-object', '--bucket', 'handoff', '--key', 'remilis/release..json']), 'dotted object restored');
+  must(userS3(agent.file, 'agent', ['list-objects-v2', '--bucket', 'published']), 'restored cross-bucket read');
   assert.match(script('reconcile', [ctx.desired]).stdout, /reconcile: 0 change\(s\) applied/);
 });
 

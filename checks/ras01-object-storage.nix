@@ -1,7 +1,7 @@
 # Safety contract of ras01's object storage, checked by evaluation: the network
 # exposure, how root credentials reach the services, that the gateway's own root
-# cannot sign S3 requests, and that each declared user can only name its own
-# bucket. The scripts are also built here for darwin so shellcheck runs on them
+# cannot sign S3 requests, and that each host reads all data but writes only
+# beneath its own prefix. The scripts are also built here for darwin so shellcheck runs on them
 # without a Linux builder.
 { pkgs, lib, ras01 }:
 let
@@ -10,8 +10,16 @@ let
   units = [ "versitygw-iam" "versitygw" "versitygw-reconcile" ];
   execStart = name: services.${name}.serviceConfig.ExecStart;
   firewall = ras01.networking.firewall;
-  resources = user: lib.concatMap (doc: lib.concatMap (s: s.Resource) doc.Statement)
+  hosts = [ "remilis" "forge01" "ras01" ];
+  readResources = [
+    "arn:aws:s3:::handoff" "arn:aws:s3:::handoff/*"
+    "arn:aws:s3:::published" "arn:aws:s3:::published/*"
+  ];
+  statements = user: lib.concatMap (doc: doc.Statement)
     (lib.attrValues cfg.desiredState.users.${user}.policies);
+  readOnly = statement: lib.all
+    (action: lib.elem action [ "s3:ListBucket" "s3:GetObject" "s3:ListBucketMultipartUploads" ])
+    statement.Action;
   shellchecked = map
     (name: pkgs.writeShellApplication {
       inherit name;
@@ -53,9 +61,19 @@ assert lib.assertMsg (
     units
 ) "root credentials must reach services only through LoadCredential";
 assert lib.assertMsg (
-  resources "agent" == [ "arn:aws:s3:::handoff" "arn:aws:s3:::handoff/*" ]
-  && resources "publisher" == [ "arn:aws:s3:::published" "arn:aws:s3:::published/*" ]
-) "agent must be limited to handoff and publisher to published";
+  lib.all (name: lib.all readOnly (statements name)) [ "agent" "publisher" ]
+  && lib.all
+    (host:
+      let
+        policies = cfg.desiredState.users.${host}.policies;
+        read = lib.head policies.read-all.Statement;
+        write = lib.head policies.${host + "-write"}.Statement;
+      in
+      readOnly read && read.Resource == readResources
+      && write.Resource == [ "arn:aws:s3:::handoff/${host}/*" "arn:aws:s3:::published/${host}/*" ]
+      && write.Action == [ "s3:PutObject" "s3:DeleteObject" "s3:AbortMultipartUpload" "s3:ListMultipartUploadParts" ])
+    hosts
+) "hosts must read all data, write only their own prefixes, and legacy shared users must be read-only";
 pkgs.runCommand "ras01-object-storage-contract" { } ''
   echo ${lib.escapeShellArgs shellchecked} > "$out"
 ''
