@@ -21,6 +21,13 @@ test('ras01 exposes its build app on its native Linux platform', () => {
   assert.match(Reflect.get(app, 'program'), /^\/nix\/store\/[^/]+\/bin\/build-ras01$/);
 });
 
+test('ras01 exposes its switch app on its native Linux platform', () => {
+  const app = evaluate('.#apps.aarch64-linux.switch-ras01', 'app: app');
+  assert.ok(app && typeof app === 'object');
+  assert.equal(Reflect.get(app, 'type'), 'app');
+  assert.match(Reflect.get(app, 'program'), /^\/nix\/store\/[^/]+\/bin\/switch-ras01$/);
+});
+
 test('Darwin apps require a host and forward the selected host and arguments', () => {
   const scripts = evaluate('.#packages.aarch64-darwin', 'ps: builtins.mapAttrs (_: p: p.text) ps');
   const apps = evaluate('.#apps.aarch64-darwin', 'apps: builtins.mapAttrs (_: app: app.program) apps');

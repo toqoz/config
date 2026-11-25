@@ -93,6 +93,17 @@
         '';
       };
 
+      switchRas01 =
+        let linuxPkgs = nixpkgs.legacyPackages.aarch64-linux;
+        in linuxPkgs.writeShellApplication {
+          name = "switch-ras01";
+          runtimeInputs = [ linuxPkgs.git linuxPkgs.nixos-rebuild ];
+          text = ''
+            repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+            exec sudo "$(command -v nixos-rebuild)" switch --flake "$repo_root#ras01" "$@"
+          '';
+        };
+
       gcCommand = pkgs.writeShellApplication {
         name = "nix-gc";
         text = ''
@@ -255,6 +266,11 @@
       apps.aarch64-linux.build-ras01 = {
         type = "app";
         program = "${buildRas01 nixpkgs.legacyPackages.aarch64-linux}/bin/build-ras01";
+      };
+
+      apps.aarch64-linux.switch-ras01 = {
+        type = "app";
+        program = "${switchRas01}/bin/switch-ras01";
       };
 
       # Auto-discover per-module tests at `home/<mod>/tests.nix`. Each such
