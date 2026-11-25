@@ -39,6 +39,14 @@ assert lib.assertMsg (
 assert lib.assertMsg (
   lib.all (id: lib.hasPrefix "/run/secrets/rendered/git-identity-${id}-" (template id "hosts").path) ids
 ) "gh templates must stay in the sops mount point until the link script copies them";
+assert lib.assertMsg (
+  lib.all
+    (id:
+      (template id "envrc").path == "${home}/.config/nix-contexts/${id}/envrc"
+      && (template id "envrc").owner == user
+      && lib.hasInfix "GIT_AUTHOR_EMAIL" (template id "envrc").content)
+    ids
+) "each identity must render the envrc that the repository symlink points at";
 assert lib.assertMsg (config.system.activationScripts ? setupSecrets)
   "the link script relies on sops installing secrets during activation";
 assert lib.assertMsg (

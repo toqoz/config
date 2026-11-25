@@ -38,6 +38,9 @@ test('links the decrypted identity and protects existing files', () => {
     assert.equal(run().status, 0);
     assert.equal(readFileSync(copiedHosts, 'utf8'), 'updated by gh');
     assert.equal(readFileSync(copiedConfig, 'utf8'), 'updated config');
+    rmSync(join(context, 'envrc'));
+    assert.notEqual(run().status, 0);
+    writeFileSync(join(context, 'envrc'), 'test');
     writeFileSync(join(context, 'author_name'), "O'Example");
     assert.notEqual(run().status, 0);
     writeFileSync(join(context, 'author_name'), 'Example Author');

@@ -4,6 +4,10 @@ context=$1
 base=$2
 hosts_source=$3
 config_source=$4
+# An incomplete identity (missing decrypted fields or envrc) would otherwise
+# produce links that point at nothing.
+[ -d "$context/gh" ] || { echo "Missing $context/gh" >&2; exit 1; }
+[ -f "$context/envrc" ] || { echo "Missing $context/envrc" >&2; exit 1; }
 org=$(cat "$context/org")
 user=$(cat "$context/user")
 for value in "$org" "$user"; do

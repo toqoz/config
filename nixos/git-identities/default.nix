@@ -84,6 +84,23 @@ in
                 '';
               };
             }
+            {
+              # The repository symlink points here, and direnv loads it through
+              # the Git wrapper's `direnv exec`, so the file must exist before
+              # the link script runs.
+              name = "git-identity-${id}-envrc";
+              value = {
+                owner = user;
+                path = "${contextDir id}/envrc";
+                content = ''
+                  export GH_CONFIG_DIR="$PWD/.gh"
+                  export GIT_AUTHOR_NAME='${placeholder id "author_name"}'
+                  export GIT_AUTHOR_EMAIL='${placeholder id "author_email"}'
+                  export GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
+                  export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
+                '';
+              };
+            }
           ])
           ids);
 
