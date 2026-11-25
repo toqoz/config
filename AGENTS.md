@@ -23,6 +23,7 @@ Add shared tools through `home/base.nix`; keep host-specific additions in the ho
 | git global config | `home/git.nix` (darwin profile), `home/git-shared.nix` (values and wrapper) |
 | ras01 user tooling (git, gh, ghq) | `home/linux-base.nix`, `hosts/ras01/home.nix` |
 | ras01 system settings (direnv, nix features) | `hosts/ras01/system.nix`, `nixos/base.nix` |
+| ras01 git identities (sops contexts, repo links) | `nixos/git-identities/`, enabled in `hosts/ras01/system.nix` |
 | Neovim packages, LSPs, extra tools | `home/neovim/default.nix` |
 | Shared CLI tools / remilis-only CLI tools | `home/base.nix` / `home/packages.nix` |
 | Claude Code settings and permissions | `home/agents/claude-code/` |
