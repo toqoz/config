@@ -50,6 +50,7 @@
   '';
 
   home.packages = with pkgs; [
+    awscli2
     age
     sops
     ghq

@@ -13,5 +13,5 @@
   home.stateVersion = "26.05";
 
   # ghq has no Home Manager module; its root comes from ./git.nix.
-  home.packages = [ pkgs.ghq ];
+  home.packages = [ pkgs.ghq pkgs.awscli2 ];
 }
