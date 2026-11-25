@@ -188,13 +188,13 @@ test('reconcile creates the declared users, policies, and buckets, and a second 
   assert.equal(first.status, 0, first.stderr);
   for (const line of ['create user agent', 'create user publisher', 'create user versitygw-reconcile',
     'add user agent policy handoff-rw', 'add user publisher policy published-rw', 'add user versitygw-reconcile policy buckets',
-    'create user remilis', 'create user forge01', 'create user ras01',
+    'create user remilis', 'create user forge01', 'create user ras01', 'create user grokbot',
     'create bucket handoff', 'create bucket published']) {
     assert.match(first.stdout, new RegExp(`applied: ${line}\\n`));
   }
   const users = JSON.parse(must(iam(['list-users']), 'list-users')).Users;
   assert.deepEqual(users.map((u: { UserName: string; Path: string }) => `${u.UserName}${u.Path}`).sort(),
-    ['agent/nix-managed/', 'forge01/nix-managed/', 'publisher/nix-managed/', 'ras01/nix-managed/', 'remilis/nix-managed/', 'versitygw-reconcile/nix-managed/']);
+    ['agent/nix-managed/', 'forge01/nix-managed/', 'grokbot/nix-managed/', 'publisher/nix-managed/', 'ras01/nix-managed/', 'remilis/nix-managed/', 'versitygw-reconcile/nix-managed/']);
   const second = script('reconcile', [ctx.desired]);
   assert.equal(second.status, 0, second.stderr);
   assert.equal(second.stdout, 'reconcile: 0 change(s) applied, 0 conflict(s)\n');

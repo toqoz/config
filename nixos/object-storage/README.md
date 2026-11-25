@@ -92,8 +92,8 @@ them.
 
 ## Host prefixes
 
-The declared host users are `remilis`, `forge01`, and `ras01`. Each user can list
-and read all objects in both `handoff` and `published`, and can create, overwrite,
+The declared client users are `remilis`, `forge01`, `ras01`, and `grokbot`.
+Each user can list and read all objects in both `handoff` and `published`, and can create, overwrite,
 copy, and delete objects only under its own `<host>/` prefix in each bucket.
 Multipart uploads are also restricted to that prefix. For example, `remilis`
 can write `s3://handoff/remilis/results.json` and read

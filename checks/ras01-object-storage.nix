@@ -10,7 +10,7 @@ let
   units = [ "versitygw-iam" "versitygw" "versitygw-reconcile" ];
   execStart = name: services.${name}.serviceConfig.ExecStart;
   firewall = ras01.networking.firewall;
-  hosts = [ "remilis" "forge01" "ras01" ];
+  hosts = [ "remilis" "forge01" "ras01" "grokbot" ];
   readResources = [
     "arn:aws:s3:::handoff" "arn:aws:s3:::handoff/*"
     "arn:aws:s3:::published" "arn:aws:s3:::published/*"
