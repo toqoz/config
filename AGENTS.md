@@ -6,10 +6,12 @@ This repo manages the machine environment with Nix, nix-darwin, and Home Manager
 
 Each tool's module owns its packages and settings. Host entry points select modules:
 
-- `home/base.nix` — shared development profile for both hosts
-- `hosts/<host>/default.nix` — host username, system, and Home Manager settings
+- `home/base.nix` — shared development profile for both darwin hosts
+- `home/linux-base.nix` — shared Home Manager profile for Linux hosts
+- `hosts/<host>/default.nix` — host username plus its system and Home Manager modules
 - `darwin/base.nix` — shared Darwin module list for both hosts
 - `darwin/apps/<app>.nix` — GUI app installation, settings, and app registration
+- `nixos/base.nix` — shared NixOS system settings for Linux hosts
 - `nixos/<module>/` — NixOS service modules, imported by Linux hosts such as ras01
 - `packages/` — custom Nix packages
 
@@ -18,7 +20,9 @@ Add shared tools through `home/base.nix`; keep host-specific additions in the ho
 | Change | Edit |
 |---|---|
 | zsh init, aliases, env vars, history | `home/zsh/default.nix` |
-| git global config | `home/git.nix` |
+| git global config | `home/git.nix` (darwin profile), `home/git-shared.nix` (values and wrapper) |
+| ras01 user tooling (git, gh, ghq) | `home/linux-base.nix`, `hosts/ras01/home.nix` |
+| ras01 system settings (direnv, nix features) | `hosts/ras01/system.nix`, `nixos/base.nix` |
 | Neovim packages, LSPs, extra tools | `home/neovim/default.nix` |
 | Shared CLI tools / remilis-only CLI tools | `home/base.nix` / `home/packages.nix` |
 | Claude Code settings and permissions | `home/agents/claude-code/` |
