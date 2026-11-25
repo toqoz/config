@@ -252,11 +252,18 @@ assert lib.assertMsg (
 assert lib.assertMsg (
   forgeSkills.enable
   && forgeSkills.catalog == remilisSkills.catalog
-  && forgeSkills.bundlePath == remilisSkills.bundlePath
   && forgeSkills.targets == remilisSkills.targets
-  && forgeSkills.targetBundlePaths == remilisSkills.targetBundlePaths
-  && forgeHome.home.activation.agent-skills.data == remilisHome.home.activation.agent-skills.data
-) "forge01 must deploy the same skill catalog, bundles, and targets as remilis";
+) "forge01 must deploy the same skill catalog and targets as remilis";
+assert lib.assertMsg (
+  lib.all (name:
+    let
+      render = skills: skills.skills.explicit.${name}.transform {
+        original = "@VGW_HOST@";
+        dependencies = { };
+      };
+    in render forgeSkills == "forge01" && render remilisSkills == "remilis"
+  ) [ "vgw-publish" "vgw-handoff" ]
+) "VersityGW skills must render each host's own IAM prefix";
 assert lib.assertMsg (
   forgeHome.programs.zsh.enable
   && forge.programs.zsh.enable

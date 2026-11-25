@@ -1,4 +1,4 @@
-{ lib, pkgs, vercel-agent-browser, t3-pstack, ... }:
+{ lib, pkgs, hostName, vercel-agent-browser, t3-pstack, ... }:
 let
   ketch = pkgs.callPackage ../../../packages/ketch.nix { };
   modern-web-guidance = pkgs.callPackage ../../../packages/modern-web-guidance.nix { };
@@ -62,6 +62,12 @@ in
 
   home.file.".agents/AGENTS.md".source = ../AGENTS.md;
 
+  home.file.".config/versitygw/config".text = ''
+    [profile ${hostName}]
+    region = us-east-1
+    endpoint_url = http://ras01:7070
+  '';
+
   programs.agent-skills = {
     enable = true;
     sources = {
@@ -87,17 +93,23 @@ in
       };
     };
     skills = {
+      enable = builtins.filter (name: !(builtins.elem name [ "vgw-publish" "vgw-handoff" ]))
+        (builtins.attrNames (lib.filterAttrs (_: type: type == "directory") (builtins.readDir ../skills)));
       enableAll = [
         "t3-pstack"
-        "local"
         "vercel"
         "ketch"
       ];
-      explicit.modern-web-guidance = {
+      explicit = lib.genAttrs [ "vgw-publish" "vgw-handoff" ] (name: {
+        from = "local";
+        path = name;
+        transform = { original, dependencies }:
+          builtins.replaceStrings [ "@VGW_HOST@" ] [ hostName ] original;
+      }) // { modern-web-guidance = {
         from = "googlechrome-modern-web-guidance";
         path = "modern-web-guidance";
         transform = modernWebGuidanceTransform;
-      };
+      }; };
     };
     targets.agents.enable = true;
     targets.claude.enable = true;

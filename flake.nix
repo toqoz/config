@@ -114,7 +114,7 @@
           nix store optimise
         '';
       };
-      mkDarwinHost = { username, darwinModule, homeModule }: nix-darwin.lib.darwinSystem {
+      mkDarwinHost = hostName: { username, darwinModule, homeModule }: nix-darwin.lib.darwinSystem {
         modules = [
           darwinModule
           sops-nix.darwinModules.sops
@@ -198,6 +198,7 @@
               android-nixpkgs.hmModule
             ];
             home-manager.extraSpecialArgs = {
+              inherit hostName;
               inherit llm-agents;
               inherit anthropic-skills;
               inherit t3-pstack;
@@ -309,7 +310,7 @@
             };
           };
 
-      darwinConfigurations = nixpkgs.lib.mapAttrs (_: mkDarwinHost) {
+      darwinConfigurations = nixpkgs.lib.mapAttrs mkDarwinHost {
         remilis = import ./hosts/remilis;
         forge01 = import ./hosts/forge01;
       };
