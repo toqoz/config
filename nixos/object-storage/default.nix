@@ -42,7 +42,13 @@ let
     Statement = [{
       Effect = "Allow";
       Action = policy.actions;
-      Resource = lib.concatMap (b: [ "arn:aws:s3:::${b}" "arn:aws:s3:::${b}/*" ]) policy.buckets;
+      Resource = lib.concatMap
+        (b:
+          if policy.prefixes == [ ] then
+            [ "arn:aws:s3:::${b}" "arn:aws:s3:::${b}/*" ]
+          else
+            map (prefix: "arn:aws:s3:::${b}/${prefix}*") policy.prefixes)
+        policy.buckets;
     }];
   };
   inlinePolicies = identity: lib.genAttrs identity.policies (name: policyDocument cfg.policies.${name});
@@ -161,6 +167,11 @@ in
         options = {
           buckets = mkOption { type = types.nonEmptyListOf bucketName; };
           actions = mkOption { type = types.nonEmptyListOf (types.strMatching "s3:[A-Za-z*]+"); };
+          prefixes = mkOption {
+            type = types.listOf (types.strMatching "[A-Za-z0-9._-]+/");
+            default = [ ];
+            description = "Literal host prefixes including the trailing slash. Nonempty values restrict resources to objects under those prefixes.";
+          };
         };
       });
       default = { };

@@ -90,6 +90,30 @@ Standalone IAM limits inline policies to 2048 bytes per user and 10240 bytes
 per role in total; evaluation fails before deployment if a declaration exceeds
 them.
 
+## Host prefixes
+
+The declared host users are `remilis`, `forge01`, and `ras01`. Each user can list
+and read all objects in both `handoff` and `published`, and can create, overwrite,
+copy, and delete objects only under its own `<host>/` prefix in each bucket.
+Multipart uploads are also restricted to that prefix. For example, `remilis`
+can write `s3://handoff/remilis/results.json` and read
+`s3://published/forge01/report.html`, but cannot modify the report.
+
+Issue and deliver a separate user's key to each host. These are IAM identities,
+not automatic checks of the client's hostname. A copied key grants the same
+permissions wherever it is used. Prefixes are S3 object names, so no directory
+provisioning is required. Existing objects are not moved.
+
+The legacy `agent` and `publisher` identities remain declared with their original
+policy names, now granting reads across both buckets. Reconciliation narrows
+those policies without replacing their access keys. Deleting the old declarations
+would retain their previous write grants. Extra undeclared policies are still
+kept and require inspection if present.
+
+The reusable policy option `prefixes = [ "remilis/" ];` emits only object
+resources under those literal prefixes. With the default empty list, policies
+retain the previous whole-bucket resource behavior.
+
 ## Access keys
 
 Keys are issued only by an explicit command on the host, as root:
