@@ -57,6 +57,18 @@ Run the command for this Mac from the integrated `main` checkout, not a worktree
 After the first activation, run `asdf install` to install the configured runtimes.
 Log into services separately on each Mac. Do not copy tokens, SSH private keys, or Keychain data.
 
+### Build ras01
+
+From the checkout on ras01, build the NixOS configuration without activation:
+
+```sh
+	nix run .#build-ras01
+```
+
+The app supports `aarch64-linux` and `aarch64-darwin`. Building from a Mac
+requires a Linux builder. Pass additional `nix build` options after `--`,
+for example `nix run .#build-ras01 -- --dry-run`.
+
 ## Update
 
 From the checkout on the target Mac, run `git pull --ff-only`, then the same `switch-<host>` command.
