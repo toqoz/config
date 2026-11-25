@@ -69,6 +69,16 @@ The app supports `aarch64-linux` and `aarch64-darwin`. Building from a Mac
 requires a Linux builder. Pass additional `nix build` options after `--`,
 for example `nix run .#build-ras01 -- --dry-run`.
 
+To build and apply the configuration on ras01, run from the integrated
+`main` checkout:
+
+```sh
+	nix run .#switch-ras01
+```
+
+This command uses sudo and changes the running system. The switch app is
+available on `aarch64-linux`.
+
 ## Update
 
 From the checkout on the target Mac, run `git pull --ff-only`, then the same `switch-<host>` command.
