@@ -92,7 +92,7 @@ def build_quotas(
     return quotas
 
 
-def build_tokens(day: list[dict], week: list[dict]) -> list[dict]:
+def build_tokens(day: list[dict], week: list[dict], cached: list[dict] | None = None) -> list[dict]:
     def totals(result: list[dict]) -> dict[tuple[str, str, str], float]:
         sums: dict[tuple[str, str, str], float] = {}
         for entry in result:
@@ -109,6 +109,7 @@ def build_tokens(day: list[dict], week: list[dict]) -> list[dict]:
         return sums
 
     day_totals, week_totals = totals(day), totals(week)
+    cached_totals = totals(cached or [])
     rows = []
     for key in set(day_totals) | set(week_totals):
         service, provider, model = key
@@ -119,6 +120,7 @@ def build_tokens(day: list[dict], week: list[dict]) -> list[dict]:
                 "model": model,
                 "tokens_1d": int(day_totals.get(key, 0)),
                 "tokens_7d": int(week_totals.get(key, 0)),
+                "cached_7d": int(cached_totals.get(key, 0)),
             }
         )
     rows.sort(key=lambda row: (-row["tokens_7d"], row["service"], row["provider"], row["model"]))
@@ -143,11 +145,15 @@ def collect(prometheus: str, now: float | None = None) -> dict:
     )
     day = query('sum by (service, provider, model) (tokens_window_total{window="1d"})')
     week = query('sum by (service, provider, model) (tokens_window_total{window="7d"})')
+    cached = query(
+        'sum by (service, provider, model) '
+        '(tokens_window_total{window="7d", kind="cache_read"})'
+    )
 
     return {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now)),
         "quotas": build_quotas(used, resets, observed, windows, now),
-        "tokens": {"windows": ["1d", "7d"], "rows": build_tokens(day, week)},
+        "tokens": {"windows": ["1d", "7d"], "rows": build_tokens(day, week, cached)},
     }
 
 

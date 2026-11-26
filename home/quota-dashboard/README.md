@@ -54,7 +54,7 @@ Gauges, all carrying `host_name` (OTel resource `host.name`) and
 | `quota_window_seconds` | `service`, `window`, optional `scope` | Nominal length of the window, so usage can be compared with elapsed time |
 | `quota_used_usd`, `quota_limit_usd` | `service`, `window` | Money-based windows |
 | `credit_balance_usd` | `service` | Purchased credit balance |
-| `tokens_window_total` | `service`, `provider`, `model`, `window` | Tokens in the last 24h (`1d`) or 7d (`7d`), computed from hourly buckets |
+| `tokens_window_total` | `service`, `provider`, `model`, `kind`, `window` | Tokens in the last 24h (`1d`) or 7d (`7d`) per kind, computed from hourly buckets |
 | `tokens_total` | `service`, `provider`, `model`, `kind` | Monotonic counter since the collector started, used for the hourly chart |
 | `collector_errors_total` | `source` | Cumulative read failures per source; persisted in `~/.local/state/quota-dashboard/collector-state.json` so a restart does not reset the counter |
 
@@ -151,7 +151,8 @@ curl -s --get http://localhost:3370/api/datasources/uid/prometheus/resources/api
 - Codex and Claude Code request logs may be pruned by the tools themselves;
   token counts only cover what is still on disk (up to a week).
 - Token counts are tokens processed, so cached input is counted each turn and
-  totals are much larger than billable tokens. `CLAUDE_CODE_ENABLE_TELEMETRY`
+  totals are much larger than billable tokens. The breakdown table and the API
+  report the cached share (`kind="cache_read"`) separately. `CLAUDE_CODE_ENABLE_TELEMETRY`
   plus cumulative temporality and Codex's `[otel]` tables are the next step.
 - The Claude OAuth usage endpoint and the OpenCode Go usage endpoint are not
   documented public APIs; a change on their side shows up as a stale value and

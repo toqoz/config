@@ -76,10 +76,13 @@ class TokenTest(unittest.TestCase):
             {"metric": {"service": "pi", "provider": "ollama", "model": "a"}, "value": [1, "100"]},
             {"metric": {"service": "codex", "provider": "openai", "model": "b"}, "value": [1, "200"]},
         ]
-        rows = api.build_tokens(day, week)
+        cached = [{"metric": {"service": "codex", "provider": "openai", "model": "b"}, "value": [1, "180"]}]
+        rows = api.build_tokens(day, week, cached)
         self.assertEqual([row["model"] for row in rows], ["b", "a"])
         self.assertEqual(rows[0]["tokens_1d"], 5)
         self.assertEqual(rows[0]["tokens_7d"], 200)
+        self.assertEqual(rows[0]["cached_7d"], 180)
+        self.assertEqual(rows[1]["cached_7d"], 0)
 
 
 if __name__ == "__main__":

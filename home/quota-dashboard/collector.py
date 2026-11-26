@@ -452,28 +452,31 @@ class Collector:
         # a full window of samples exists.
         for window, span in (("1d", 24 * 3600), ("7d", 7 * 24 * 3600)):
             since = self.now - span
-            totals: dict[tuple[str, str, str], int] = {}
+            totals: dict[tuple[str, str, str, str], int] = {}
             for hour, services in self.buckets.items():
                 if hour + 3600 <= since:
                     continue
                 for service, providers in services.items():
                     for provider, models in providers.items():
                         for model, kinds in models.items():
-                            key = (service, provider, model)
-                            totals[key] = totals.get(key, 0) + sum(kinds.values())
+                            for kind, value in kinds.items():
+                                key = (service, provider, model, kind)
+                                totals[key] = totals.get(key, 0) + value
             for service in self.tokens:
                 for provider, models in self.tokens[service].items():
                     for model in models:
-                        self.emit(
-                            "tokens_window_total",
-                            totals.get((service, provider, model), 0),
-                            {
-                                "service": service,
-                                "provider": provider,
-                                "model": model,
-                                "window": window,
-                            },
-                        )
+                        for kind in TOKEN_KINDS:
+                            self.emit(
+                                "tokens_window_total",
+                                totals.get((service, provider, model, kind), 0),
+                                {
+                                    "service": service,
+                                    "provider": provider,
+                                    "model": model,
+                                    "kind": kind,
+                                    "window": window,
+                                },
+                            )
 
     @staticmethod
     def _accumulate(store: dict, service: str, provider: str, model: str, deltas) -> None:

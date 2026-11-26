@@ -7,7 +7,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 38,
+  "version": 39,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -766,7 +766,7 @@
       "id": 20,
       "type": "table",
       "title": "トークン内訳 (ツール × プロバイダ × モデル)",
-      "description": "24時間と7日間のトークン数。処理したトークンなのでキャッシュ読み込みも含む。",
+      "description": "24時間と7日間のトークン数と、そのうちキャッシュ読み込みだった分。処理したトークンなのでキャッシュも含む。",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -801,6 +801,18 @@
           "instant": true,
           "range": false,
           "format": "table"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "label_join(sum by (service, provider, model) (tokens_window_total{window=\"7d\", kind=\"cache_read\"}), \"key\", \"|\", \"service\", \"provider\", \"model\")",
+          "legendFormat": "cached",
+          "instant": true,
+          "range": false,
+          "format": "table"
         }
       ],
       "transformations": [
@@ -816,25 +828,29 @@
           "options": {
             "excludeByName": {
               "key": true,
-              "Time 1": true,
-              "Time 2": true,
-              "service 2": true,
-              "provider 2": true,
-              "model 2": true,
               "__name__": true,
               "__name__ 1": true,
               "__name__ 2": true,
+              "__name__ 3": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "service 2": true,
+              "service 3": true,
+              "provider 2": true,
+              "provider 3": true,
+              "model 2": true,
+              "model 3": true,
               "host_name": true,
-              "host_name 1": true,
-              "service_name": true,
-              "service_name 1": true
+              "service_name": true
             },
             "indexByName": {
               "service 1": 0,
               "provider 1": 1,
               "model 1": 2,
               "Value #A": 3,
-              "Value #B": 4
+              "Value #B": 4,
+              "Value #C": 5
             }
           }
         },
@@ -846,7 +862,8 @@
               "provider 1": "プロバイダ",
               "model 1": "モデル",
               "Value #A": "24時間",
-              "Value #B": "7日間"
+              "Value #B": "7日間",
+              "Value #C": "うちキャッシュ(7日)"
             }
           }
         }
@@ -869,7 +886,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 120
+                "value": 110
               }
             ]
           },
@@ -881,7 +898,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 120
+                "value": 110
               }
             ]
           },
@@ -893,7 +910,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 240
+                "value": 200
               }
             ]
           },
@@ -905,7 +922,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 130
+                "value": 100
               },
               {
                 "id": "unit",
@@ -925,7 +942,27 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 130
+                "value": 100
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "うちキャッシュ(7日)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
               },
               {
                 "id": "unit",
